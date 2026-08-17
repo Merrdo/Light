@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Sessizliğin Sesi</title>
 
 <!-- PWA -->
@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FDFBF7">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sessizliğin Sesi">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -64,6 +64,15 @@
     min-height:100vh;
     touch-action:pan-x pan-y;
     transition:background 0.35s ease, color 0.35s ease;
+    overscroll-behavior:none;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar{
+    display:none;
+    width:0;
+    height:0;
   }
 
   /* ---- zoom / seçim / kopyalama engelleme ---- */
@@ -88,7 +97,7 @@
   /* ================= NAVBAR ================= */
   .nav-wrap{
     position:fixed;
-    top:1.5rem;
+    top:calc(1.5rem + env(safe-area-inset-top, 0px));
     left:50%;
     transform:translateX(-50%) translateY(-80px);
     z-index:50;
@@ -1378,12 +1387,12 @@
     color:var(--ink-soft);
     text-align:center;
   }
-  .takvim-secili-bilgi.degisti{
-    animation: takvimBilgiIn 0.4s cubic-bezier(.22,1,.36,1);
+  .takvim-secili-bilgi{
+    transition: opacity 0.18s ease, transform 0.18s ease;
   }
-  @keyframes takvimBilgiIn{
-    from{ opacity:0; transform:translateY(5px); filter:blur(2px); }
-    to{ opacity:1; transform:translateY(0); filter:blur(0); }
+  .takvim-secili-bilgi.gecici-gizli{
+    opacity:0;
+    transform:translateY(4px);
   }
 
   .takvim-ay-yil.degisti,
@@ -1635,6 +1644,11 @@
   </div>
 
 <script>
+  // Tarayıcının otomatik kaydırma konumu hatırlamasını engelle;
+  // uygulama her zaman en üstten, temiz bir durumda açılsın.
+  if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; }
+  window.scrollTo(0, 0);
+
   // Başlığı kelime kelime, gecikmeli olarak sahneye koy
   const text = "Sessizlik de bir dildir.";
   const h1 = document.getElementById('headline');
@@ -2113,16 +2127,27 @@
         return gunler;
       }
 
+      // Kullanıcı günleri hızlıca değiştirdiğinde (ör. art arda dokununca),
+      // metni her ara adımda animasyonla değiştirmeye çalışmak yetişemiyor
+      // ve "takılı" görünüyordu. Bunun yerine: seçim anında değişir, alt
+      // bilgi metni ise dokunuşlar durulduktan hemen sonra tek seferde,
+      // yumuşak bir geçişle güncellenir.
+      let bilgiZamanlayici = null;
       function bilgiGuncelle(tarih){
-        takvimSeciliBilgi.classList.remove('degisti');
-        void takvimSeciliBilgi.offsetWidth;
-        takvimSeciliBilgi.textContent = gunIsimleriUzun[tarih.getDay()] + ', ' + tarih.getDate() + ' ' + ayIsimleri[tarih.getMonth()] + ' ' + tarih.getFullYear();
-        takvimSeciliBilgi.classList.add('degisti');
+        clearTimeout(bilgiZamanlayici);
+        takvimSeciliBilgi.classList.add('gecici-gizli');
+        bilgiZamanlayici = setTimeout(function(){
+          takvimSeciliBilgi.textContent = gunIsimleriUzun[tarih.getDay()] + ', ' + tarih.getDate() + ' ' + ayIsimleri[tarih.getMonth()] + ' ' + tarih.getFullYear();
+          takvimSeciliBilgi.classList.remove('gecici-gizli');
+        }, 140);
       }
+
+      let gunButonlari = [];
 
       function ciz(){
         takvimAyYil.textContent = ayIsimleri[goruntulenenTarih.getMonth()] + ' ' + goruntulenenTarih.getFullYear();
         takvimGunler.innerHTML = '';
+        gunButonlari = [];
 
         ayGunleriniOlustur(goruntulenenTarih).forEach(function(gun){
           const btn = document.createElement('button');
@@ -2133,10 +2158,15 @@
           if(gun.seciliMi) btn.classList.add('secili');
           btn.textContent = gun.tarih.getDate();
           btn.addEventListener('click', function(){
+            // Tüm gridi yeniden çizmek yerine sadece seçim durumunu
+            // taşıyoruz: bu, art arda hızlı dokunuşlarda ana thread'i
+            // meşgul etmeyip anında tepki vermesini sağlıyor.
             seciliTarih = gun.tarih;
-            ciz();
+            gunButonlari.forEach(function(b){ b.classList.remove('secili'); });
+            btn.classList.add('secili');
             bilgiGuncelle(gun.tarih);
           });
+          gunButonlari.push(btn);
           takvimGunler.appendChild(btn);
         });
       }
@@ -2211,6 +2241,50 @@
       const activeLink = pill.querySelector('.nav-items a.active');
       if(activeLink){ moveHighlightTo(activeLink); }
     });
+
+    // Aktif sekmeye göre ilgili görünümü (yeniden) çiz
+    function showActiveView(){
+      const activeLink = pill.querySelector('.nav-items a.active') || navLinks[0];
+      if(!activeLink) return;
+      if(activeLink.dataset.view === 'home'){
+        showHomeView();
+      } else if(activeLink.dataset.view === 'gundelik'){
+        showGundelikView();
+      } else if(activeLink.dataset.view === 'denemeler'){
+        showDenemelerView();
+      } else if(activeLink.dataset.view === 'takvim'){
+        showTakvimView();
+      } else {
+        showEmptyView();
+      }
+      moveHighlightTo(activeLink);
+    }
+
+    // ---- Uygulama arka plandan öne geldiğinde temiz şekilde yeniden çiz ----
+    // iOS/Android, ana ekrandan tekrar açılan PWA'larda bazen bir önceki
+    // oturumun donmuş/yarım kalmış karesini kısa süreliğine gösterir.
+    // Sayfa tekrar görünür olduğunda görünümü sıfırdan çizip animasyonları
+    // baştan oynatıyoruz, böylece eski/karışık kare kullanıcıya yansımıyor.
+    let resumeTimer = null;
+    function uygulamaGeriDondu(){
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(function(){
+        window.scrollTo(0, 0);
+        if(isExpanded === false){
+          isExpanded = true;
+          pill.classList.remove('collapsed');
+        }
+        showActiveView();
+      }, 30);
+    }
+
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState === 'visible'){ uygulamaGeriDondu(); }
+    });
+    window.addEventListener('pageshow', function(e){
+      if(e.persisted){ uygulamaGeriDondu(); }
+    });
+    window.addEventListener('focus', uygulamaGeriDondu);
   })();
 
   // ================= TEMA (KOYU / AÇIK MOD) =================

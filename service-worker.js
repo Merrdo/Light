@@ -1,7 +1,7 @@
 // Sessizliğin Sesi - Service Worker
 // Sürüm numarasını her yayında (her index.html güncellemesinde) artırın,
 // aksi halde kullanıcılar eski önbellekten hizmet almaya devam eder.
-const CACHE_ADI = 'sessizlik-cache-v1';
+const CACHE_ADI = 'sessizlik-cache-v2';
 
 const ONBELLEK_DOSYALARI = [
   './',
