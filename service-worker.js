@@ -1,12 +1,15 @@
-// Sessizliğin Sesi - Service Worker
-// Basit "app shell" önbellekleme: uygulama çevrimdışıyken de açılabilsin diye
-// temel dosyaları önbelleğe alır. Sürüm numarasını her güncellemede artırın
-// (CACHE_NAME değişmezse tarayıcı eski dosyaları göstermeye devam edebilir).
+// ================= Sessizliğin Sesi — Service Worker =================
+// Bu dosya index.html ile aynı klasörde durmalı. GitHub Pages proje sayfası
+// olarak yayınlandığında (kullanici.github.io/repo-adi/) göreli yollar
+// otomatik doğru çalışır.
 
-const CACHE_NAME = 'sessizlik-cache-v1';
+// Sürüm numarasını her önemli güncellemede artır (örn: 'v2', 'v3'...).
+// Bu, eski önbelleğin temizlenip yeni dosyaların indirilmesini sağlar.
+const CACHE_VERSION = 'v1';
+const CACHE_NAME = 'sessizlik-' + CACHE_VERSION;
 
-// Service worker'ın bulunduğu klasöre göre göreli yollar (GitHub Pages proje
-// sayfalarında da doğru çalışması için mutlak yol kullanılmıyor).
+// Uygulama kabuğu: ilk yüklemede önbelleğe alınacak dosyalar.
+// Yol, service-worker.js'in bulunduğu klasöre göre görecelidir.
 const APP_SHELL = [
   './',
   './index.html',
@@ -15,63 +18,92 @@ const APP_SHELL = [
   './icons/icon-512.png'
 ];
 
-// Kurulum: app shell dosyalarını önbelleğe al
-self.addEventListener('install', function(event) {
+// ---- Kurulum: uygulama kabuğunu önbelleğe al ----
+self.addEventListener('install', function(event){
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(APP_SHELL);
-    }).then(function() {
+    caches.open(CACHE_NAME).then(function(cache){
+      // addAll bir tanesi bile başarısız olursa tamamı iptal olur;
+      // bu yüzden dosyaları tek tek, hataları yutarak ekliyoruz.
+      return Promise.all(
+        APP_SHELL.map(function(url){
+          return cache.add(url).catch(function(err){
+            console.log('Önbelleğe alınamadı:', url, err);
+          });
+        })
+      );
+    }).then(function(){
       return self.skipWaiting();
     })
   );
 });
 
-// Aktivasyon: eski sürüm önbelleklerini temizle
-self.addEventListener('activate', function(event) {
+// ---- Aktifleşme: eski sürüm önbelleklerini temizle ----
+self.addEventListener('activate', function(event){
   event.waitUntil(
-    caches.keys().then(function(keys) {
+    caches.keys().then(function(keys){
       return Promise.all(
-        keys
-          .filter(function(key) { return key !== CACHE_NAME; })
-          .map(function(key) { return caches.delete(key); })
+        keys.filter(function(key){
+          return key.indexOf('sessizlik-') === 0 && key !== CACHE_NAME;
+        }).map(function(key){
+          return caches.delete(key);
+        })
       );
-    }).then(function() {
+    }).then(function(){
       return self.clients.claim();
     })
   );
 });
 
-// Fetch stratejisi:
-// - Sayfa gezinmeleri (navigation): önce ağ, olmazsa önbellekten index.html
-// - Diğer istekler (css/js/img vb. bu proje tek dosya olduğundan çoğunlukla
-//   aynı index.html içindeki gömülü kaynaklar): önce önbellek, olmazsa ağ
-self.addEventListener('fetch', function(event) {
+// ---- İstekleri yakala ----
+// Sayfa gezinmeleri (navigation): önce ağ, olmazsa önbellekteki index.html.
+// Böylece internet varken her zaman en güncel sürüm gösterilir; internet
+// yokken de uygulama açılabilir (gerçek bir uygulama gibi çalışır).
+// Diğer statik dosyalar (css/js index.html içinde gömülü, ikonlar vb.):
+// önce önbellek, olmazsa ağ (cache-first) — hızlı açılış için.
+self.addEventListener('fetch', function(event){
   const req = event.request;
 
-  if (req.mode === 'navigate') {
+  // Sadece GET isteklerini ele al; POST vb. istekleri olduğu gibi geçir.
+  if(req.method !== 'GET'){ return; }
+
+  // Farklı origin'lere giden istekleri (varsa harici kaynaklar) servis
+  // çalışanı dışında bırak, tarayıcının normal davranışına bırak.
+  const url = new URL(req.url);
+  if(url.origin !== self.location.origin){ return; }
+
+  const isNavigation = req.mode === 'navigate' ||
+    (req.method === 'GET' && req.headers.get('accept') && req.headers.get('accept').indexOf('text/html') !== -1);
+
+  if(isNavigation){
     event.respondWith(
-      fetch(req).catch(function() {
-        return caches.match('./index.html');
+      fetch(req).then(function(response){
+        // Başarılı ağ yanıtını önbelleğe yaz (bir sonraki çevrimdışı açılış için).
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(function(cache){ cache.put(req, clone); });
+        return response;
+      }).catch(function(){
+        // Ağ yoksa önbellekten dön; o da yoksa index.html'e düş.
+        return caches.match(req).then(function(cached){
+          return cached || caches.match('./index.html');
+        });
       })
     );
     return;
   }
 
+  // Statik dosyalar için cache-first, arka planda güncelle (stale-while-revalidate).
   event.respondWith(
-    caches.match(req).then(function(cached) {
-      if (cached) return cached;
-      return fetch(req).then(function(res) {
-        // Başarılı GET isteklerini de önbelleğe ekle (opsiyonel, sessizce başarısız olabilir)
-        if (req.method === 'GET' && res && res.status === 200) {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then(function(cache) {
-            cache.put(req, resClone);
-          });
+    caches.match(req).then(function(cached){
+      const networkFetch = fetch(req).then(function(response){
+        if(response && response.status === 200){
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache){ cache.put(req, clone); });
         }
-        return res;
-      }).catch(function() {
-        // Ağ da önbellek de yoksa: navigation dışı isteklerde sessizce başarısız ol
+        return response;
+      }).catch(function(){
+        return cached;
       });
+      return cached || networkFetch;
     })
   );
 });
