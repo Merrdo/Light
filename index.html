@@ -1376,6 +1376,10 @@
 
   .deneme-card{
     position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
     text-align:left;
     padding:1.6rem 1.5rem;
     border:1px solid var(--line);
@@ -1385,6 +1389,10 @@
     opacity:0;
     transform:translateY(18px);
     transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .deneme-card-left{
+    min-width:0;
+    flex:1 1 auto;
   }
   .deneme-card.animate{
     /* Giriş animasyonu bittikten sonra opacity/transform'un statik olarak
@@ -1418,13 +1426,6 @@
     line-height:1.35;
     color:var(--ink);
   }
-  .deneme-card-sub{
-    margin-top:0.6rem;
-    font-size:0.85rem;
-    font-style:italic;
-    line-height:1.6;
-    color:var(--ink-soft);
-  }
   .deneme-card-meta{
     margin-top:1.1rem;
     font-family:"Helvetica Neue",Arial,sans-serif;
@@ -1432,6 +1433,39 @@
     letter-spacing:0.05em;
     color:var(--ink-soft);
     opacity:0.75;
+  }
+
+  .deneme-card-net{
+    flex:0 0 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    text-align:right;
+    gap:0.25rem;
+    padding-left:0.75rem;
+  }
+  .deneme-card-net-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:1.3rem;
+    font-weight:600;
+    line-height:1.1;
+    color:var(--ink);
+  }
+  .deneme-card-net-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.58rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .deneme-card-net-detay{
+    margin-top:0.25rem;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    gap:0.5rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.64rem;
   }
 
   .deneme-card-new{
@@ -2627,15 +2661,40 @@
       card.style.setProperty('--jiggle-derece', (0.5 + Math.random() * 0.6).toFixed(2) + 'deg');
       card.style.setProperty('--jiggle-suresi', (0.24 + Math.random() * 0.14).toFixed(2) + 's');
       card.style.setProperty('--jiggle-gecikme', (Math.random() * 0.25).toFixed(2) + 's');
+      const toplam = denemeToplamHesapla(veri);
       card.innerHTML =
-        '<span class="deneme-card-eyebrow">' + veri.alan + '</span>' +
-        '<div class="deneme-card-title">' + veri.isim.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
-        '<p class="deneme-card-sub">Yeni eklenen deneme. İçeriğini eklemeye hazır.</p>' +
-        '<div class="deneme-card-meta">' + formatTarih(veri.tarih) + '</div>' +
+        '<div class="deneme-card-left">' +
+          '<span class="deneme-card-eyebrow">' + veri.alan + '</span>' +
+          '<div class="deneme-card-title">' + veri.isim.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
+          '<div class="deneme-card-meta">' + formatTarih(veri.tarih) + '</div>' +
+        '</div>' +
+        '<div class="deneme-card-net">' +
+          '<span class="deneme-card-net-sayi" data-net-sayi>' + denemeNetMetni(toplam.net) + '</span>' +
+          '<span class="deneme-card-net-etiket">Toplam Net</span>' +
+          '<div class="deneme-card-net-detay">' +
+            '<span class="net-rozet net-rozet-dogru" data-net-dogru><b>' + toplam.dogru + '</b> Doğru</span>' +
+            '<span class="net-rozet net-rozet-yanlis" data-net-yanlis><b>' + toplam.yanlis + '</b> Yanlış</span>' +
+            '<span class="net-rozet net-rozet-bos" data-net-bos><b>' + toplam.bos + '</b> Boş</span>' +
+          '</div>' +
+        '</div>' +
         '<button type="button" class="deneme-card-sil" aria-label="Denemeyi sil">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
         '</button>';
       return card;
+    }
+
+    // Bir deneme kartındaki toplam net / doğru / yanlış / boş özetini günceller.
+    function denemeKartNetGuncelle(card, veri){
+      if(!card) return;
+      const toplam = denemeToplamHesapla(veri);
+      const sayiEl = card.querySelector('[data-net-sayi]');
+      const dogruEl = card.querySelector('[data-net-dogru] b');
+      const yanlisEl = card.querySelector('[data-net-yanlis] b');
+      const bosEl = card.querySelector('[data-net-bos] b');
+      if(sayiEl) sayiEl.textContent = denemeNetMetni(toplam.net);
+      if(dogruEl) dogruEl.textContent = String(toplam.dogru);
+      if(yanlisEl) yanlisEl.textContent = String(toplam.yanlis);
+      if(bosEl) bosEl.textContent = String(toplam.bos);
     }
 
     function denemeIdUret(){
@@ -2888,6 +2947,10 @@
       sayacYaz(denemeToplamDogruEl, String(t.dogru));
       sayacYaz(denemeToplamYanlisEl, String(t.yanlis));
       sayacYaz(denemeToplamBosEl, String(t.bos));
+      if(denemeAktifId){
+        const card = denemeGridEl.querySelector('.deneme-card[data-deneme-id="' + denemeAktifId + '"]');
+        if(card) denemeKartNetGuncelle(card, veri);
+      }
     }
 
     function denemeKaynaklariGuncelle(veri){
