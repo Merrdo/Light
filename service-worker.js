@@ -3,7 +3,7 @@
 // temel dosyaları önbelleğe alır. Sürüm numarasını her güncellemede artırın
 // (CACHE_NAME değişmezse tarayıcı eski dosyaları göstermeye devam edebilir).
 
-const CACHE_NAME = 'sessizlik-cache-v2';
+const CACHE_NAME = 'sessizlik-cache-v1';
 
 // Service worker'ın bulunduğu klasöre göre göreli yollar (GitHub Pages proje
 // sayfalarında da doğru çalışması için mutlak yol kullanılmıyor).
