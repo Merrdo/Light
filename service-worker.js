@@ -1,9 +1,13 @@
 // Sessizliğin Sesi - Service Worker
-// Sürüm numarasını her yayında (her index.html güncellemesinde) artırın,
-// aksi halde kullanıcılar eski önbellekten hizmet almaya devam eder.
-const CACHE_ADI = 'sessizlik-cache-v2';
+// Basit "app shell" önbellekleme: uygulama çevrimdışıyken de açılabilsin diye
+// temel dosyaları önbelleğe alır. Sürüm numarasını her güncellemede artırın
+// (CACHE_NAME değişmezse tarayıcı eski dosyaları göstermeye devam edebilir).
 
-const ONBELLEK_DOSYALARI = [
+const CACHE_NAME = 'sessizlik-cache-v1';
+
+// Service worker'ın bulunduğu klasöre göre göreli yollar (GitHub Pages proje
+// sayfalarında da doğru çalışması için mutlak yol kullanılmıyor).
+const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
@@ -11,40 +15,42 @@ const ONBELLEK_DOSYALARI = [
   './icons/icon-512.png'
 ];
 
-// Kurulum: temel dosyaları önbelleğe al
-self.addEventListener('install', function(event){
+// Kurulum: app shell dosyalarını önbelleğe al
+self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.open(CACHE_ADI).then(function(cache){
-      return cache.addAll(ONBELLEK_DOSYALARI);
+    caches.open(CACHE_NAME).then(function(cache) {
+      return cache.addAll(APP_SHELL);
+    }).then(function() {
+      return self.skipWaiting();
     })
   );
-  self.skipWaiting();
 });
 
-// Etkinleştirme: eski sürüm önbelleklerini temizle
-self.addEventListener('activate', function(event){
+// Aktivasyon: eski sürüm önbelleklerini temizle
+self.addEventListener('activate', function(event) {
   event.waitUntil(
-    caches.keys().then(function(anahtarlar){
+    caches.keys().then(function(keys) {
       return Promise.all(
-        anahtarlar
-          .filter(function(ad){ return ad !== CACHE_ADI; })
-          .map(function(ad){ return caches.delete(ad); })
+        keys
+          .filter(function(key) { return key !== CACHE_NAME; })
+          .map(function(key) { return caches.delete(key); })
       );
+    }).then(function() {
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
 });
 
-// İstekleri karşıla: önce ağ, başarısız olursa önbellek (index.html için),
-// diğer dosyalarda önce önbellek, yoksa ağdan al ve önbelleğe ekle.
-self.addEventListener('fetch', function(event){
-  const istek = event.request;
+// Fetch stratejisi:
+// - Sayfa gezinmeleri (navigation): önce ağ, olmazsa önbellekten index.html
+// - Diğer istekler (css/js/img vb. bu proje tek dosya olduğundan çoğunlukla
+//   aynı index.html içindeki gömülü kaynaklar): önce önbellek, olmazsa ağ
+self.addEventListener('fetch', function(event) {
+  const req = event.request;
 
-  if(istek.method !== 'GET'){ return; }
-
-  if(istek.mode === 'navigate'){
+  if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(istek).catch(function(){
+      fetch(req).catch(function() {
         return caches.match('./index.html');
       })
     );
@@ -52,18 +58,19 @@ self.addEventListener('fetch', function(event){
   }
 
   event.respondWith(
-    caches.match(istek).then(function(onbellekYaniti){
-      if(onbellekYaniti){ return onbellekYaniti; }
-      return fetch(istek).then(function(agYaniti){
-        if(agYaniti && agYaniti.status === 200 && agYaniti.type === 'basic'){
-          const kopya = agYaniti.clone();
-          caches.open(CACHE_ADI).then(function(cache){
-            cache.put(istek, kopya);
+    caches.match(req).then(function(cached) {
+      if (cached) return cached;
+      return fetch(req).then(function(res) {
+        // Başarılı GET isteklerini de önbelleğe ekle (opsiyonel, sessizce başarısız olabilir)
+        if (req.method === 'GET' && res && res.status === 200) {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(req, resClone);
           });
         }
-        return agYaniti;
-      }).catch(function(){
-        // Çevrimdışı ve önbellekte yoksa sessizce başarısız ol
+        return res;
+      }).catch(function() {
+        // Ağ da önbellek de yoksa: navigation dışı isteklerde sessizce başarısız ol
       });
     })
   );

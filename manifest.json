@@ -1,7 +1,7 @@
 {
   "name": "Sessizliğin Sesi",
-  "short_name": "Sessizlik",
-  "description": "Sessizliğin Sesi — günlük tutma ve iç dünyanla baş başa kalma uygulaması",
+  "short_name": "Sessizliğin Sesi",
+  "description": "Sessizliğin Sesi uygulaması",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,6 +9,7 @@
   "background_color": "#FDFBF7",
   "theme_color": "#FDFBF7",
   "lang": "tr",
+  "dir": "ltr",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -17,16 +18,16 @@
       "purpose": "any"
     },
     {
-      "src": "icons/icon-192-maskable.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-512-maskable.png",
