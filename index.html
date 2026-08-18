@@ -1007,23 +1007,6 @@
     font-style:italic;
     color:var(--ink-soft);
   }
-  .kaynak-dosya-onizleme{
-    display:block;
-    margin-top:0.6rem;
-    max-width:100%;
-    max-height:180px;
-    border-radius:8px;
-    border:1px solid var(--line);
-    object-fit:contain;
-  }
-  .kaynak-dosya-secim{
-    display:flex;
-    gap:0.5rem;
-    flex-wrap:wrap;
-  }
-  .kaynak-dosya-secim .modal-btn{
-    flex:1 1 auto;
-  }
 
   /* ================= DOSYA GÖRÜNTÜLEYİCİ (yüklenen PNG / PDF'i uygulama içinde açar) ================= */
   .dosya-goruntule-overlay{
@@ -2333,18 +2316,9 @@
       </div>
 
       <div class="modal-field" id="kaynakDosyaAlani" style="display:none">
-        <label>Dosya seç</label>
-        <div class="kaynak-dosya-secim">
-          <button type="button" class="modal-btn" id="kaynakGaleriBtn">Galeriden Görsel Seç</button>
-          <button type="button" class="modal-btn" id="kaynakPdfBtn">PDF Seç</button>
-        </div>
-        <!-- Görsel için ayrı input: capture eklenmediğinden mobilde galeri/fotoğraf -->
-        <!-- kütüphanesi doğrudan açılır (PDF ile karışık accept, bazı tarayıcılarda -->
-        <!-- galeriyi gizleyip yalnızca 'Dosyalar' uygulamasını gösterebiliyor). -->
-        <input type="file" id="kaynakGaleriInput" accept="image/*" style="display:none">
-        <input type="file" id="kaynakPdfInput" accept="application/pdf,.pdf" style="display:none">
+        <label for="kaynakDosyaInput">Dosya seç</label>
+        <input type="file" id="kaynakDosyaInput" accept=".pdf,image/*">
         <span class="kaynak-dosya-adi" id="kaynakDosyaAdi"></span>
-        <img class="kaynak-dosya-onizleme" id="kaynakDosyaOnizleme" style="display:none" alt="Seçilen görsel önizlemesi">
       </div>
 
       <div class="modal-actions">
@@ -3567,34 +3541,12 @@
       const linkAlani = document.getElementById('kaynakLinkAlani');
       const linkInput = document.getElementById('kaynakLinkInput');
       const dosyaAlani = document.getElementById('kaynakDosyaAlani');
-      const galeriBtn = document.getElementById('kaynakGaleriBtn');
-      const pdfBtn = document.getElementById('kaynakPdfBtn');
-      const galeriInput = document.getElementById('kaynakGaleriInput');
-      const pdfInput = document.getElementById('kaynakPdfInput');
+      const dosyaInput = document.getElementById('kaynakDosyaInput');
       const dosyaAdiEl = document.getElementById('kaynakDosyaAdi');
-      const dosyaOnizlemeEl = document.getElementById('kaynakDosyaOnizleme');
 
       let mod = 'video'; // 'video' | 'cevap'
       let seciliTur = 'link';
       let seciliDosya = null;
-      let onizlemeUrl = null;
-
-      function onizlemeTemizle(){
-        if(onizlemeUrl){ URL.revokeObjectURL(onizlemeUrl); onizlemeUrl = null; }
-        dosyaOnizlemeEl.style.display = 'none';
-        dosyaOnizlemeEl.src = '';
-      }
-
-      function dosyaSecildi(dosya){
-        seciliDosya = dosya || null;
-        dosyaAdiEl.textContent = seciliDosya ? seciliDosya.name : '';
-        onizlemeTemizle();
-        if(seciliDosya && seciliDosya.type && seciliDosya.type.indexOf('image/') === 0){
-          onizlemeUrl = URL.createObjectURL(seciliDosya);
-          dosyaOnizlemeEl.src = onizlemeUrl;
-          dosyaOnizlemeEl.style.display = '';
-        }
-      }
 
       function turSec(tur){
         seciliTur = tur;
@@ -3611,16 +3563,9 @@
         b.addEventListener('click', function(){ turSec(b.dataset.tur); });
       });
 
-      galeriBtn.addEventListener('click', function(){ galeriInput.click(); });
-      pdfBtn.addEventListener('click', function(){ pdfInput.click(); });
-
-      galeriInput.addEventListener('change', function(){
-        dosyaSecildi(galeriInput.files && galeriInput.files[0]);
-        pdfInput.value = '';
-      });
-      pdfInput.addEventListener('change', function(){
-        dosyaSecildi(pdfInput.files && pdfInput.files[0]);
-        galeriInput.value = '';
+      dosyaInput.addEventListener('change', function(){
+        seciliDosya = (dosyaInput.files && dosyaInput.files[0]) ? dosyaInput.files[0] : null;
+        dosyaAdiEl.textContent = seciliDosya ? seciliDosya.name : '';
       });
 
       function openModal(hangiMod){
@@ -3630,10 +3575,8 @@
 
         linkInput.value = '';
         seciliDosya = null;
-        galeriInput.value = '';
-        pdfInput.value = '';
+        dosyaInput.value = '';
         dosyaAdiEl.textContent = '';
-        onizlemeTemizle();
 
         if(mod === 'video'){
           eyebrowEl.textContent = 'Video Çözüm';
