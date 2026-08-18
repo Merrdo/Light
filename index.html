@@ -18,13 +18,20 @@
 
 <script>
   // Koyu mod tercihini stiller çizilmeden önce uygula (yanıp sönmeyi engeller)
+  // Not: meta[name="theme-color"] da burada, aynı anda güncelleniyor; aksi
+  // halde durum çubuğu/adres çubuğu bir an için eski (açık) renkte kalıp
+  // sayfanın en üstünde uygulamayla bütünleşmeyen siyah/uyumsuz bir şerit
+  // gibi görünebiliyordu.
   (function(){
     try{
       var kayitli = localStorage.getItem('sessizlik-tema');
       var sistemKoyu = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if(kayitli === 'dark' || (kayitli !== 'light' && sistemKoyu)){
+      var koyuMu = kayitli === 'dark' || (kayitli !== 'light' && sistemKoyu);
+      if(koyuMu){
         document.documentElement.setAttribute('data-theme', 'dark');
       }
+      var temaMeta = document.querySelector('meta[name="theme-color"]');
+      if(temaMeta){ temaMeta.setAttribute('content', koyuMu ? '#000000' : '#FDFBF7'); }
     }catch(e){}
   })();
 
@@ -84,6 +91,14 @@
     transition:background 0.35s ease, color 0.35s ease;
     scroll-behavior:smooth;
     -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar{
+    display:none;
+    width:0;
+    height:0;
   }
 
   /* ---- zoom / seçim / kopyalama engelleme ---- */
@@ -703,9 +718,11 @@
     cursor:pointer;
     transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
   }
-  .dock-btn:hover{
-    background:rgba(var(--accent-rgb),0.12);
-    transform:translateY(-3px) scale(1.08);
+  @media (hover:hover) and (pointer:fine){
+    .dock-btn:hover{
+      background:rgba(var(--accent-rgb),0.12);
+      transform:translateY(-3px) scale(1.08);
+    }
   }
   .dock-btn:active{
     transform:translateY(-1px) scale(0.96);
@@ -732,9 +749,11 @@
     pointer-events:none;
     transition: opacity 0.2s ease, transform 0.2s ease;
   }
-  .dock-btn:hover .dock-tip{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
+  @media (hover:hover) and (pointer:fine){
+    .dock-btn:hover .dock-tip{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
   }
 
   .gundelik-sub{
@@ -2236,6 +2255,41 @@
       h1.appendChild(document.createTextNode('\u00A0'));
     }
   });
+
+  // ================= ANA SAYFA GİRİŞ ANİMASYONU GÜVENLİK AĞI =================
+  // Uygulama arka plandan dönerken ya da ikinci kez açılırken (bfcache / PWA
+  // yeniden etkinleşmesi) CSS animation-delay zamanlayıcıları bazen hiç
+  // tetiklenmeden takılı kalabiliyor; bu da ana sayfanın eksik (bazı
+  // öğeler görünmeden) açılmasına yol açıyor. Aşağıdaki güvenlik ağı, giriş
+  // animasyonunun normalde tamamlanmış olması gereken süreden sonra hâlâ
+  // görünmeyen bir öğe kalmışsa onu zorla son (görünür) haline getirir.
+  (function(){
+    function anaSayfaHeroyuGorunurYap(){
+      const hedefler = document.querySelectorAll(
+        '#viewHome .eyebrow, #viewHome .rule, #viewHome h1 .word, #viewHome .sub, #viewHome .quote-mark, #viewHome .signature, #pageFooter'
+      );
+      hedefler.forEach(function(el){
+        el.style.animation = 'none';
+        el.style.opacity = '1';
+        el.style.filter = 'none';
+        el.style.transform = 'none';
+      });
+      const kural = document.querySelector('#viewHome .rule');
+      if(kural){ kural.style.width = '64px'; }
+    }
+
+    // Sayfa arka plan belleğinden (bfcache) geri geldiğinde animasyonları
+    // beklemeden doğrudan tamamlanmış haline getir.
+    window.addEventListener('pageshow', function(e){
+      if(e.persisted){ anaSayfaHeroyuGorunurYap(); }
+    });
+
+    // Normal koşullarda giriş animasyonu ~3.5sn içinde biter; bu süre
+    // geçtiğinde hâlâ görünmeyen bir öğe varsa (takılı kalmışsa) zorla
+    // görünür yapılır. Animasyon zaten tamamlanmışsa bu işlemin görsel
+    // bir etkisi olmaz.
+    setTimeout(anaSayfaHeroyuGorunurYap, 3500);
+  })();
 
   // ================= NAVBAR SCROLL BEHAVIOR =================
   (function(){
