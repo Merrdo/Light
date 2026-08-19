@@ -253,7 +253,7 @@
   .nav-pill.collapsed .nav-items a{
     opacity:0;
     transform:translateX(-20px) scale(0.95);
-    transition-delay: calc((4 - var(--i, 0)) * 0.04s);
+    transition-delay: calc((5 - var(--i, 0)) * 0.04s);
   }
 
   .nav-menu-icon{
@@ -939,6 +939,12 @@
     line-height:1.6;
     color:var(--ink-soft);
   }
+  .sayac-baslat-tarih{
+    margin-top:0.7rem;
+    font-size:0.88rem;
+    font-style:italic;
+    color:var(--ink-soft);
+  }
 
   .modal-close{
     position:absolute;
@@ -1210,6 +1216,127 @@
     background:var(--accent);
     box-shadow:none;
   }
+
+  /* ---- Saat için mini zaman seçici ---- */
+  .mini-zaman{
+    position:fixed;
+    inset:0;
+    z-index:200;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:6vw;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    opacity:0;
+  }
+  .mini-zaman.acik{
+    display:flex;
+    animation: miniTakvimOverlayIn 0.22s ease forwards;
+  }
+  .mini-zaman-card{
+    width:100%;
+    max-width:260px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:0.8rem;
+    box-shadow:0 26px 60px rgba(var(--shadow-rgb),0.5);
+    padding:1.1rem 1rem;
+    transform:translateY(18px) scale(0.92);
+    opacity:0;
+  }
+  .mini-zaman.acik .mini-zaman-card{
+    animation: miniTakvimCardIn 0.36s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.05s;
+  }
+  .mini-zaman-baslik{
+    display:block;
+    text-align:center;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.82rem;
+    letter-spacing:0.02em;
+    color:var(--ink);
+    margin-bottom:0.7rem;
+  }
+  .mini-zaman-kolonlar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.4rem;
+  }
+  .mini-zaman-iki-nokta{
+    font-family:inherit;
+    font-size:1rem;
+    color:var(--ink-soft);
+    padding-bottom:0.1rem;
+  }
+  .mini-zaman-kolon{
+    width:4.2rem;
+    height:11rem;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:0.15rem;
+    scroll-snap-type:y mandatory;
+    padding:4.4rem 0;
+    scrollbar-width:none;
+  }
+  .mini-zaman-kolon::-webkit-scrollbar{ display:none; }
+  .mini-zaman-item{
+    flex-shrink:0;
+    scroll-snap-align:center;
+    border:none;
+    background:transparent;
+    border-radius:0.4rem;
+    font-family:inherit;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+    padding:0.42rem 0;
+    text-align:center;
+    cursor:pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .mini-zaman-item:hover{
+    background:rgba(var(--accent-rgb),0.1);
+    color:var(--ink);
+  }
+  .mini-zaman-item.secili{
+    background:var(--ink);
+    color:var(--bg);
+    font-weight:600;
+  }
+  .mini-zaman-aksiyonlar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:0.9rem;
+    padding-top:0.8rem;
+    border-top:1px solid var(--line);
+  }
+  .mini-zaman-temizle{
+    border:none;
+    background:transparent;
+    font-family:inherit;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:0.3rem 0.2rem;
+    transition: color 0.2s ease;
+  }
+  .mini-zaman-temizle:hover{ color:var(--ink); }
+  .mini-zaman-tamam{
+    border:none;
+    background:transparent;
+    font-family:inherit;
+    font-size:0.85rem;
+    font-weight:600;
+    color:var(--accent);
+    cursor:pointer;
+    padding:0.3rem 0.4rem;
+    transition: opacity 0.2s ease;
+  }
+  .mini-zaman-tamam:hover{ opacity:0.75; }
 
   .view-denemeler{
     position:relative;
@@ -2010,12 +2137,444 @@
     to{ opacity:1; transform:translateX(0); }
   }
 
-  .stage, .view-empty, .view-gundelik, .view-denemeler, .view-takvim, .view-deneme-detay{
+  .stage, .view-empty, .view-gundelik, .view-denemeler, .view-takvim, .view-deneme-detay, .view-sayac, .view-sayac-listem{
     animation: viewFade 0.5s ease forwards;
   }
   @keyframes viewFade{
     from{ opacity:0; }
     to{ opacity:1; }
+  }
+
+  /* ================= GERİ SAYIM (SAYAÇ) GÖRÜNÜMÜ ================= */
+  .view-sayac{
+    position:relative;
+    z-index:1;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    max-width:560px;
+  }
+  .view-sayac.active{ display:flex; }
+
+  .sayac-heading{
+    text-align:center;
+    margin-bottom:2.2rem;
+  }
+  .sayac-eyebrow{
+    display:inline-block;
+    font-size:0.72rem;
+    letter-spacing:0.35em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    opacity:0;
+  }
+  .sayac-eyebrow.animate{
+    animation: rise 0.8s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .sayac-title{
+    margin-top:0.9rem;
+    font-size:clamp(1.8rem, 4.5vw, 2.6rem);
+    font-weight:400;
+    opacity:0;
+    filter:blur(6px);
+    transform:translateY(16px);
+  }
+  .sayac-title.animate{
+    animation: reveal 0.9s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.15s;
+  }
+
+  /* ---- kurulum kartı: hedef tarih henüz belirlenmemişse ---- */
+  .sayac-kur-card{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:0.9rem;
+    background:rgba(var(--bg-rgb),0.7);
+    padding:2rem 1.8rem 1.8rem;
+    opacity:0;
+    transform:translateY(18px);
+  }
+  .sayac-kur-card.animate{
+    animation: cardIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.25s;
+  }
+  .sayac-kur-aciklama{
+    font-size:0.92rem;
+    font-style:italic;
+    color:var(--ink-soft);
+    line-height:1.6;
+    text-align:center;
+    margin-bottom:0.6rem;
+  }
+  .sayac-kur-btn{
+    margin-top:1.9rem;
+    width:100%;
+    padding:0.85rem 1rem;
+    text-align:center;
+  }
+
+  /* ---- geri sayım kartı: hedef belirlendiğinde (yüklenen tasarım örneğinden) ---- */
+  .sayac-card{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    opacity:0;
+    transform:translateY(18px);
+  }
+  .sayac-card.animate{
+    animation: cardIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.25s;
+  }
+
+  .sayac-ust-cizgi{
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    width:100%;
+    margin-bottom:2.1rem;
+  }
+  .sayac-ust-cizgi::before,
+  .sayac-ust-cizgi::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .sayac-etiket-ust{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .sayac-hedef-baslik{
+    font-size:1.5rem;
+    font-style:italic;
+    color:var(--ink);
+    text-align:center;
+    margin-bottom:0.35rem;
+  }
+  .sayac-hedef-tarih{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-bottom:2.4rem;
+  }
+
+  .sayac-satir{
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    width:100%;
+  }
+  .sayac-birim{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.5rem;
+    padding:0 1.15rem;
+  }
+  .sayac-ayrac{
+    width:1px;
+    align-self:stretch;
+    background:var(--line);
+    margin-top:0.3rem;
+  }
+  .sayac-sayi{
+    font-size:clamp(2.4rem, 9vw, 3.4rem);
+    line-height:1;
+    color:var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .sayac-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.62rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+
+  /* saniye birimi: soluklaşma olmadan sabit mavi renk */
+  .sayac-birim.sayac-saniye .sayac-sayi{
+    color:var(--accent);
+  }
+
+  /* dakikanın geçen kısmını sessizce gösteren ince, akan çizgi */
+  .sayac-nefes-alan{
+    width:100%;
+    height:1px;
+    background:var(--line);
+    margin-top:2.3rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .sayac-nefes-cizgi{
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:0%;
+    background:var(--accent);
+    transition:width 1s linear;
+  }
+  .sayac-nefes-yazi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.64rem;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:0.7rem;
+  }
+
+  .sayac-bitti-mesaji{
+    margin-top:1.7rem;
+    text-align:center;
+    font-size:0.95rem;
+    font-style:italic;
+    color:var(--accent);
+    opacity:0;
+    animation: rise 0.6s ease forwards;
+  }
+
+  .sayac-duzenle-btn{
+    margin:1.9rem auto 0;
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.74rem;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    padding:0.4rem 0.7rem;
+    border-radius:0.4rem;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+  .sayac-duzenle-btn:hover{
+    color:var(--ink);
+    background:rgba(var(--accent-rgb),0.1);
+  }
+  .sayac-duzenle-btn svg{ width:0.85rem; height:0.85rem; }
+
+  /* ---- "Sayaçlarım" butonu (başlık altında) ---- */
+  .sayac-listem-btn{
+    margin:1.1rem auto 0;
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    background:transparent;
+    border:1px solid var(--line);
+    cursor:pointer;
+    padding:0.5rem 0.95rem;
+    border-radius:9999px;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .sayac-listem-btn:hover{
+    color:var(--ink);
+    border-color:var(--ink-soft);
+    background:rgba(var(--accent-rgb),0.1);
+  }
+  .sayac-listem-btn:active{ transform:scale(0.97); }
+  .sayac-listem-btn svg{ width:0.85rem; height:0.85rem; flex-shrink:0; }
+
+  /* ================= "SAYAÇLARIM" TAM EKRAN SAYFASI ================= */
+  .view-sayac-listem{
+    position:relative;
+    z-index:1;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    max-width:560px;
+  }
+  .view-sayac-listem.active{ display:flex; }
+
+  .sayac-listem-heading{
+    position:relative;
+    width:100%;
+    text-align:center;
+    margin-bottom:1.8rem;
+  }
+  .sayac-listem-geri-btn{
+    position:absolute;
+    left:0;
+    top:0.15rem;
+    width:2.1rem;
+    height:2.1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .sayac-listem-geri-btn:hover{
+    color:var(--ink);
+    border-color:var(--ink-soft);
+    background:rgba(var(--accent-rgb),0.1);
+  }
+  .sayac-listem-geri-btn:active{ transform:scale(0.94); }
+  .sayac-listem-geri-btn svg{ width:1.05rem; height:1.05rem; }
+
+  .sayac-listem-eyebrow{
+    display:inline-block;
+    font-size:0.72rem;
+    letter-spacing:0.35em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .sayac-listem-title{
+    margin-top:0.9rem;
+    font-size:clamp(1.8rem, 4.5vw, 2.6rem);
+    font-weight:400;
+  }
+
+  .sayac-listem-govde{
+    width:100%;
+    margin-top:0.4rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.9rem;
+  }
+
+  .sayac-listem-bos{
+    font-size:0.92rem;
+    font-style:italic;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:3rem 0;
+  }
+
+  /* ---- tek bir sayaç kartı: solda küçültülmüş canlı geri sayım, sağda isim ---- */
+  .sayac-listem-item{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    border:1px solid var(--line);
+    border-radius:0.8rem;
+    background:rgba(var(--bg-rgb),0.5);
+    padding:1rem 1.1rem;
+    cursor:pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .sayac-listem-item:hover{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.06);
+  }
+  .sayac-listem-item-aktif{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.09);
+  }
+
+  .sayac-listem-mini{
+    display:flex;
+    align-items:stretch;
+    flex-shrink:0;
+  }
+  .sayac-listem-mini-birim{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.15rem;
+    padding:0 0.5rem;
+  }
+  .sayac-listem-mini-ayrac{
+    width:1px;
+    align-self:stretch;
+    background:var(--line);
+    margin-top:0.1rem;
+  }
+  .sayac-listem-mini-sayi{
+    font-size:1.15rem;
+    line-height:1;
+    color:var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .sayac-listem-mini-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.5rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .sayac-listem-item.sayac-listem-bitti .sayac-listem-mini-sayi{ color:var(--accent); }
+
+  .sayac-listem-item-sag{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.6rem;
+    min-width:0;
+  }
+  .sayac-listem-item-baslik-alani{
+    display:flex;
+    flex-direction:column;
+    gap:0.25rem;
+    min-width:0;
+  }
+  .sayac-listem-item-baslik{
+    font-size:1.05rem;
+    font-style:italic;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .sayac-listem-item-durum{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.04em;
+    color:var(--accent);
+  }
+  .sayac-listem-item-sil{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:2rem;
+    height:2rem;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-radius:50%;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .sayac-listem-item-sil:hover{
+    color:var(--yanlis);
+    background:rgba(var(--yanlis-rgb),0.12);
+  }
+  .sayac-listem-item-sil svg{ width:1rem; height:1rem; }
+
+  .sayac-listem-yeni-btn{
+    margin-top:1.7rem;
+    width:100%;
+    padding:0.8rem 1rem;
+    text-align:center;
+  }
+
+  @media (max-width:400px){
+    .sayac-birim{ padding:0 0.7rem; gap:0.4rem; }
+    .sayac-etiket{ font-size:0.56rem; letter-spacing:0.12em; }
+    .sayac-listem-mini-birim{ padding:0 0.32rem; }
+    .sayac-listem-mini-sayi{ font-size:0.98rem; }
+    .sayac-listem-item-baslik{ font-size:0.95rem; }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -2027,6 +2586,9 @@
     .dock, .dock-btn, .dock-tip, .gundelik-eyebrow, .gundelik-title, .gundelik-sub, .view-gundelik{ animation:none !important; transition:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
     .bottom-nav-wrap{ animation:none !important; opacity:1 !important; transform:translateX(-50%) !important; }
     .view-denemeler{ transition:none !important; transform:none !important; }
+    .view-sayac, .sayac-eyebrow, .sayac-title, .sayac-kur-card, .sayac-card, .sayac-bitti-mesaji, .view-sayac-listem{ animation:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
+    .sayac-birim.sayac-saniye .sayac-sayi.sayac-pulse{ animation:none !important; opacity:1 !important; }
+    .dsayac-serit{ transition:none !important; }
   }
 </style>
 </head>
@@ -2044,7 +2606,8 @@
         <a href="#" style="--i:1" data-view="denemeler">Denemelerim</a>
         <a href="#" style="--i:2" data-view="gundelik">Gündelik</a>
         <a href="#" style="--i:3" data-view="takvim">Takvim</a>
-        <a href="#" style="--i:4" data-view="empty">Ayarlarım</a>
+        <a href="#" style="--i:4" data-view="sayac">Geri Sayım</a>
+        <a href="#" style="--i:5" data-view="empty">Ayarlarım</a>
       </div>
       <div class="nav-menu-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
@@ -2071,6 +2634,10 @@
       <button class="dock-btn" type="button" data-view="takvim">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="16" y1="2.5" x2="16" y2="6.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         <span class="dock-tip">Takvim</span>
+      </button>
+      <button class="dock-btn" type="button" data-view="sayac">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+        <span class="dock-tip">Geri Sayım</span>
       </button>
       <button class="dock-btn" type="button" data-view="empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
@@ -2234,6 +2801,94 @@
     </div>
   </div>
 
+  <div class="view-sayac" id="viewSayac">
+    <div class="sayac-heading">
+      <span class="sayac-eyebrow" id="sayacEyebrow">Zamanın Akışı</span>
+      <h2 class="sayac-title" id="sayacTitle">Geri Sayım</h2>
+      <button type="button" class="sayac-listem-btn" id="sayacListeAcBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        Sayaçlarım
+      </button>
+    </div>
+
+    <div class="sayac-kur-card" id="sayacKurCard">
+      <p class="sayac-kur-aciklama">Beklediğin günü işaretle; saniyeler sessizce sana doğru aksın.</p>
+      <div class="modal-field">
+        <label for="sayacBaslikInput">Ne için?</label>
+        <input type="text" id="sayacBaslikInput" placeholder="Örn. Sınav Günü" maxlength="40">
+      </div>
+      <div class="modal-field modal-field-tarih">
+        <label for="sayacTarihBtn">Hedef tarih</label>
+        <button type="button" class="modal-tarih-btn bos" id="sayacTarihBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="sayacTarihBtnText">Bir tarih seç</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <input type="hidden" id="sayacTarihInput">
+      </div>
+      <div class="modal-field modal-field-tarih">
+        <label for="sayacSaatBtn">Saat</label>
+        <button type="button" class="modal-tarih-btn bos" id="sayacSaatBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="sayacSaatBtnText">Saat seç</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <input type="hidden" id="sayacSaatInput">
+      </div>
+      <button type="button" class="modal-btn modal-btn-primary sayac-kur-btn" id="sayacKurBtn">Geri Sayımı Başlat</button>
+    </div>
+
+    <div class="sayac-card" id="sayacCard" style="display:none">
+      <div class="sayac-ust-cizgi"><span class="sayac-etiket-ust">Kalan Süre</span></div>
+      <div class="sayac-hedef-baslik" id="sayacHedefBaslik">Hedef</div>
+      <div class="sayac-hedef-tarih" id="sayacHedefTarih"></div>
+
+      <div class="sayac-satir" id="sayacGrid">
+        <div class="sayac-birim">
+          <span class="sayac-sayi" id="sayacGun">00</span>
+          <span class="sayac-etiket">gün</span>
+        </div>
+        <div class="sayac-ayrac"></div>
+        <div class="sayac-birim">
+          <span class="sayac-sayi" id="sayacSaat">00</span>
+          <span class="sayac-etiket">saat</span>
+        </div>
+        <div class="sayac-ayrac"></div>
+        <div class="sayac-birim">
+          <span class="sayac-sayi" id="sayacDakika">00</span>
+          <span class="sayac-etiket">dakika</span>
+        </div>
+        <div class="sayac-ayrac"></div>
+        <div class="sayac-birim sayac-saniye">
+          <span class="sayac-sayi" id="sayacSaniye">00</span>
+          <span class="sayac-etiket">saniye</span>
+        </div>
+      </div>
+
+      <div class="sayac-nefes-alan"><div class="sayac-nefes-cizgi" id="sayacNefesCizgi"></div></div>
+
+      <p class="sayac-bitti-mesaji" id="sayacBittiMesaji" style="display:none">Zaman doldu; beklediğin an geldi.</p>
+
+      <button type="button" class="sayac-duzenle-btn" id="sayacDuzenleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+        Düzenle
+      </button>
+    </div>
+  </div>
+
+  <!-- "Sayaçlarım": kurulan tüm sayaçların tam ekran listelendiği sayfa -->
+  <div class="view-sayac-listem" id="viewSayacListem">
+    <div class="sayac-listem-heading">
+      <button type="button" class="sayac-listem-geri-btn" id="sayacListemGeriBtn" aria-label="Geri dön">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <span class="sayac-listem-eyebrow">Kurulan Sayaçlar</span>
+      <h2 class="sayac-listem-title">Sayaçlarım</h2>
+    </div>
+
+    <div class="sayac-listem-govde" id="sayacListemGovde"></div>
+
+    <button type="button" class="modal-btn modal-btn-primary sayac-listem-yeni-btn" id="sayacListemYeniBtn">+ Yeni Sayaç</button>
+  </div>
+
   <div class="view-gundelik" id="viewGundelik">
     <div class="gundelik-heading">
       <span class="gundelik-eyebrow" id="gundelikEyebrow">Her Gün Bir Sayfa</span>
@@ -2329,6 +2984,26 @@
     </div>
   </div>
 
+  <!-- Takvimden bir tarihe tekrar tıklanınca açılan pop-up: sayaç ismi girilince geri sayım o tarih için kurulur ve başlar -->
+  <div class="modal-overlay" id="sayacBaslatModalOverlay">
+    <div class="modal-box" style="position:relative;">
+      <button class="modal-close" id="sayacBaslatModalClose" type="button" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+      <span class="modal-eyebrow">Geri Sayım</span>
+      <h3 class="modal-title">Sayaç Kur</h3>
+      <p class="sayac-baslat-tarih" id="sayacBaslatTarihMetni"></p>
+      <div class="modal-field">
+        <label for="sayacBaslatIsimInput">Sayaç ismi</label>
+        <input type="text" id="sayacBaslatIsimInput" placeholder="Örn. Sınav Günü" maxlength="40">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="sayacBaslatVazgec">Vazgeç</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="sayacBaslatBaslat">Başlat</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Dosya Görüntüleyici: yüklenen cevap anahtarı (PNG/PDF) yeni sekme yerine burada, uygulama içinde açılır -->
   <div class="dosya-goruntule-overlay" id="dosyaGoruntuleOverlay">
     <div class="dosya-goruntule-bar">
@@ -2358,6 +3033,21 @@
         <span>Pz</span><span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span>
       </div>
       <div class="mini-takvim-gunler" id="miniTakvimGunler"></div>
+    </div>
+  </div>
+
+  <div class="mini-zaman" id="miniZaman">
+    <div class="mini-zaman-card">
+      <span class="mini-zaman-baslik">Saat seç</span>
+      <div class="mini-zaman-kolonlar">
+        <div class="mini-zaman-kolon" id="miniZamanSaatKolon" role="listbox" aria-label="Saat"></div>
+        <span class="mini-zaman-iki-nokta">:</span>
+        <div class="mini-zaman-kolon" id="miniZamanDakikaKolon" role="listbox" aria-label="Dakika"></div>
+      </div>
+      <div class="mini-zaman-aksiyonlar">
+        <button type="button" class="mini-zaman-temizle" id="miniZamanTemizle">Temizle</button>
+        <button type="button" class="mini-zaman-tamam" id="miniZamanTamam">Tamam</button>
+      </div>
     </div>
   </div>
 
@@ -2485,6 +3175,10 @@
       const ayIsim = aylar[parseInt(ay, 10) - 1] || ay;
       return gun + ' ' + ayIsim + ' ' + yil;
     }
+
+    // Mini takvim, "Deneme Ekle" IIFE'si içinde kurulur; diğer formlar (sayaç gibi)
+    // bu paylaşılan referans üzerinden aynı takvim pop-up'ını kullanır.
+    let miniTakvimAPI = null;
 
     // ---- Deneme veri modeli: branş yapısı, netler, kaynaklar ----
     // AYT için Sayısal alan esas alınmıştır (Matematik, Fizik, Kimya, Biyoloji).
@@ -2741,6 +3435,8 @@
     const viewDenemeler = document.getElementById('viewDenemeler');
     const viewDenemeDetay = document.getElementById('viewDenemeDetay');
     const viewTakvim = document.getElementById('viewTakvim');
+    const viewSayac = document.getElementById('viewSayac');
+    const viewSayacListem = document.getElementById('viewSayacListem');
     const pageFooter = document.getElementById('pageFooter');
     const emptyWord = document.getElementById('emptyWord');
     const emptyRule = document.getElementById('emptyRule');
@@ -2761,6 +3457,9 @@
       viewDenemeler.classList.remove('active');
       viewDenemeDetay.classList.remove('active');
       viewTakvim.classList.remove('active');
+      viewSayac.classList.remove('active');
+      viewSayacListem.classList.remove('active');
+      if(typeof window.sayacListemDurdur === 'function'){ window.sayacListemDurdur(); }
       pageFooter.style.display = 'none';
     }
 
@@ -3240,6 +3939,9 @@
 
       let miniGoruntulenen = new Date();
       let miniSecili = null;
+      let miniAktifBtn = tarihBtn;
+      let miniAktifText = tarihText;
+      let miniAktifInput = tarihInput;
 
       function iki(n){ return n < 10 ? '0' + n : '' + n; }
       function isoTarih(d){ return d.getFullYear() + '-' + iki(d.getMonth() + 1) + '-' + iki(d.getDate()); }
@@ -3281,9 +3983,9 @@
           btn.textContent = gun.tarih.getDate();
           btn.addEventListener('click', function(){
             miniSecili = gun.tarih;
-            tarihInput.value = isoTarih(gun.tarih);
-            tarihText.textContent = formatTarih(tarihInput.value);
-            tarihBtn.classList.remove('bos');
+            miniAktifInput.value = isoTarih(gun.tarih);
+            miniAktifText.textContent = formatTarih(miniAktifInput.value);
+            miniAktifBtn.classList.remove('bos');
             miniCiz();
             kapatMiniTakvim();
           });
@@ -3293,15 +3995,18 @@
 
       function acMiniTakvim(){
         miniTakvim.classList.add('acik');
-        tarihBtn.classList.add('acik');
-        tarihBtn.setAttribute('aria-expanded', 'true');
+        miniAktifBtn.classList.add('acik');
+        miniAktifBtn.setAttribute('aria-expanded', 'true');
       }
       function kapatMiniTakvim(){
         miniTakvim.classList.remove('acik');
-        tarihBtn.classList.remove('acik');
-        tarihBtn.setAttribute('aria-expanded', 'false');
+        miniAktifBtn.classList.remove('acik');
+        miniAktifBtn.setAttribute('aria-expanded', 'false');
       }
       function miniTakvimSifirla(){
+        miniAktifBtn = tarihBtn;
+        miniAktifText = tarihText;
+        miniAktifInput = tarihInput;
         miniGoruntulenen = new Date();
         miniSecili = null;
         tarihInput.value = '';
@@ -3311,10 +4016,32 @@
         miniCiz();
       }
 
+      // Takvimi belirli bir buton/metin/gizli-input üçlüsü için açar; başka formlar da (örn. sayaç) kullanabilir
+      function miniTakvimAc(btn, textEl, inputEl, mevcutIso){
+        miniAktifBtn = btn;
+        miniAktifText = textEl;
+        miniAktifInput = inputEl;
+        if(mevcutIso){
+          const d = new Date(mevcutIso + 'T00:00:00');
+          if(!isNaN(d.getTime())){
+            miniSecili = d;
+            miniGoruntulenen = new Date(d.getFullYear(), d.getMonth(), 1);
+          } else {
+            miniSecili = null;
+            miniGoruntulenen = new Date();
+          }
+        } else {
+          miniSecili = null;
+          miniGoruntulenen = new Date();
+        }
+        miniCiz();
+        acMiniTakvim();
+      }
+
       tarihBtn.addEventListener('click', function(e){
         e.stopPropagation();
-        if(miniTakvim.classList.contains('acik')){ kapatMiniTakvim(); }
-        else{ acMiniTakvim(); }
+        if(miniTakvim.classList.contains('acik') && miniAktifBtn === tarihBtn){ kapatMiniTakvim(); }
+        else{ miniTakvimAc(tarihBtn, tarihText, tarihInput, tarihInput.value || null); }
       });
       miniPrev.addEventListener('click', function(e){
         e.stopPropagation();
@@ -3329,6 +4056,15 @@
       miniTakvim.addEventListener('click', function(e){
         if(e.target === miniTakvim){ kapatMiniTakvim(); }
       });
+
+      // Diğer formların (örn. sayaç) aynı takvim pop-up'ını kullanabilmesi için dışa aç
+      miniTakvimAPI = {
+        el: miniTakvim,
+        ac: miniTakvimAc,
+        kapat: kapatMiniTakvim,
+        acikMi: function(){ return miniTakvim.classList.contains('acik'); },
+        aktifBtn: function(){ return miniAktifBtn; }
+      };
 
       // ---- Alan (TYT/AYT) değerini dışarıdan belirli bir değere ayarlama ----
       function alanAta(alan){
@@ -3758,9 +4494,13 @@
           if(gun.seciliMi) btn.classList.add('secili');
           btn.textContent = gun.tarih.getDate();
           btn.addEventListener('click', function(){
+            const zatenSeciliMi = seciliTarih && gun.tarih.toDateString() === seciliTarih.toDateString();
             seciliTarih = gun.tarih;
             ciz();
             bilgiGuncelle(gun.tarih);
+            if(zatenSeciliMi && typeof window.sayacPopupAc === 'function'){
+              window.sayacPopupAc(gun.tarih);
+            }
           });
           takvimGunler.appendChild(btn);
         });
@@ -3808,6 +4548,687 @@
       };
     })();
 
+    // ================= GERİ SAYIM (SAYAÇ) GÖRÜNÜMÜ =================
+    // Basamak-kaydırma animasyonu için mevcut sayacYaz() fonksiyonu kullanılıyor.
+    (function(){
+      const SAYAC_ESKI_ANAHTAR = 'sessizlik-sayac-hedef'; // eski tekil kayıt (geriye dönük uyumluluk)
+      const SAYAC_LISTE_ANAHTAR = 'sessizlik-sayac-listesi';
+      const SAYAC_AKTIF_ANAHTAR = 'sessizlik-sayac-aktif-id';
+      const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+      const sayacEyebrow = document.getElementById('sayacEyebrow');
+      const sayacTitle = document.getElementById('sayacTitle');
+      const sayacKurCard = document.getElementById('sayacKurCard');
+      const sayacCard = document.getElementById('sayacCard');
+      const sayacBaslikInput = document.getElementById('sayacBaslikInput');
+      const sayacTarihInput = document.getElementById('sayacTarihInput');
+      const sayacTarihBtn = document.getElementById('sayacTarihBtn');
+      const sayacTarihBtnText = document.getElementById('sayacTarihBtnText');
+      const sayacSaatInput = document.getElementById('sayacSaatInput');
+      const sayacSaatBtn = document.getElementById('sayacSaatBtn');
+      const sayacSaatBtnText = document.getElementById('sayacSaatBtnText');
+      const sayacKurBtn = document.getElementById('sayacKurBtn');
+      const sayacHedefBaslikEl = document.getElementById('sayacHedefBaslik');
+      const sayacHedefTarihEl = document.getElementById('sayacHedefTarih');
+      const sayacGunEl = document.getElementById('sayacGun');
+      const sayacSaatEl = document.getElementById('sayacSaat');
+      const sayacDakikaEl = document.getElementById('sayacDakika');
+      const sayacSaniyeEl = document.getElementById('sayacSaniye');
+      const sayacNefesCizgi = document.getElementById('sayacNefesCizgi');
+      const sayacBittiMesaji = document.getElementById('sayacBittiMesaji');
+      const sayacDuzenleBtn = document.getElementById('sayacDuzenleBtn');
+
+      // "Sayaçlarım": kurulan tüm sayaçların listelendiği tam ekran sayfa
+      const sayacListeAcBtn = document.getElementById('sayacListeAcBtn');
+      const sayacListemGeriBtn = document.getElementById('sayacListemGeriBtn');
+      const sayacListemGovde = document.getElementById('sayacListemGovde');
+      const sayacListemYeniBtn = document.getElementById('sayacListemYeniBtn');
+      let sayacListemKartlar = [];
+      let sayacListemIntervalId = null;
+
+      // Takvimden bir tarihe tekrar tıklanınca açılan pop-up: sadece isim girip sayacı başlatmak için
+      const sayacBaslatModalOverlay = document.getElementById('sayacBaslatModalOverlay');
+      const sayacBaslatModalClose = document.getElementById('sayacBaslatModalClose');
+      const sayacBaslatTarihMetni = document.getElementById('sayacBaslatTarihMetni');
+      const sayacBaslatIsimInput = document.getElementById('sayacBaslatIsimInput');
+      const sayacBaslatVazgec = document.getElementById('sayacBaslatVazgec');
+      const sayacBaslatBaslatBtn = document.getElementById('sayacBaslatBaslat');
+      let sayacBaslatSeciliTarih = null;
+
+      let sayacIntervalId = null;
+      let sayacHedefMs = null;
+      let sayacDuzenlenenId = null; // Düzenle akışında hangi kayıt güncellenecek
+
+      function ikiHane(n){
+        return String(n).padStart(2, '0');
+      }
+
+      // ---- Hedef tarih: paylaşılan mini takvimi kullanan özel tasarım buton ----
+      function sayacTarihMetniGoster(iso){
+        if(iso){
+          sayacTarihBtnText.textContent = formatTarih(iso);
+          sayacTarihBtn.classList.remove('bos');
+        } else {
+          sayacTarihBtnText.textContent = 'Bir tarih seç';
+          sayacTarihBtn.classList.add('bos');
+        }
+      }
+      function sayacTarihSifirla(){
+        sayacTarihInput.value = '';
+        sayacTarihMetniGoster(null);
+      }
+      sayacTarihBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(miniTakvimAPI.acikMi() && miniTakvimAPI.aktifBtn() === sayacTarihBtn){ miniTakvimAPI.kapat(); }
+        else{ miniTakvimAPI.ac(sayacTarihBtn, sayacTarihBtnText, sayacTarihInput, sayacTarihInput.value || null); }
+      });
+
+      // ---- Saat: özel tasarım saat seçici (mini zaman) ----
+      const miniZaman = document.getElementById('miniZaman');
+      const miniZamanSaatKolon = document.getElementById('miniZamanSaatKolon');
+      const miniZamanDakikaKolon = document.getElementById('miniZamanDakikaKolon');
+      const miniZamanTemizle = document.getElementById('miniZamanTemizle');
+      const miniZamanTamam = document.getElementById('miniZamanTamam');
+      let miniZamanSaatSecili = null;
+      let miniZamanDakikaSecili = null;
+
+      function miniZamanKolonDoldur(kolon, adet, secili){
+        kolon.innerHTML = '';
+        for(let i = 0; i < adet; i++){
+          const deger = ikiHane(i);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'mini-zaman-item';
+          if(secili === deger) btn.classList.add('secili');
+          btn.textContent = deger;
+          btn.addEventListener('click', function(){
+            kolon.querySelectorAll('.mini-zaman-item').forEach(function(el){ el.classList.remove('secili'); });
+            btn.classList.add('secili');
+            if(kolon === miniZamanSaatKolon){ miniZamanSaatSecili = deger; }
+            else{ miniZamanDakikaSecili = deger; }
+            btn.scrollIntoView({ block:'center', behavior:'smooth' });
+          });
+          kolon.appendChild(btn);
+        }
+      }
+
+      function kolonOrtadakiOgeyiBul(kolon){
+        const kolonRect = kolon.getBoundingClientRect();
+        const merkezY = kolonRect.top + kolonRect.height / 2;
+        let enYakin = null, enYakinFark = Infinity;
+        kolon.querySelectorAll('.mini-zaman-item').forEach(function(el){
+          const r = el.getBoundingClientRect();
+          const fark = Math.abs((r.top + r.height / 2) - merkezY);
+          if(fark < enYakinFark){ enYakinFark = fark; enYakin = el; }
+        });
+        return enYakin;
+      }
+
+      function kolonSecimiKaydirmadanGuncelle(kolon){
+        const oge = kolonOrtadakiOgeyiBul(kolon);
+        if(!oge) return;
+        kolon.querySelectorAll('.mini-zaman-item').forEach(function(el){ el.classList.remove('secili'); });
+        oge.classList.add('secili');
+        if(kolon === miniZamanSaatKolon){ miniZamanSaatSecili = oge.textContent; }
+        else{ miniZamanDakikaSecili = oge.textContent; }
+      }
+
+      // Kolon kaydırıldığında (dokunmadan) ortadaki değeri otomatik seçili yapar
+      let miniZamanKaydirmaTimerSaat = null;
+      let miniZamanKaydirmaTimerDakika = null;
+      miniZamanSaatKolon.addEventListener('scroll', function(){
+        if(miniZamanKaydirmaTimerSaat) clearTimeout(miniZamanKaydirmaTimerSaat);
+        miniZamanKaydirmaTimerSaat = setTimeout(function(){ kolonSecimiKaydirmadanGuncelle(miniZamanSaatKolon); }, 110);
+      }, { passive:true });
+      miniZamanDakikaKolon.addEventListener('scroll', function(){
+        if(miniZamanKaydirmaTimerDakika) clearTimeout(miniZamanKaydirmaTimerDakika);
+        miniZamanKaydirmaTimerDakika = setTimeout(function(){ kolonSecimiKaydirmadanGuncelle(miniZamanDakikaKolon); }, 110);
+      }, { passive:true });
+
+      function sayacSaatMetniGoster(hhmm){
+        if(hhmm){
+          sayacSaatBtnText.textContent = hhmm;
+          sayacSaatBtn.classList.remove('bos');
+        } else {
+          sayacSaatBtnText.textContent = 'Saat seç';
+          sayacSaatBtn.classList.add('bos');
+        }
+      }
+      function sayacSaatSifirla(){
+        sayacSaatInput.value = '';
+        sayacSaatMetniGoster(null);
+      }
+
+      function acMiniZaman(){
+        const mevcut = sayacSaatInput.value;
+        const parcalar = mevcut ? mevcut.split(':') : null;
+        miniZamanSaatSecili = parcalar ? parcalar[0] : null;
+        miniZamanDakikaSecili = parcalar ? parcalar[1] : null;
+        miniZamanKolonDoldur(miniZamanSaatKolon, 24, miniZamanSaatSecili);
+        miniZamanKolonDoldur(miniZamanDakikaKolon, 60, miniZamanDakikaSecili);
+        miniZaman.classList.add('acik');
+        sayacSaatBtn.classList.add('acik');
+        sayacSaatBtn.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(function(){
+          const seciliSaat = miniZamanSaatKolon.querySelector('.secili');
+          const seciliDakika = miniZamanDakikaKolon.querySelector('.secili');
+          if(seciliSaat) seciliSaat.scrollIntoView({ block:'center' });
+          if(seciliDakika) seciliDakika.scrollIntoView({ block:'center' });
+        });
+      }
+      function kapatMiniZaman(){
+        miniZaman.classList.remove('acik');
+        sayacSaatBtn.classList.remove('acik');
+        sayacSaatBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      sayacSaatBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(miniZaman.classList.contains('acik')){ kapatMiniZaman(); }
+        else{ acMiniZaman(); }
+      });
+      miniZamanTamam.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(miniZamanSaatSecili !== null && miniZamanDakikaSecili !== null){
+          const hhmm = miniZamanSaatSecili + ':' + miniZamanDakikaSecili;
+          sayacSaatInput.value = hhmm;
+          sayacSaatMetniGoster(hhmm);
+        }
+        kapatMiniZaman();
+      });
+      miniZamanTemizle.addEventListener('click', function(e){
+        e.stopPropagation();
+        sayacSaatSifirla();
+        kapatMiniZaman();
+      });
+      miniZaman.addEventListener('click', function(e){
+        if(e.target === miniZaman){ kapatMiniZaman(); }
+      });
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && miniZaman.classList.contains('acik')){ kapatMiniZaman(); }
+      });
+
+      function sayacIdUret(){
+        return 'sy_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+      }
+
+      function sayacListesiYukle(){
+        try{
+          const ham = localStorage.getItem(SAYAC_LISTE_ANAHTAR);
+          if(!ham) return [];
+          const liste = JSON.parse(ham);
+          if(!Array.isArray(liste)) return [];
+          return liste.filter(function(v){
+            return v && v.id && v.tarih && !isNaN(new Date(v.tarih).getTime());
+          });
+        }catch(e){ return []; }
+      }
+
+      function sayacListesiKaydet(liste){
+        try{ localStorage.setItem(SAYAC_LISTE_ANAHTAR, JSON.stringify(liste)); }catch(e){}
+      }
+
+      function sayacAktifIdYukle(){
+        try{ return localStorage.getItem(SAYAC_AKTIF_ANAHTAR); }catch(e){ return null; }
+      }
+
+      function sayacAktifIdKaydet(id){
+        try{ localStorage.setItem(SAYAC_AKTIF_ANAHTAR, id); }catch(e){}
+      }
+
+      // Eski sürümde kaydedilmiş tekil sayaç varsa, yeni listeye bir kereye mahsus taşınır
+      function sayacEskiKayittanTasi(){
+        let liste = sayacListesiYukle();
+        if(liste.length) return liste;
+        try{
+          const ham = localStorage.getItem(SAYAC_ESKI_ANAHTAR);
+          if(ham){
+            const eski = JSON.parse(ham);
+            if(eski && eski.tarih && !isNaN(new Date(eski.tarih).getTime())){
+              const yeni = { id: sayacIdUret(), tarih: eski.tarih, baslik: eski.baslik || 'Hedef', olusturma: Date.now() };
+              liste = [yeni];
+              sayacListesiKaydet(liste);
+              sayacAktifIdKaydet(yeni.id);
+            }
+          }
+          localStorage.removeItem(SAYAC_ESKI_ANAHTAR);
+        }catch(e){}
+        return liste;
+      }
+
+      // Şu an aktif gösterilecek sayacı döndürür (yoksa null)
+      function sayacAktifHedefiYukle(){
+        const liste = sayacEskiKayittanTasi();
+        if(!liste.length) return null;
+        const aktifId = sayacAktifIdYukle();
+        let hedef = liste.find(function(v){ return v.id === aktifId; });
+        if(!hedef){
+          hedef = liste[0];
+          sayacAktifIdKaydet(hedef.id);
+        }
+        return hedef;
+      }
+
+      // Yeni bir sayaç ekler, listeye kaydeder ve aktif yapar
+      function sayacHedefiEkleVeBaslat(hedef){
+        const liste = sayacListesiYukle();
+        const yeni = { id: sayacIdUret(), tarih: hedef.tarih, baslik: hedef.baslik, olusturma: Date.now() };
+        liste.push(yeni);
+        sayacListesiKaydet(liste);
+        sayacAktifIdKaydet(yeni.id);
+        sayacGosterVeGit();
+      }
+
+      // Var olan bir sayacı (id ile) günceller
+      function sayacHedefiGuncelle(id, degisiklik){
+        const liste = sayacListesiYukle();
+        const idx = liste.findIndex(function(v){ return v.id === id; });
+        if(idx > -1){
+          liste[idx].tarih = degisiklik.tarih;
+          liste[idx].baslik = degisiklik.baslik;
+          sayacListesiKaydet(liste);
+          sayacAktifIdKaydet(id);
+        }
+        sayacDuzenlenenId = null;
+        sayacGosterVeGit();
+      }
+
+      function sayacGosterVeGit(){
+        const sayacNavLink = document.querySelector('.nav-items a[data-view="sayac"]');
+        if(sayacNavLink){
+          sayacNavLink.click();
+        } else if(typeof window.showSayacView === 'function'){
+          window.showSayacView();
+        }
+      }
+
+      // Küçük bir "gün / saat / dakika / saniye" birimi (etiketli) oluşturur
+      function sayacListemBirimOlustur(etiketMetni){
+        const kolon = document.createElement('div');
+        kolon.className = 'sayac-listem-mini-birim';
+        const sayi = document.createElement('span');
+        sayi.className = 'sayac-listem-mini-sayi';
+        sayi.textContent = '00';
+        const etiket = document.createElement('span');
+        etiket.className = 'sayac-listem-mini-etiket';
+        etiket.textContent = etiketMetni;
+        kolon.appendChild(sayi);
+        kolon.appendChild(etiket);
+        return { kolon: kolon, sayi: sayi };
+      }
+      function sayacListemAyracOlustur(){
+        const ayrac = document.createElement('div');
+        ayrac.className = 'sayac-listem-mini-ayrac';
+        return ayrac;
+      }
+
+      // Kurulan tüm sayaçları yatay kartlar halinde, yukarıdan aşağıya (en yakın hedef en üstte) listeler.
+      // Her kartın solunda gerçek sayacın küçültülmüş, canlı akan hali; sağında sayacın ismi bulunur.
+      function sayacListemOlustur(){
+        const liste = sayacListesiYukle().slice().sort(function(a, b){
+          return new Date(a.tarih).getTime() - new Date(b.tarih).getTime();
+        });
+
+        sayacListemGovde.innerHTML = '';
+        sayacListemKartlar = [];
+
+        if(!liste.length){
+          const bos = document.createElement('p');
+          bos.className = 'sayac-listem-bos';
+          bos.textContent = 'Henüz kurulmuş bir sayaç yok.';
+          sayacListemGovde.appendChild(bos);
+          return;
+        }
+
+        const aktifId = sayacAktifIdYukle();
+
+        liste.forEach(function(v){
+          const hedefMs = new Date(v.tarih).getTime();
+
+          const item = document.createElement('div');
+          item.className = 'sayac-listem-item' + (v.id === aktifId ? ' sayac-listem-item-aktif' : '');
+          item.dataset.id = v.id;
+
+          // Sol taraf: gerçek sayacın minyatür, canlı akan hali
+          const mini = document.createElement('div');
+          mini.className = 'sayac-listem-mini';
+
+          const gunB = sayacListemBirimOlustur('gün');
+          const saatB = sayacListemBirimOlustur('sa');
+          const dakikaB = sayacListemBirimOlustur('dk');
+          const saniyeB = sayacListemBirimOlustur('sn');
+
+          mini.appendChild(gunB.kolon);
+          mini.appendChild(sayacListemAyracOlustur());
+          mini.appendChild(saatB.kolon);
+          mini.appendChild(sayacListemAyracOlustur());
+          mini.appendChild(dakikaB.kolon);
+          mini.appendChild(sayacListemAyracOlustur());
+          mini.appendChild(saniyeB.kolon);
+
+          // Sağ taraf: sayacın ismi (+ hedef tarih) ve silme düğmesi
+          const sag = document.createElement('div');
+          sag.className = 'sayac-listem-item-sag';
+
+          const baslikAlani = document.createElement('div');
+          baslikAlani.className = 'sayac-listem-item-baslik-alani';
+
+          const baslikEl = document.createElement('span');
+          baslikEl.className = 'sayac-listem-item-baslik';
+          baslikEl.textContent = v.baslik || 'Hedef';
+
+          const durumEl = document.createElement('span');
+          durumEl.className = 'sayac-listem-item-durum';
+          durumEl.textContent = sayacTarihMetni(new Date(v.tarih));
+
+          baslikAlani.appendChild(baslikEl);
+          baslikAlani.appendChild(durumEl);
+
+          const silBtn = document.createElement('button');
+          silBtn.type = 'button';
+          silBtn.className = 'sayac-listem-item-sil';
+          silBtn.setAttribute('aria-label', 'Sayacı sil');
+          silBtn.dataset.id = v.id;
+          silBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
+
+          sag.appendChild(baslikAlani);
+          sag.appendChild(silBtn);
+
+          item.appendChild(mini);
+          item.appendChild(sag);
+          sayacListemGovde.appendChild(item);
+
+          sayacListemKartlar.push({
+            id: v.id,
+            tarih: hedefMs,
+            itemEl: item,
+            gunEl: gunB.sayi,
+            saatEl: saatB.sayi,
+            dakikaEl: dakikaB.sayi,
+            saniyeEl: saniyeB.sayi
+          });
+        });
+
+        sayacListemTikGuncelle();
+      }
+
+      // Sayfadaki tüm kartların geri sayımını her saniye günceller
+      function sayacListemTikGuncelle(){
+        const simdi = Date.now();
+        sayacListemKartlar.forEach(function(k){
+          let fark = k.tarih - simdi;
+          const bitti = fark <= 0;
+          if(bitti) fark = 0;
+          const gun = Math.floor(fark / 86400000);
+          const saat = Math.floor((fark % 86400000) / 3600000);
+          const dakika = Math.floor((fark % 3600000) / 60000);
+          const saniye = Math.floor((fark % 60000) / 1000);
+          k.gunEl.textContent = ikiHane(gun);
+          k.saatEl.textContent = ikiHane(saat);
+          k.dakikaEl.textContent = ikiHane(dakika);
+          k.saniyeEl.textContent = ikiHane(saniye);
+          k.itemEl.classList.toggle('sayac-listem-bitti', bitti);
+        });
+      }
+
+      function sayacListemNavaGit(){
+        const sayacNavLink = document.querySelector('.nav-items a[data-view="sayac"]');
+        if(sayacNavLink){
+          sayacNavLink.click();
+        } else if(typeof window.showSayacView === 'function'){
+          window.showSayacView();
+        }
+      }
+
+      window.showSayacListemView = function(){
+        hideAllViews();
+
+        viewSayacListem.classList.add('active');
+        void viewSayacListem.offsetWidth;
+        viewSayacListem.style.animation = 'none';
+        void viewSayacListem.offsetWidth;
+        viewSayacListem.style.animation = '';
+
+        sayacListemOlustur();
+        if(sayacListemIntervalId){ clearInterval(sayacListemIntervalId); }
+        sayacListemIntervalId = setInterval(sayacListemTikGuncelle, 1000);
+      };
+
+      window.sayacListemDurdur = function(){
+        if(sayacListemIntervalId){ clearInterval(sayacListemIntervalId); sayacListemIntervalId = null; }
+      };
+
+      sayacListeAcBtn.addEventListener('click', function(){
+        window.showSayacListemView();
+      });
+
+      sayacListemGeriBtn.addEventListener('click', sayacListemNavaGit);
+
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && viewSayacListem.classList.contains('active')){
+          sayacListemNavaGit();
+        }
+      });
+
+      // Bir karta tıklanınca o sayaç aktif olur; çöp kutusuna tıklanınca kart silinir
+      sayacListemGovde.addEventListener('click', function(e){
+        const silBtn = e.target.closest('.sayac-listem-item-sil');
+        if(silBtn){
+          e.stopPropagation();
+          const id = silBtn.dataset.id;
+          let liste = sayacListesiYukle();
+          liste = liste.filter(function(v){ return v.id !== id; });
+          sayacListesiKaydet(liste);
+          if(sayacAktifIdYukle() === id){
+            if(liste.length){
+              sayacAktifIdKaydet(liste[0].id);
+            } else {
+              try{ localStorage.removeItem(SAYAC_AKTIF_ANAHTAR); }catch(err){}
+            }
+          }
+          sayacListemOlustur();
+          return;
+        }
+
+        const item = e.target.closest('.sayac-listem-item');
+        if(item){
+          sayacAktifIdKaydet(item.dataset.id);
+          sayacListemNavaGit();
+        }
+      });
+
+      // "+ Yeni Sayaç": kurulum formunu boş biçimde açar
+      sayacListemYeniBtn.addEventListener('click', function(){
+        sayacDuzenlenenId = null;
+        sayacBaslikInput.value = '';
+        sayacTarihSifirla();
+        sayacSaatSifirla();
+        sayacListemNavaGit();
+        if(sayacIntervalId){ clearInterval(sayacIntervalId); sayacIntervalId = null; }
+        sayacCard.style.display = 'none';
+        sayacKurCard.style.display = '';
+        sayacKurCard.classList.remove('animate');
+        void sayacKurCard.offsetWidth;
+        sayacKurCard.classList.add('animate');
+      });
+
+      function sayacTarihMetni(d){
+        let metin = d.getDate() + ' ' + AYLAR[d.getMonth()] + ' ' + d.getFullYear();
+        const saat = d.getHours(), dakika = d.getMinutes();
+        if(saat !== 0 || dakika !== 0){
+          metin += ' · ' + ikiHane(saat) + ':' + ikiHane(dakika);
+        }
+        return metin;
+      }
+
+      function sayacKalanSureyiHesapla(){
+        let fark = sayacHedefMs - Date.now();
+        const bitti = fark <= 0;
+        if(bitti) fark = 0;
+        const gun = Math.floor(fark / 86400000);
+        const saat = Math.floor((fark % 86400000) / 3600000);
+        const dakika = Math.floor((fark % 3600000) / 60000);
+        const saniye = Math.floor((fark % 60000) / 1000);
+        return { gun: gun, saat: saat, dakika: dakika, saniye: saniye, bitti: bitti };
+      }
+
+      function sayacTikGuncelle(ilkYukleme){
+        const s = sayacKalanSureyiHesapla();
+        sayacYaz(sayacGunEl, ikiHane(s.gun));
+        sayacYaz(sayacSaatEl, ikiHane(s.saat));
+        sayacYaz(sayacDakikaEl, ikiHane(s.dakika));
+        sayacYaz(sayacSaniyeEl, ikiHane(s.saniye));
+
+        // dakikanın geçen kısmını gösteren ince, sessizce akan çizgi
+        if(sayacNefesCizgi){
+          const dakikaYuzde = ((60 - s.saniye) / 60) * 100;
+          sayacNefesCizgi.style.width = dakikaYuzde + '%';
+        }
+
+        // saniye basamağına hafif nefes vurgusu (yüklenen tasarım örneğiyle birebir)
+        if(!ilkYukleme){
+          sayacSaniyeEl.classList.remove('sayac-pulse');
+          void sayacSaniyeEl.offsetWidth;
+          sayacSaniyeEl.classList.add('sayac-pulse');
+        }
+
+        if(s.bitti){
+          sayacBittiMesaji.style.display = '';
+          if(sayacIntervalId){ clearInterval(sayacIntervalId); sayacIntervalId = null; }
+        } else {
+          sayacBittiMesaji.style.display = 'none';
+        }
+      }
+
+      function sayacGoster(hedef){
+        sayacHedefMs = new Date(hedef.tarih).getTime();
+        sayacHedefBaslikEl.textContent = hedef.baslik || 'Hedef';
+        sayacHedefTarihEl.textContent = sayacTarihMetni(new Date(hedef.tarih));
+
+        sayacKurCard.style.display = 'none';
+        sayacCard.style.display = '';
+
+        if(sayacIntervalId){ clearInterval(sayacIntervalId); sayacIntervalId = null; }
+        sayacTikGuncelle(true);
+        sayacIntervalId = setInterval(function(){ sayacTikGuncelle(false); }, 1000);
+      }
+
+      function sayacKurulumaDon(){
+        if(sayacIntervalId){ clearInterval(sayacIntervalId); sayacIntervalId = null; }
+        const hedef = sayacAktifHedefiYukle();
+        if(hedef){
+          sayacDuzenlenenId = hedef.id;
+          const d = new Date(hedef.tarih);
+          sayacBaslikInput.value = hedef.baslik || '';
+          const tarihIso = d.getFullYear() + '-' + ikiHane(d.getMonth() + 1) + '-' + ikiHane(d.getDate());
+          sayacTarihInput.value = tarihIso;
+          sayacTarihMetniGoster(tarihIso);
+          const hh = ikiHane(d.getHours()), mm = ikiHane(d.getMinutes());
+          const saatBos = (hh === '00' && mm === '00');
+          sayacSaatInput.value = saatBos ? '' : (hh + ':' + mm);
+          sayacSaatMetniGoster(saatBos ? null : (hh + ':' + mm));
+        } else {
+          sayacDuzenlenenId = null;
+        }
+        sayacCard.style.display = 'none';
+        sayacKurCard.style.display = '';
+        sayacKurCard.classList.remove('animate');
+        void sayacKurCard.offsetWidth;
+        sayacKurCard.classList.add('animate');
+      }
+
+      sayacKurBtn.addEventListener('click', function(){
+        const tarihStr = sayacTarihInput.value;
+        if(!tarihStr){
+          sayacTarihBtn.focus();
+          miniTakvimAPI.ac(sayacTarihBtn, sayacTarihBtnText, sayacTarihInput, null);
+          return;
+        }
+        const saatStr = sayacSaatInput.value || '00:00';
+        const baslik = sayacBaslikInput.value.trim() || 'Hedef';
+        const tarihIso = tarihStr + 'T' + saatStr + ':00';
+        if(sayacDuzenlenenId){
+          sayacHedefiGuncelle(sayacDuzenlenenId, { tarih: tarihIso, baslik: baslik });
+        } else {
+          sayacHedefiEkleVeBaslat({ tarih: tarihIso, baslik: baslik });
+        }
+      });
+
+      sayacDuzenleBtn.addEventListener('click', sayacKurulumaDon);
+
+      // ---- Takvimden bir tarihe tekrar tıklanınca açılan pop-up ----
+      function sayacBaslatModalAc(tarih){
+        sayacBaslatSeciliTarih = tarih;
+        sayacBaslatTarihMetni.textContent = sayacTarihMetni(tarih);
+        sayacBaslatIsimInput.value = '';
+        sayacBaslatModalOverlay.classList.add('active');
+        setTimeout(function(){ sayacBaslatIsimInput.focus(); }, 200);
+      }
+      function sayacBaslatModalKapat(){
+        sayacBaslatModalOverlay.classList.remove('active');
+      }
+      function sayacBaslatKaydet(){
+        const isim = sayacBaslatIsimInput.value.trim();
+        if(!isim){
+          sayacBaslatIsimInput.focus();
+          return;
+        }
+        const d = sayacBaslatSeciliTarih;
+        const tarihIso = d.getFullYear() + '-' + ikiHane(d.getMonth() + 1) + '-' + ikiHane(d.getDate()) + 'T00:00:00';
+        sayacBaslatModalKapat();
+        sayacHedefiEkleVeBaslat({ tarih: tarihIso, baslik: isim });
+      }
+
+      sayacBaslatModalClose.addEventListener('click', sayacBaslatModalKapat);
+      sayacBaslatVazgec.addEventListener('click', sayacBaslatModalKapat);
+      sayacBaslatBaslatBtn.addEventListener('click', sayacBaslatKaydet);
+      sayacBaslatIsimInput.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){ e.preventDefault(); sayacBaslatKaydet(); }
+      });
+      sayacBaslatModalOverlay.addEventListener('click', function(e){
+        if(e.target === sayacBaslatModalOverlay){ sayacBaslatModalKapat(); }
+      });
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && sayacBaslatModalOverlay.classList.contains('active')){
+          sayacBaslatModalKapat();
+        }
+      });
+
+      // Takvim görünümü, aynı tarihe tekrar tıklanınca bu fonksiyonu çağırır
+      window.sayacPopupAc = sayacBaslatModalAc;
+
+      window.showSayacView = function(){
+        hideAllViews();
+
+        viewSayac.classList.add('active');
+        void viewSayac.offsetWidth;
+        viewSayac.style.animation = 'none';
+        void viewSayac.offsetWidth;
+        viewSayac.style.animation = '';
+
+        sayacEyebrow.classList.remove('animate');
+        sayacTitle.classList.remove('animate');
+        sayacKurCard.classList.remove('animate');
+        sayacCard.classList.remove('animate');
+        void viewSayac.offsetWidth;
+        sayacEyebrow.classList.add('animate');
+        sayacTitle.classList.add('animate');
+
+        const hedef = sayacAktifHedefiYukle();
+        if(hedef){
+          sayacDuzenlenenId = null;
+          sayacGoster(hedef);
+          sayacCard.classList.add('animate');
+        } else {
+          sayacDuzenlenenId = null;
+          if(sayacIntervalId){ clearInterval(sayacIntervalId); sayacIntervalId = null; }
+          sayacKurCard.style.display = '';
+          sayacCard.style.display = 'none';
+          sayacKurCard.classList.add('animate');
+        }
+      };
+    })();
+
     // ---- Alt nav bar (global dock) ile üst nav senkronizasyonu ----
     const bottomNavBtns = Array.from(document.querySelectorAll('#bottomNav .dock-btn[data-view]'));
     const dockHighlight = document.getElementById('dockHighlight');
@@ -3847,6 +5268,8 @@
           showDenemelerView();
         } else if(a.dataset.view === 'takvim'){
           showTakvimView();
+        } else if(a.dataset.view === 'sayac'){
+          showSayacView();
         } else {
           showEmptyView();
         }
