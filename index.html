@@ -35,6 +35,16 @@
     }catch(e){}
   })();
 
+  // Renk (vurgu rengi) tercihini stiller çizilmeden önce uygula (yanıp sönmeyi engeller)
+  (function(){
+    try{
+      var renkKayitli = localStorage.getItem('sessizlik-renk');
+      if(renkKayitli && renkKayitli !== 'mavi'){
+        document.documentElement.setAttribute('data-accent', renkKayitli);
+      }
+    }catch(e){}
+  })();
+
   // Nav bar konumu tercihini (üst/alt) stiller çizilmeden önce uygula (yanıp sönmeyi engeller)
   (function(){
     try{
@@ -77,6 +87,32 @@
     --dogru-rgb:127,191,135;
     --yanlis:#E08478;
     --yanlis-rgb:224,132,120;
+  }
+
+  /* ---- Renk (vurgu rengi) seçenekleri: Mavi (varsayılan), Mor, Kırmızı, Yeşil ---- */
+  html[data-accent="mor"]{
+    --accent:#8D74A8;
+    --accent-rgb:141,116,168;
+  }
+  html[data-accent="mor"][data-theme="dark"]{
+    --accent:#BBA3D9;
+    --accent-rgb:187,163,217;
+  }
+  html[data-accent="kirmizi"]{
+    --accent:#B36B63;
+    --accent-rgb:179,107,99;
+  }
+  html[data-accent="kirmizi"][data-theme="dark"]{
+    --accent:#E0A199;
+    --accent-rgb:224,161,153;
+  }
+  html[data-accent="yesil"]{
+    --accent:#6E9B74;
+    --accent-rgb:110,155,116;
+  }
+  html[data-accent="yesil"][data-theme="dark"]{
+    --accent:#A0D1AC;
+    --accent-rgb:160,209,172;
   }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
@@ -559,6 +595,9 @@
   #navbarPositionRow.animate{
     animation-delay:0.85s;
   }
+  #renkRow.animate{
+    animation-delay:1s;
+  }
   .settings-row-text{
     display:flex;
     flex-direction:column;
@@ -575,6 +614,35 @@
     font-size:0.72rem;
     letter-spacing:0.02em;
     color:var(--ink-soft);
+  }
+
+  .renk-swatch-group{
+    display:flex;
+    align-items:center;
+    gap:0.55rem;
+    flex-shrink:0;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .renk-swatch{
+    width:1.7rem;
+    height:1.7rem;
+    border-radius:50%;
+    border:2px solid transparent;
+    padding:0;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(var(--shadow-rgb),0.22);
+    transition:transform 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .renk-swatch[data-renk="mavi"]{ background:#9FB8D1; }
+  .renk-swatch[data-renk="mor"]{ background:#BBA3D9; }
+  .renk-swatch[data-renk="kirmizi"]{ background:#E0A199; }
+  .renk-swatch[data-renk="yesil"]{ background:#A0D1AC; }
+  .renk-swatch:hover{ transform:scale(1.08); }
+  .renk-swatch:active{ transform:scale(0.9); }
+  .renk-swatch.secili{
+    border-color:var(--ink);
+    box-shadow:0 0 0 3px rgba(var(--ink-rgb),0.12), 0 2px 6px rgba(var(--shadow-rgb),0.22);
   }
 
   .theme-switch{
@@ -3443,6 +3511,18 @@
           <span class="theme-switch-knob"></span>
         </button>
       </div>
+      <div class="settings-row" id="renkRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Renk</span>
+          <span class="settings-row-sub" id="renkStateLabel">Mavi aktif</span>
+        </div>
+        <div class="renk-swatch-group" id="renkSwatchGroup" role="group" aria-label="Renk seçenekleri">
+          <button type="button" class="renk-swatch secili" data-renk="mavi" aria-label="Mavi"></button>
+          <button type="button" class="renk-swatch" data-renk="mor" aria-label="Mor"></button>
+          <button type="button" class="renk-swatch" data-renk="kirmizi" aria-label="Kırmızı"></button>
+          <button type="button" class="renk-swatch" data-renk="yesil" aria-label="Yeşil"></button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4304,6 +4384,7 @@
     const emptySub = document.getElementById('emptySub');
     const settingsRow = document.getElementById('settingsRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
+    const renkRow = document.getElementById('renkRow');
     const gundelikEyebrow = document.getElementById('gundelikEyebrow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
@@ -4359,6 +4440,7 @@
       emptySub.classList.remove('animate');
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
+      renkRow.classList.remove('animate');
       gundelikEyebrow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
@@ -4387,12 +4469,14 @@
       emptySub.classList.remove('animate');
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
+      renkRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
       emptyRule.classList.add('animate');
       emptySub.classList.add('animate');
       settingsRow.classList.add('animate');
       navbarPositionRow.classList.add('animate');
+      renkRow.classList.add('animate');
       });
     }
 
@@ -6734,7 +6818,13 @@
         window.showSayacListemView();
       });
 
-      sayacListemGeriBtn.addEventListener('click', sayacListemNavaGit);
+      sayacListemGeriBtn.addEventListener('click', function(){
+        if(typeof window.showSayacView === 'function'){
+          window.showSayacView();
+        } else {
+          sayacListemNavaGit();
+        }
+      });
 
       document.addEventListener('keydown', function(e){
         if(e.key === 'Escape' && viewSayacListem.classList.contains('active')){
@@ -7046,6 +7136,44 @@
         const yeniTema = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         uygula(yeniTema);
         try{ localStorage.setItem(STORAGE_KEY, yeniTema); }catch(e){}
+      });
+    }
+  })();
+
+  // ================= RENK (VURGU RENGİ) =================
+  (function(){
+    const root = document.documentElement;
+    const renkStateLabel = document.getElementById('renkStateLabel');
+    const renkSwatchGroup = document.getElementById('renkSwatchGroup');
+    const STORAGE_KEY = 'sessizlik-renk';
+    const renkIsimleri = { mavi:'Mavi', mor:'Mor', kirmizi:'Kırmızı', yesil:'Yeşil' };
+
+    function uygula(renk){
+      if(renk && renkIsimleri[renk] && renk !== 'mavi'){
+        root.setAttribute('data-accent', renk);
+      } else {
+        root.removeAttribute('data-accent');
+        renk = 'mavi';
+      }
+      if(renkStateLabel){ renkStateLabel.textContent = renkIsimleri[renk] + ' aktif'; }
+      if(renkSwatchGroup){
+        renkSwatchGroup.querySelectorAll('.renk-swatch').forEach(function(btn){
+          btn.classList.toggle('secili', btn.getAttribute('data-renk') === renk);
+        });
+      }
+    }
+
+    let kayitliRenk = 'mavi';
+    try{ kayitliRenk = localStorage.getItem(STORAGE_KEY) || 'mavi'; }catch(e){}
+    uygula(kayitliRenk);
+
+    if(renkSwatchGroup){
+      renkSwatchGroup.addEventListener('click', function(e){
+        const btn = e.target.closest('.renk-swatch');
+        if(!btn) return;
+        const renk = btn.getAttribute('data-renk');
+        uygula(renk);
+        try{ localStorage.setItem(STORAGE_KEY, renk); }catch(e){}
       });
     }
   })();
