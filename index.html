@@ -1278,6 +1278,14 @@
     color:var(--ink-soft);
     opacity:0.4;
   }
+  /* Geri Sayım gibi yalnızca bugün/gelecek tarihlerin anlamlı olduğu formlarda,
+     geçmiş günler tıklanamaz ve soluk gösterilir. */
+  .mini-takvim-gun.gecmis-pasif{
+    color:var(--ink-soft);
+    opacity:0.3;
+    cursor:default;
+    pointer-events:none;
+  }
   .mini-takvim-gun.bugun{
     box-shadow:inset 0 0 0 1px var(--accent);
   }
@@ -5463,6 +5471,9 @@
 
       let miniGoruntulenen = new Date();
       let miniSecili = null;
+      // true iken bugünden önceki günler tıklanamaz (ör. Geri Sayım hedef tarihi);
+      // Deneme Ekle gibi geçmiş bir tarihin de girilebilmesi gereken formlarda false kalır.
+      let miniGecmisPasif = false;
       let miniAktifBtn = tarihBtn;
       let miniAktifText = tarihText;
       let miniAktifInput = tarihInput;
@@ -5485,12 +5496,14 @@
           const gun = new Date(baslangic);
           gun.setDate(baslangic.getDate() + i);
           const haftaGunu = gun.getDay();
+          const bugunMu = gun.toDateString() === bugun.toDateString();
           gunler.push({
             tarih: gun,
             buAyIcinde: gun.getMonth() === ay,
-            bugunMu: gun.toDateString() === bugun.toDateString(),
+            bugunMu: bugunMu,
             seciliMi: miniSecili ? gun.toDateString() === miniSecili.toDateString() : false,
-            haftaSonuMu: haftaGunu === 0 || haftaGunu === 6
+            haftaSonuMu: haftaGunu === 0 || haftaGunu === 6,
+            gecmisMi: !bugunMu && gun < new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate())
           });
         }
         return gunler;
@@ -5508,8 +5521,11 @@
           if(gun.bugunMu) btn.classList.add('bugun');
           if(gun.seciliMi) btn.classList.add('secili');
           if(gun.haftaSonuMu) btn.classList.add('hafta-sonu');
+          const pasifMi = miniGecmisPasif && gun.gecmisMi;
+          if(pasifMi){ btn.classList.add('gecmis-pasif'); btn.disabled = true; btn.setAttribute('aria-disabled', 'true'); }
           btn.textContent = gun.tarih.getDate();
           btn.addEventListener('click', function(){
+            if(pasifMi) return;
             miniSecili = gun.tarih;
             miniAktifInput.value = isoTarih(gun.tarih);
             miniAktifText.textContent = formatTarih(miniAktifInput.value);
@@ -5545,10 +5561,11 @@
       }
 
       // Takvimi belirli bir buton/metin/gizli-input üçlüsü için açar; başka formlar da (örn. sayaç) kullanabilir
-      function miniTakvimAc(btn, textEl, inputEl, mevcutIso){
+      function miniTakvimAc(btn, textEl, inputEl, mevcutIso, gecmisPasif){
         miniAktifBtn = btn;
         miniAktifText = textEl;
         miniAktifInput = inputEl;
+        miniGecmisPasif = !!gecmisPasif;
         if(mevcutIso){
           const d = new Date(mevcutIso + 'T00:00:00');
           if(!isNaN(d.getTime())){
@@ -5569,7 +5586,7 @@
       tarihBtn.addEventListener('click', function(e){
         e.stopPropagation();
         if(miniTakvim.classList.contains('acik') && miniAktifBtn === tarihBtn){ kapatMiniTakvim(); }
-        else{ miniTakvimAc(tarihBtn, tarihText, tarihInput, tarihInput.value || null); }
+        else{ miniTakvimAc(tarihBtn, tarihText, tarihInput, tarihInput.value || null, false); }
       });
       miniPrev.addEventListener('click', function(e){
         e.stopPropagation();
@@ -6142,6 +6159,7 @@
       let sayacIntervalId = null;
       let sayacHedefMs = null;
       let sayacDuzenlenenId = null; // Düzenle akışında hangi kayıt güncellenecek
+      let sayacZorlaYeniKurulum = false; // "+ Yeni Sayaç" ile gelindiğinde, kayıtlı aktif sayaç olsa bile boş kurulum formu göster
 
       function ikiHane(n){
         return String(n).padStart(2, '0');
@@ -6164,7 +6182,7 @@
       sayacTarihBtn.addEventListener('click', function(e){
         e.stopPropagation();
         if(miniTakvimAPI.acikMi() && miniTakvimAPI.aktifBtn() === sayacTarihBtn){ miniTakvimAPI.kapat(); }
-        else{ miniTakvimAPI.ac(sayacTarihBtn, sayacTarihBtnText, sayacTarihInput, sayacTarihInput.value || null); }
+        else{ miniTakvimAPI.ac(sayacTarihBtn, sayacTarihBtnText, sayacTarihInput, sayacTarihInput.value || null, true); }
       });
 
       // ---- Saat: özel tasarım saat seçici (mini zaman) ----
@@ -6246,8 +6264,12 @@
       function acMiniZaman(){
         const mevcut = sayacSaatInput.value;
         const parcalar = mevcut ? mevcut.split(':') : null;
-        miniZamanSaatSecili = parcalar ? parcalar[0] : null;
-        miniZamanDakikaSecili = parcalar ? parcalar[1] : null;
+        // Önceden seçilmiş bir saat yoksa bile "00:00" varsayılan olarak hem görsel
+        // hem de dahili state'e atanır; aksi halde kullanıcı sütunlara hiç dokunmadan
+        // "Tamam"a basınca (görünürde 00:00 seçiliymiş gibi dursa da) hiçbir değer
+        // kaydedilmiyor ve saat sessizce boş kalıyordu.
+        miniZamanSaatSecili = parcalar ? parcalar[0] : '00';
+        miniZamanDakikaSecili = parcalar ? parcalar[1] : '00';
         miniZamanKolonDoldur(miniZamanSaatKolon, 24, miniZamanSaatSecili);
         miniZamanKolonDoldur(miniZamanDakikaKolon, 60, miniZamanDakikaSecili);
         miniZaman.classList.add('acik');
@@ -6515,7 +6537,8 @@
         });
       }
 
-      function sayacListemNavaGit(){
+      function sayacListemNavaGit(zorlaYeniKurulum){
+        if(zorlaYeniKurulum){ sayacZorlaYeniKurulum = true; }
         const sayacNavLink = document.querySelector('.nav-items a[data-view="sayac"]');
         if(sayacNavLink){
           sayacNavLink.click();
@@ -6589,13 +6612,7 @@
         sayacBaslikInput.value = '';
         sayacTarihSifirla();
         sayacSaatSifirla();
-        sayacListemNavaGit();
-        if(sayacIntervalId){ clearInterval(sayacIntervalId); sayacIntervalId = null; }
-        sayacCard.style.display = 'none';
-        sayacKurCard.style.display = '';
-        sayacKurCard.classList.remove('animate');
-        void sayacKurCard.offsetWidth;
-        sayacKurCard.classList.add('animate');
+        sayacListemNavaGit(true);
       });
 
       function sayacTarihMetni(d){
@@ -6687,7 +6704,7 @@
         const tarihStr = sayacTarihInput.value;
         if(!tarihStr){
           sayacTarihBtn.focus();
-          miniTakvimAPI.ac(sayacTarihBtn, sayacTarihBtnText, sayacTarihInput, null);
+          miniTakvimAPI.ac(sayacTarihBtn, sayacTarihBtnText, sayacTarihInput, null, true);
           return;
         }
         const saatStr = sayacSaatInput.value || '00:00';
@@ -6761,7 +6778,9 @@
         sayacEyebrow.classList.add('animate');
         sayacTitle.classList.add('animate');
 
-        const hedef = sayacAktifHedefiYukle();
+        const zorlaYeniKurulum = sayacZorlaYeniKurulum;
+        sayacZorlaYeniKurulum = false;
+        const hedef = zorlaYeniKurulum ? null : sayacAktifHedefiYukle();
         if(hedef){
           sayacDuzenlenenId = null;
           sayacGoster(hedef);
