@@ -2299,11 +2299,20 @@
   }
 
   .stage, .view-empty, .view-gundelik, .view-denemeler, .view-takvim, .view-deneme-detay, .view-sayac, .view-sayac-listem, .view-analiz{
-    animation: viewFade 0.5s ease forwards;
+    animation: viewFade 0.6s cubic-bezier(.22,1,.36,1) forwards;
   }
   @keyframes viewFade{
-    from{ opacity:0; }
-    to{ opacity:1; }
+    from{ opacity:0; transform:translateY(10px) scale(0.985); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  /* Sayfa geçişinde eski görünüm bu sınıfla kısa bir "solma" ile kapanır,
+     ardından hideAllViews devreye girip yeni görünüm açılır — kesme sert kalmaz. */
+  .view-gecis-cikis{
+    transition: opacity 0.17s cubic-bezier(.4,0,.2,1), transform 0.17s cubic-bezier(.4,0,.2,1) !important;
+    opacity:0 !important;
+    transform: translateY(-8px) scale(0.985) !important;
+    pointer-events:none !important;
   }
 
   /* ================= GERİ SAYIM (SAYAÇ) GÖRÜNÜMÜ ================= */
@@ -2721,7 +2730,14 @@
     font-weight:600;
   }
 
-  .analiz-icerik{ margin-top:1.4rem; }
+  .analiz-icerik{
+    margin-top:1.4rem;
+    transition: opacity 0.2s cubic-bezier(.4,0,.2,1), transform 0.2s cubic-bezier(.4,0,.2,1);
+  }
+  .analiz-icerik-cikis{
+    opacity:0;
+    transform: translateY(6px) scale(0.99);
+  }
 
   .analiz-grafik-kart{
     border:1px solid var(--line);
@@ -2941,6 +2957,11 @@
     max-height:100%;
     object-fit:contain;
     border-radius:0.3rem;
+    animation: sifirhataBelir 0.35s ease forwards;
+  }
+  @keyframes sifirhataBelir{
+    from{ opacity:0; transform:scale(0.97); }
+    to{ opacity:1; transform:scale(1); }
   }
   .sifirhata-govde-durum{
     font-family:"Helvetica Neue",Arial,sans-serif;
@@ -2961,6 +2982,34 @@
   .sifirhata-secenekler{
     display:flex;
     gap:0.5rem;
+  }
+  /* Cevap sonrası görünen (geri bildirim + devam butonu) alan: grid-template-rows
+     ile 0fr -> 1fr geçişi kullanılarak yüksekliği yumuşakça açılır. Bu sayede
+     üstteki görsel alanı aniden küçülmek yerine bu geçişle birlikte akıcı şekilde
+     yer açar; içerik de hafif bir gecikmeyle belirip yukarı kayarak görünür.
+  */
+  .sifirhata-sonuc-disi{
+    display:grid;
+    grid-template-rows:0fr;
+    width:100%;
+    transition: grid-template-rows 0.45s cubic-bezier(.22,1,.36,1);
+  }
+  .sifirhata-sonuc-disi.acik{
+    grid-template-rows:1fr;
+  }
+  .sifirhata-sonuc-ici{
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.7rem;
+    opacity:0;
+    transform:translateY(8px);
+    transition: opacity 0.3s ease 0.08s, transform 0.3s ease 0.08s;
+  }
+  .sifirhata-sonuc-disi.acik .sifirhata-sonuc-ici{
+    opacity:1;
+    transform:translateY(0);
   }
   .sifirhata-secenek-btn{
     width:2.6rem;
@@ -3024,6 +3073,7 @@
     font-family:"Helvetica Neue",Arial,sans-serif;
     text-align:center;
     padding:0 1.5rem;
+    animation: sifirhataBelir 0.4s ease forwards;
   }
   .sifirhata-ozet-govde b{
     font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;
@@ -3166,6 +3216,7 @@
     .view-analiz, .analiz-govde{ animation:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
     .sayac-birim.sayac-saniye .sayac-sayi.sayac-pulse{ animation:none !important; opacity:1 !important; }
     .dsayac-serit{ transition:none !important; }
+    .view-gecis-cikis, .analiz-icerik-cikis{ transition:none !important; opacity:1 !important; transform:none !important; }
   }
 </style>
 </head>
@@ -4137,9 +4188,36 @@
       viewAnaliz.classList.remove('active');
       if(typeof window.sayacListemDurdur === 'function'){ window.sayacListemDurdur(); }
       pageFooter.style.display = 'none';
+      // Geçiş sınıfını temizle ki görünüm bir dahaki sefere normal şekilde belirsin.
+      [viewHome, viewEmpty, viewGundelik, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
+        if(v){ v.classList.remove('view-gecis-cikis'); }
+      });
+    }
+
+    // Sayfa geçişini yumuşatır: önce görünen görünümü kısa bir "solma" ile kapatır,
+    // solma bittiğinde asıl içerik değişimini (hideAllViews + yeni görünümü açma) çalıştırır.
+    function gecisIleDegistir(icerikFn){
+      const izlenenler = [viewEmpty, viewGundelik, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
+      const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
+      const anaSayfaGorunur = viewHome && viewHome.style.display !== 'none';
+      const cikanlar = canliListe.concat(anaSayfaGorunur ? [viewHome] : []);
+
+      const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if(cikanlar.length === 0 || azaltilmisHareket){
+        icerikFn();
+        return;
+      }
+
+      cikanlar.forEach(function(v){ v.classList.add('view-gecis-cikis'); });
+
+      window.setTimeout(function(){
+        icerikFn();
+      }, 170);
     }
 
     function showHomeView(){
+      gecisIleDegistir(function(){
       hideAllViews();
       emptyWord.classList.remove('animate');
       emptyRule.classList.remove('animate');
@@ -4156,9 +4234,11 @@
       viewHome.style.animation = 'none';
       void viewHome.offsetWidth;
       viewHome.style.animation = '';
+      });
     }
 
     function showEmptyView(){
+      gecisIleDegistir(function(){
       hideAllViews();
 
       viewEmpty.classList.add('active');
@@ -4178,9 +4258,11 @@
       emptySub.classList.add('animate');
       settingsRow.classList.add('animate');
       navbarPositionRow.classList.add('animate');
+      });
     }
 
     function showGundelikView(){
+      gecisIleDegistir(function(){
       hideAllViews();
 
       viewGundelik.classList.add('active');
@@ -4196,9 +4278,11 @@
       gundelikEyebrow.classList.add('animate');
       gundelikTitle.classList.add('animate');
       gundelikSub.classList.add('animate');
+      });
     }
 
     function showDenemelerView(){
+      gecisIleDegistir(function(){
       hideAllViews();
 
       viewDenemeler.classList.add('active');
@@ -4218,6 +4302,7 @@
       guncelDenemeKartlari.forEach(function(card, i){
         card.style.animationDelay = (0.25 + i * 0.08) + 's';
         card.classList.add('animate');
+      });
       });
     }
 
@@ -4693,54 +4778,77 @@
         sifirhataGovdeEl.appendChild(hata);
       });
 
-      sifirHataAltCiz(soru, false, null);
+      sifirHataAltCiz(soru);
     }
 
-    // cevaplandiMi: bu soru için bir şık seçildi mi. secilenHarf: seçilen şık (varsa).
-    function sifirHataAltCiz(soru, cevaplandiMi, secilenHarf){
+    // Cevap seçeneklerini ve (cevaplandıktan sonra) geri bildirim + devam butonunu çizer.
+    // Geri bildirim alanı başlangıçta .sifirhata-sonuc-disi ile (yüksekliği 0fr) birlikte
+    // DOM'a eklenir; bir şık seçilince içi doldurulup 'acik' sınıfıyla yumuşakça açılır.
+    function sifirHataAltCiz(soru){
       sifirhataAltEl.innerHTML = '';
+
+      const sonucDisi = document.createElement('div');
+      sonucDisi.className = 'sifirhata-sonuc-disi';
+      const sonucIci = document.createElement('div');
+      sonucIci.className = 'sifirhata-sonuc-ici';
+      sonucDisi.appendChild(sonucIci);
 
       if(!soru.dogruCevap){
         // Doğru cevabı işaretlenmemiş sorular puanlanamaz; kullanıcı sadece görüp geçebilir.
         const bilgi = document.createElement('p');
         bilgi.className = 'sifirhata-geribildirim';
         bilgi.textContent = 'Bu soru için doğru cevap işaretlenmemiş.';
-        sifirhataAltEl.appendChild(bilgi);
-        sifirhataAltEl.appendChild(sifirHataDevamBtnOlustur());
+        sonucIci.appendChild(bilgi);
+        sonucIci.appendChild(sifirHataDevamBtnOlustur());
+        sifirhataAltEl.appendChild(sonucDisi);
+        requestAnimationFrame(function(){ sonucDisi.classList.add('acik'); });
         return;
       }
 
       const secenekler = document.createElement('div');
       secenekler.className = 'sifirhata-secenekler';
+      const butonlar = [];
       SORU_CEVAP_SECENEKLERI.forEach(function(harf){
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'sifirhata-secenek-btn';
         btn.textContent = harf;
-        if(cevaplandiMi){
-          btn.disabled = true;
-          if(harf === soru.dogruCevap){ btn.classList.add('dogru'); }
-          else if(harf === secilenHarf){ btn.classList.add('yanlis'); }
-        } else {
-          btn.addEventListener('click', function(){
-            const dogruMu = harf === soru.dogruCevap;
-            if(dogruMu){ sifirhataOturumDogru++; } else { sifirhataOturumYanlis++; }
-            sifirHataIstatistikGuncelle(soru, dogruMu);
-            sifirHataAltCiz(soru, true, harf);
-          });
-        }
+        butonlar.push(btn);
         secenekler.appendChild(btn);
       });
       sifirhataAltEl.appendChild(secenekler);
+      sifirhataAltEl.appendChild(sonucDisi);
 
-      if(cevaplandiMi){
-        const geri = document.createElement('p');
-        const dogruMu = secilenHarf === soru.dogruCevap;
-        geri.className = 'sifirhata-geribildirim ' + (dogruMu ? 'dogru-metin' : 'yanlis-metin');
-        geri.textContent = dogruMu ? 'Doğru!' : ('Yanlış — doğru cevap ' + soru.dogruCevap);
-        sifirhataAltEl.appendChild(geri);
-        sifirhataAltEl.appendChild(sifirHataDevamBtnOlustur());
-      }
+      butonlar.forEach(function(btn, i){
+        const harf = SORU_CEVAP_SECENEKLERI[i];
+        btn.addEventListener('click', function(){
+          if(btn.disabled) return;
+
+          // Şıkları kilitle, doğru/yanlışı renklendir (görsel bunun için zaten
+          // 0.18s'lik bir renk geçişine sahip — bkz. .sifirhata-secenek-btn).
+          butonlar.forEach(function(b, j){
+            b.disabled = true;
+            const h = SORU_CEVAP_SECENEKLERI[j];
+            if(h === soru.dogruCevap){ b.classList.add('dogru'); }
+            else if(h === harf){ b.classList.add('yanlis'); }
+          });
+
+          const dogruMu = harf === soru.dogruCevap;
+          if(dogruMu){ sifirhataOturumDogru++; } else { sifirhataOturumYanlis++; }
+          sifirHataIstatistikGuncelle(soru, dogruMu);
+
+          const geri = document.createElement('p');
+          geri.className = 'sifirhata-geribildirim ' + (dogruMu ? 'dogru-metin' : 'yanlis-metin');
+          geri.textContent = dogruMu ? 'Doğru!' : ('Yanlış — doğru cevap ' + soru.dogruCevap);
+          sonucIci.appendChild(geri);
+          sonucIci.appendChild(sifirHataDevamBtnOlustur());
+
+          // Bir sonraki frame'de 'acik' eklenir: grid-template-rows 0fr->1fr geçişi
+          // görsel alanının yumuşakça yer açmasını, iç içerik de hafif gecikmeli
+          // fade/slide ile belirmesini sağlar (bkz. .sifirhata-sonuc-disi CSS).
+          requestAnimationFrame(function(){ sonucDisi.classList.add('acik'); });
+        });
+      });
     }
 
     function sifirHataDevamBtnOlustur(){
@@ -4807,11 +4915,24 @@
         btn.classList.add('secili');
         btn.setAttribute('aria-checked', 'true');
         analizSeciliAlan = btn.dataset.alan;
-        analizIcerikCiz();
+
+        const analizIcerikEl = document.getElementById('analizIcerik');
+        const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(analizIcerikEl && !azaltilmisHareket){
+          analizIcerikEl.classList.add('analiz-icerik-cikis');
+          window.setTimeout(function(){
+            analizIcerikCiz();
+            void document.getElementById('analizIcerik').offsetWidth;
+            document.getElementById('analizIcerik').classList.remove('analiz-icerik-cikis');
+          }, 150);
+        } else {
+          analizIcerikCiz();
+        }
       });
     });
 
     function showAnalizView(){
+      gecisIleDegistir(function(){
       hideAllViews();
 
       viewAnaliz.classList.add('active');
@@ -4828,6 +4949,7 @@
         void analizGovde.offsetWidth;
         analizGovde.style.animation = '';
       }
+      });
     }
 
     // ---- SAYAÇ: animated-counter.tsx'in vanilla JS karşılığı (motion/react bağımlılığı yok) ----
@@ -5136,6 +5258,7 @@
     }
 
     function showDenemeDetayView(id){
+      gecisIleDegistir(function(){
       hideAllViews();
       renderDenemeDetay(id);
 
@@ -5152,6 +5275,7 @@
       denemeDetayEyebrow.classList.add('animate');
       denemeDetayBaslik.classList.add('animate');
       denemeDetayTarihEl.classList.add('animate');
+      });
     }
 
     // ---- Denemeleri Düzenle modu: dış kapsamda paylaşılan durum ----
@@ -5947,6 +6071,7 @@
       bilgiGuncelle(seciliTarih);
 
       window.showTakvimView = function(){
+        gecisIleDegistir(function(){
         hideAllViews();
 
         viewTakvim.classList.add('active');
@@ -5963,6 +6088,7 @@
         takvimTitle.classList.add('animate');
         takvimCard.classList.add('animate');
         bilgiGuncelle(seciliTarih);
+        });
       };
     })();
 
@@ -6399,6 +6525,7 @@
       }
 
       window.showSayacListemView = function(){
+        gecisIleDegistir(function(){
         hideAllViews();
 
         viewSayacListem.classList.add('active');
@@ -6410,6 +6537,7 @@
         sayacListemOlustur();
         if(sayacListemIntervalId){ clearInterval(sayacListemIntervalId); }
         sayacListemIntervalId = setInterval(sayacListemTikGuncelle, 1000);
+        });
       };
 
       window.sayacListemDurdur = function(){
@@ -6616,6 +6744,7 @@
       window.sayacPopupAc = sayacBaslatModalAc;
 
       window.showSayacView = function(){
+        gecisIleDegistir(function(){
         hideAllViews();
 
         viewSayac.classList.add('active');
@@ -6644,6 +6773,7 @@
           sayacCard.style.display = 'none';
           sayacKurCard.classList.add('animate');
         }
+        });
       };
     })();
 
