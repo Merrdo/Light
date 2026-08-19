@@ -844,6 +844,32 @@
     animation-delay:0.9s;
   }
 
+  .gundelik-soru-havuzu-btn{
+    margin-top:2.2rem;
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    padding:0.75rem 1.4rem;
+    border:1px solid var(--line);
+    border-radius:9999px;
+    background:transparent;
+    color:var(--ink);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    letter-spacing:0.03em;
+    cursor:pointer;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  }
+  .gundelik-soru-havuzu-btn svg{ width:1.05rem; height:1.05rem; }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-soru-havuzu-btn:hover{
+      background:rgba(var(--accent-rgb),0.12);
+      border-color:var(--accent);
+      transform:translateY(-2px);
+    }
+  }
+  .gundelik-soru-havuzu-btn:active{ transform:scale(0.96); }
+
   /* ================= GÜNDELİK: SORU HAVUZU ================= */
   .gundelik-toolbar{
     margin-top:1.6rem;
@@ -865,6 +891,102 @@
     gap:0.5rem;
     flex-wrap:wrap;
   }
+
+  /* ---- "Kategorilerim" butonu: kategori görünürlük seçim pop-up'ını açar ---- */
+  .gundelik-kategorilerim-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:0.45rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    letter-spacing:0.03em;
+    padding:0.55rem 1.1rem;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    max-width:60vw;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .gundelik-kategorilerim-btn:hover{ border-color:var(--accent); color:var(--ink); }
+  .gundelik-kategorilerim-btn:active{ transform:scale(0.97); }
+  .gundelik-kategorilerim-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
+  .gundelik-kategorilerim-btn span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  /* ---- Kategorilerim pop-up'ı: görüntülenecek kategori(ler)i seçme listesi ---- */
+  .kategori-sec-liste{
+    display:flex;
+    flex-direction:column;
+    gap:0.5rem;
+    max-height:50vh;
+    overflow-y:auto;
+  }
+  .kategori-sec-satir{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    padding:0.6rem 0.7rem;
+    border:1px solid var(--line);
+    border-radius:0.5rem;
+    background:rgba(var(--bg-rgb),0.4);
+    color:var(--ink);
+    font-family:inherit;
+    cursor:pointer;
+    text-align:left;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .kategori-sec-satir:hover{ border-color:var(--accent); }
+  .kategori-sec-satir.secili{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.12);
+  }
+  .kategori-sec-satir.kategori-sec-tumu{
+    margin-bottom:0.15rem;
+    padding-bottom:0.75rem;
+    border-bottom:1px solid var(--line);
+    border-radius:0.5rem;
+    font-style:italic;
+  }
+  .kategori-sec-check{
+    flex-shrink:0;
+    width:1.15rem;
+    height:1.15rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1.5px solid var(--line);
+    border-radius:0.3rem;
+    color:transparent;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+  .kategori-sec-satir.secili .kategori-sec-check{
+    border-color:var(--accent);
+    background:var(--accent);
+    color:var(--bg);
+  }
+  .kategori-sec-check svg{ width:0.75rem; height:0.75rem; }
+  .kategori-sec-ad{
+    flex:1 1 auto;
+    min-width:0;
+    font-size:0.85rem;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .kategori-sec-sayi{
+    flex:0 0 auto;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.64rem;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
   .gundelik-kategori-duzenle-btn{
     flex-shrink:0;
     width:1.9rem;
@@ -4121,23 +4243,40 @@
 
   <div class="view-gundelik" id="viewGundelik">
     <div class="gundelik-heading">
-      <span class="gundelik-eyebrow" id="gundelikEyebrow">Çözemediklerin</span>
-      <h2 class="gundelik-title" id="gundelikTitle">Soru Havuzun</h2>
+      <span class="gundelik-eyebrow" id="gundelikEyebrow">Her Gün Bir Sayfa</span>
+      <h2 class="gundelik-title" id="gundelikTitle">Gündelik Defterin</h2>
     </div>
-    <p class="gundelik-sub" id="gundelikSub">Çözemediğin soruların fotoğrafını ekle, branşına göre biriktir.</p>
+    <p class="gundelik-sub" id="gundelikSub">Yakında burada günlük yazılarını bulacaksın.</p>
+
+    <button type="button" class="gundelik-soru-havuzu-btn" id="gundelikSoruHavuzuBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path></svg>
+      <span>Soru Havuzu</span>
+    </button>
+  </div>
+
+  <div class="view-gundelik view-soru-havuzu" id="viewSoruHavuzu">
+    <div class="sayac-listem-heading">
+      <button type="button" class="sayac-listem-geri-btn" id="soruHavuzuGeriBtn" aria-label="Geri dön">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <span class="sayac-listem-eyebrow">Çözemediklerin</span>
+      <h2 class="sayac-listem-title">Soru Havuzun</h2>
+    </div>
+    <p class="gundelik-sub" style="opacity:1;">Çözemediğin soruların fotoğrafını ekle, branşına göre biriktir.</p>
 
     <div class="gundelik-toolbar">
       <div class="gundelik-filter-row">
-        <div class="gundelik-filter-group" id="gundelikFilterGroup" role="group" aria-label="Branşa göre filtrele">
-          <button type="button" class="gundelik-filter-btn secili" data-filter="hepsi">Tümü</button>
-        </div>
+        <button type="button" class="gundelik-kategorilerim-btn" id="gundelikKategorilerimBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"></path><path d="M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+          <span id="gundelikKategorilerimLabel">Kategorilerim</span>
+        </button>
         <button type="button" class="gundelik-kategori-duzenle-btn" id="gundelikBransDuzenleBtn" aria-label="Kategorileri düzenle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
         </button>
       </div>
       <div class="gundelik-toolbar-sag">
         <button type="button" class="gundelik-test-btn" id="gundelikTestModuBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M12 3v6M5 21h14l-2.2-7.5a3 3 0 0 0-.5-1L14 9H10l-2.3 3.5a3 3 0 0 0-.5 1L5 21Z"></path></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
           <span>Test Modu</span>
         </button>
         <button type="button" class="gundelik-ekle-btn" id="gundelikEkleBtn">
@@ -4189,6 +4328,25 @@
       </div>
       <div class="modal-actions">
         <button type="button" class="modal-btn modal-btn-primary" id="gundelikBransDuzenleTamam">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gündelik: Kategorilerim — görüntülenecek kategori(ler)i seçme penceresi -->
+  <div class="modal-overlay" id="gundelikKategoriSecOverlay">
+    <div class="modal-box" style="position:relative;">
+      <button class="modal-close" id="gundelikKategoriSecKapat" type="button" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+      <span class="modal-eyebrow">Soru Havuzu</span>
+      <h3 class="modal-title">Kategorilerim</h3>
+      <p class="gundelik-test-yardim">Görüntülemek istediğin kategorileri seç.</p>
+      <div class="modal-field">
+        <div class="kategori-sec-liste" id="gundelikKategoriSecListe"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="gundelikKategoriSecVazgec">Vazgeç</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="gundelikKategoriSecTamam">Tamam</button>
       </div>
     </div>
   </div>
@@ -4665,6 +4823,9 @@
     const SORU_HAVUZU_BRANS_DEPOLAMA_ANAHTARI = 'sessizlik-soru-havuzu-branslar';
     const SORU_HAVUZU_SIRA_DEPOLAMA_ANAHTARI = 'sessizlik-soru-havuzu-sira';
     const SORU_HAVUZU_SILINMIS_DEPOLAMA_ANAHTARI = 'sessizlik-soru-havuzu-silinmis';
+    // "Kategorilerim" pop-up'ından seçilen, gridde görüntülenecek kategoriler.
+    // null ise "Tümü" seçilidir (hiçbir filtre uygulanmaz).
+    const SORU_HAVUZU_SECILI_FILTRE_ANAHTARI = 'sessizlik-soru-havuzu-secili-filtre';
 
     function soruHavuzuKaydet(){
       try{
@@ -4741,6 +4902,33 @@
         if(Array.isArray(yuklenen)){ soruHavuzuSilinmisBranslar = yuklenen; }
       }catch(e){
         console.log('Kayıtlı silinen kategoriler okunamadı:', e);
+      }
+    }
+
+    // "Kategorilerim" pop-up'ından seçilip gridde görüntülenecek kategoriler.
+    // null = "Tümü" seçili (hiçbir filtre uygulanmaz); aksi halde branş adı dizisi.
+    let gundelikSeciliBranslar = null;
+
+    function gundelikSeciliBranslariKaydet(){
+      try{
+        if(gundelikSeciliBranslar === null){
+          localStorage.removeItem(SORU_HAVUZU_SECILI_FILTRE_ANAHTARI);
+        } else {
+          localStorage.setItem(SORU_HAVUZU_SECILI_FILTRE_ANAHTARI, JSON.stringify(gundelikSeciliBranslar));
+        }
+      }catch(e){
+        console.log('Seçili kategoriler kaydedilemedi:', e);
+      }
+    }
+
+    function gundelikSeciliBranslariYukle(){
+      try{
+        const ham = localStorage.getItem(SORU_HAVUZU_SECILI_FILTRE_ANAHTARI);
+        if(!ham) return;
+        const yuklenen = JSON.parse(ham);
+        if(Array.isArray(yuklenen)){ gundelikSeciliBranslar = yuklenen; }
+      }catch(e){
+        console.log('Kayıtlı seçili kategoriler okunamadı:', e);
       }
     }
 
@@ -5135,6 +5323,7 @@
     const viewHome = document.getElementById('viewHome');
     const viewEmpty = document.getElementById('viewEmpty');
     const viewGundelik = document.getElementById('viewGundelik');
+    const viewSoruHavuzu = document.getElementById('viewSoruHavuzu');
     const viewDenemeler = document.getElementById('viewDenemeler');
     const viewDenemeDetay = document.getElementById('viewDenemeDetay');
     const viewTakvim = document.getElementById('viewTakvim');
@@ -5159,6 +5348,7 @@
       viewHome.style.display = 'none';
       viewEmpty.classList.remove('active');
       viewGundelik.classList.remove('active');
+      viewSoruHavuzu.classList.remove('active');
       viewDenemeler.classList.remove('active');
       viewDenemeDetay.classList.remove('active');
       viewTakvim.classList.remove('active');
@@ -5168,7 +5358,7 @@
       if(typeof window.sayacListemDurdur === 'function'){ window.sayacListemDurdur(); }
       pageFooter.style.display = 'none';
       // Geçiş sınıfını temizle ki görünüm bir dahaki sefere normal şekilde belirsin.
-      [viewHome, viewEmpty, viewGundelik, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
+      [viewHome, viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
         if(v){ v.classList.remove('view-gecis-cikis'); }
       });
     }
@@ -5176,7 +5366,7 @@
     // Sayfa geçişini yumuşatır: önce görünen görünümü kısa bir "solma" ile kapatır,
     // solma bittiğinde asıl içerik değişimini (hideAllViews + yeni görünümü açma) çalıştırır.
     function gecisIleDegistir(icerikFn){
-      const izlenenler = [viewEmpty, viewGundelik, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
+      const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
       const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
       const anaSayfaGorunur = viewHome && viewHome.style.display !== 'none';
       const cikanlar = canliListe.concat(anaSayfaGorunur ? [viewHome] : []);
@@ -5260,6 +5450,18 @@
       gundelikEyebrow.classList.add('animate');
       gundelikTitle.classList.add('animate');
       gundelikSub.classList.add('animate');
+      });
+    }
+
+    function showSoruHavuzuView(){
+      gecisIleDegistir(function(){
+      hideAllViews();
+
+      viewSoruHavuzu.classList.add('active');
+      void viewSoruHavuzu.offsetWidth;
+      viewSoruHavuzu.style.animation = 'none';
+      void viewSoruHavuzu.offsetWidth;
+      viewSoruHavuzu.style.animation = '';
       });
     }
 
@@ -6024,6 +6226,7 @@
       soruHavuzuSilinmisYukle();
       soruHavuzuSiraYukle();
       soruHavuzuYukle();
+      gundelikSeciliBranslariYukle();
     })();
 
     const kaynakVideoBtn = document.getElementById('kaynakVideoBtn');
@@ -6108,6 +6311,16 @@
     // Yanlış/boş işaretli bir soruya eklenen görselin yanında gösterilecek "doğru cevap" şık listesi.
     const SORU_CEVAP_SECENEKLERI = ['A', 'B', 'C', 'D', 'E'];
 
+    // ---- Gündelik (günlük) ekranından Soru Havuzu'na geçiş ve geri dönüş ----
+    const gundelikSoruHavuzuBtn = document.getElementById('gundelikSoruHavuzuBtn');
+    const soruHavuzuGeriBtn = document.getElementById('soruHavuzuGeriBtn');
+    gundelikSoruHavuzuBtn.addEventListener('click', function(){
+      showSoruHavuzuView();
+    });
+    soruHavuzuGeriBtn.addEventListener('click', function(){
+      showGundelikView();
+    });
+
     // ============================================================
     // GÜNDELİK: Soru Havuzu — soru ekleme akışı
     // Akış: [Soru Ekle] -> galeriden görsel seç -> branş seç (modal) ->
@@ -6118,8 +6331,14 @@
     const gundelikEmptyMsg = document.getElementById('gundelikEmptyMsg');
     const gundelikEkleBtn = document.getElementById('gundelikEkleBtn');
     const gundelikSoruGorselInput = document.getElementById('gundelikSoruGorselInput');
-    const gundelikFilterGroup = document.getElementById('gundelikFilterGroup');
-    let gundelikAktifFiltre = 'hepsi';
+    const gundelikKategorilerimBtn = document.getElementById('gundelikKategorilerimBtn');
+    const gundelikKategorilerimLabel = document.getElementById('gundelikKategorilerimLabel');
+    const gundelikKategoriSecOverlay = document.getElementById('gundelikKategoriSecOverlay');
+    const gundelikKategoriSecKapat = document.getElementById('gundelikKategoriSecKapat');
+    const gundelikKategoriSecVazgec = document.getElementById('gundelikKategoriSecVazgec');
+    const gundelikKategoriSecTamam = document.getElementById('gundelikKategoriSecTamam');
+    const gundelikKategoriSecListe = document.getElementById('gundelikKategoriSecListe');
+    let gundelikKategoriSecGecici = [];   // Pop-up açıkken üzerinde çalışılan geçici seçim
 
     const gundelikBransModalOverlay = document.getElementById('gundelikBransModalOverlay');
     const gundelikBransModalClose = document.getElementById('gundelikBransModalClose');
@@ -6236,23 +6455,30 @@
       });
     });
 
+    // Bir kartın, o an seçili kategori(ler) içinde gösterilip gösterilmeyeceğini belirler.
+    // gundelikSeciliBranslar === null -> "Tümü" seçili, her kart uygun.
+    function gundelikKartUygunMu(brans){
+      if(gundelikSeciliBranslar === null) return true;
+      return gundelikSeciliBranslar.indexOf(brans) !== -1;
+    }
+
     function gundelikBosDurumGuncelle(){
       const tumKartlar = Array.from(gundelikGrid.children);
       let gorunenSayisi = 0;
       tumKartlar.forEach(function(kart){
-        const uygun = gundelikAktifFiltre === 'hepsi' || kart.dataset.brans === gundelikAktifFiltre;
+        const uygun = gundelikKartUygunMu(kart.dataset.brans);
         kart.style.display = uygun ? '' : 'none';
         if(uygun) gorunenSayisi++;
       });
       gundelikEmptyMsg.textContent = tumKartlar.length === 0
         ? 'Henüz eklenmiş bir soru yok.'
-        : 'Bu branşta henüz soru yok.';
+        : 'Seçili kategori(ler)de henüz soru yok.';
       gundelikEmptyMsg.classList.toggle('aktif', gorunenSayisi === 0);
-      gundelikFiltreleriGuncelle();
+      gundelikKategorilerimLabelGuncelle();
     }
 
     // Gridde şu an bulunan sorulardan, branş -> soru sayısı haritası çıkarır.
-    // Hem filtre çubuğu hem de Test Modu'ndaki branş seçimi bu ortak veriyi kullanır.
+    // Hem "Kategorilerim" pop-up'ı hem de Test Modu'ndaki branş seçimi bu ortak veriyi kullanır.
     function gundelikBransSayilariGetir(){
       const sayilar = {};
       Array.from(gundelikGrid.children).forEach(function(kart){
@@ -6262,12 +6488,11 @@
       return sayilar;
     }
 
-    // Filtre çubuğunu, gridde şu an bulunan sorulardan çıkan branşlara göre yeniden kurar.
-    // "Tümü" her zaman ilk sırada sabit kalır; aktif filtrenin branşı kalktıysa "Tümü"ne döner.
-    function gundelikFiltreleriGuncelle(){
+    // Gridde şu an bulunan sorulardan çıkan branşları, kategori sırasına göre sıralar.
+    function gundelikMevcutBranslarSirali(){
       const sayilar = gundelikBransSayilariGetir();
       const sira = soruHavuzuBranslariGetir();
-      const branslar = Object.keys(sayilar).sort(function(a, b){
+      return Object.keys(sayilar).sort(function(a, b){
         const ia = sira.indexOf(a);
         const ib = sira.indexOf(b);
         if(ia === -1 && ib === -1) return a.localeCompare(b, 'tr');
@@ -6275,33 +6500,112 @@
         if(ib === -1) return -1;
         return ia - ib;
       });
+    }
 
-      if(gundelikAktifFiltre !== 'hepsi' && !sayilar[gundelikAktifFiltre]){
-        gundelikAktifFiltre = 'hepsi';
+    // "Kategorilerim" butonunun etiketini, o an geçerli seçime göre günceller;
+    // ayrıca artık var olmayan (silinmiş) branşları seçimden temizler.
+    function gundelikKategorilerimLabelGuncelle(){
+      const mevcutBranslar = gundelikMevcutBranslarSirali();
+
+      if(gundelikSeciliBranslar !== null){
+        const gecerliSecili = gundelikSeciliBranslar.filter(function(b){ return mevcutBranslar.indexOf(b) !== -1; });
+        if(gecerliSecili.length !== gundelikSeciliBranslar.length){
+          gundelikSeciliBranslar = gecerliSecili;
+          gundelikSeciliBranslariKaydet();
+        }
+        if(!gundelikSeciliBranslar.length || gundelikSeciliBranslar.length >= mevcutBranslar.length){
+          gundelikSeciliBranslar = null;
+          gundelikSeciliBranslariKaydet();
+        }
       }
 
-      gundelikFilterGroup.innerHTML = '';
-      const hepsiBtn = document.createElement('button');
-      hepsiBtn.type = 'button';
-      hepsiBtn.className = 'gundelik-filter-btn' + (gundelikAktifFiltre === 'hepsi' ? ' secili' : '');
-      hepsiBtn.dataset.filter = 'hepsi';
-      hepsiBtn.textContent = 'Tümü (' + Object.keys(sayilar).reduce(function(t, k){ return t + sayilar[k]; }, 0) + ')';
-      gundelikFilterGroup.appendChild(hepsiBtn);
+      if(gundelikSeciliBranslar === null){
+        gundelikKategorilerimLabel.textContent = 'Kategorilerim · Tümü';
+      } else if(gundelikSeciliBranslar.length === 1){
+        gundelikKategorilerimLabel.textContent = 'Kategorilerim · ' + gundelikSeciliBranslar[0];
+      } else {
+        gundelikKategorilerimLabel.textContent = 'Kategorilerim · ' + gundelikSeciliBranslar.length + ' seçili';
+      }
+    }
+
+    // ============================================================
+    // GÜNDELİK: "Kategorilerim" pop-up'ı — görüntülenecek kategori(ler)i seçme
+    // ============================================================
+    function gundelikKategoriSecListesiCiz(){
+      const sayilar = gundelikBransSayilariGetir();
+      const branslar = gundelikMevcutBranslarSirali();
+
+      gundelikKategoriSecListe.innerHTML = '';
+
+      const toplam = branslar.reduce(function(t, b){ return t + sayilar[b]; }, 0);
+      const tumuSeciliMi = branslar.length > 0 && gundelikKategoriSecGecici.length === branslar.length;
+
+      const tumuSatir = document.createElement('button');
+      tumuSatir.type = 'button';
+      tumuSatir.className = 'kategori-sec-satir kategori-sec-tumu' + (tumuSeciliMi ? ' secili' : '');
+      tumuSatir.innerHTML = '<span class="kategori-sec-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="kategori-sec-ad">Tümü</span><span class="kategori-sec-sayi"></span>';
+      tumuSatir.querySelector('.kategori-sec-sayi').textContent = toplam;
+      tumuSatir.addEventListener('click', function(){
+        gundelikKategoriSecGecici = tumuSeciliMi ? [] : branslar.slice();
+        gundelikKategoriSecListesiCiz();
+      });
+      gundelikKategoriSecListe.appendChild(tumuSatir);
+
+      if(!branslar.length){
+        const bos = document.createElement('p');
+        bos.className = 'brans-duzenle-bos';
+        bos.textContent = 'Henüz bir kategori yok.';
+        gundelikKategoriSecListe.appendChild(bos);
+        return;
+      }
 
       branslar.forEach(function(brans){
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'gundelik-filter-btn' + (gundelikAktifFiltre === brans ? ' secili' : '');
-        btn.dataset.filter = brans;
-        btn.textContent = brans + ' (' + sayilar[brans] + ')';
-        gundelikFilterGroup.appendChild(btn);
+        const seciliMi = gundelikKategoriSecGecici.indexOf(brans) !== -1;
+        const satir = document.createElement('button');
+        satir.type = 'button';
+        satir.className = 'kategori-sec-satir' + (seciliMi ? ' secili' : '');
+        satir.innerHTML = '<span class="kategori-sec-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="kategori-sec-ad"></span><span class="kategori-sec-sayi"></span>';
+        satir.querySelector('.kategori-sec-ad').textContent = brans;
+        satir.querySelector('.kategori-sec-sayi').textContent = sayilar[brans];
+        satir.addEventListener('click', function(){
+          const idx = gundelikKategoriSecGecici.indexOf(brans);
+          if(idx === -1){ gundelikKategoriSecGecici.push(brans); }
+          else { gundelikKategoriSecGecici.splice(idx, 1); }
+          gundelikKategoriSecListesiCiz();
+        });
+        gundelikKategoriSecListe.appendChild(satir);
       });
     }
 
-    gundelikFilterGroup.addEventListener('click', function(e){
-      const btn = e.target.closest('.gundelik-filter-btn');
-      if(!btn) return;
-      gundelikAktifFiltre = btn.dataset.filter;
+    function gundelikKategoriSecAc(){
+      const mevcutBranslar = gundelikMevcutBranslarSirali();
+      gundelikKategoriSecGecici = gundelikSeciliBranslar === null
+        ? mevcutBranslar.slice()
+        : gundelikSeciliBranslar.filter(function(b){ return mevcutBranslar.indexOf(b) !== -1; });
+      gundelikKategoriSecListesiCiz();
+      gundelikKategoriSecOverlay.classList.add('active');
+    }
+
+    function gundelikKategoriSecKapatFn(){
+      gundelikKategoriSecOverlay.classList.remove('active');
+    }
+
+    gundelikKategorilerimBtn.addEventListener('click', gundelikKategoriSecAc);
+    gundelikKategoriSecKapat.addEventListener('click', gundelikKategoriSecKapatFn);
+    gundelikKategoriSecVazgec.addEventListener('click', gundelikKategoriSecKapatFn);
+    gundelikKategoriSecOverlay.addEventListener('click', function(e){
+      if(e.target === gundelikKategoriSecOverlay) gundelikKategoriSecKapatFn();
+    });
+
+    gundelikKategoriSecTamam.addEventListener('click', function(){
+      const mevcutBranslar = gundelikMevcutBranslarSirali();
+      if(!gundelikKategoriSecGecici.length || gundelikKategoriSecGecici.length >= mevcutBranslar.length){
+        gundelikSeciliBranslar = null;
+      } else {
+        gundelikSeciliBranslar = gundelikKategoriSecGecici.slice();
+      }
+      gundelikSeciliBranslariKaydet();
+      gundelikKategoriSecKapatFn();
       gundelikBosDurumGuncelle();
     });
 
@@ -6406,7 +6710,7 @@
       soruHavuzuBransSirasi = mevcutSira;
       soruHavuzuSiraKaydet();
       gundelikBransDuzenleListesiCiz();
-      gundelikFiltreleriGuncelle();
+      gundelikKategorilerimLabelGuncelle();
     }
 
     function gundelikBransSilOnayAc(brans, soruSayisi){
