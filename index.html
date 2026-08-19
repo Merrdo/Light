@@ -1046,6 +1046,28 @@
     text-overflow:ellipsis;
     white-space:nowrap;
   }
+  .dosya-goruntule-aksiyonlar{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+  }
+  .dosya-goruntule-sil{
+    flex-shrink:0;
+    width:2.2rem;
+    height:2.2rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,0.1);
+    color:#F3EFE6;
+    cursor:pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .dosya-goruntule-sil:hover{ background:rgba(224,132,120,0.28); color:#E08478; }
+  .dosya-goruntule-sil svg{ width:1.05rem; height:1.05rem; }
   .dosya-goruntule-kapat{
     flex-shrink:0;
     width:2.2rem;
@@ -1089,6 +1111,55 @@
     color:#A8A199;
     text-align:center;
     padding:0 1.5rem;
+  }
+
+  /* ---- Görüntüleyici altında: yanlış/boş soruya eklenen görsel için doğru cevap seçici ---- */
+  .dosya-goruntule-cevap{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.7rem;
+    flex-wrap:wrap;
+    padding:0.8rem 1.1rem calc(0.9rem + env(safe-area-inset-bottom,0px));
+    background:rgba(0,0,0,0.55);
+  }
+  .dosya-goruntule-cevap-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:#A8A199;
+    flex-shrink:0;
+  }
+  .dosya-goruntule-cevap-secenekler{
+    display:flex;
+    gap:0.4rem;
+  }
+  .dosya-goruntule-cevap-btn{
+    width:2.1rem;
+    height:2.1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08);
+    color:#F3EFE6;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.82rem;
+    cursor:pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+  }
+  .dosya-goruntule-cevap-btn:hover{
+    border-color:rgba(255,255,255,0.5);
+  }
+  .dosya-goruntule-cevap-btn:active{ transform:scale(0.92); }
+  .dosya-goruntule-cevap-btn.secili{
+    background:#9FB8D1;
+    border-color:#9FB8D1;
+    color:#1A1A1A;
+    font-weight:600;
   }
 
   .mini-takvim{
@@ -1177,6 +1248,9 @@
     color:var(--ink-soft);
     padding:0.3rem 0;
   }
+  .mini-takvim-haftagunleri span.hafta-sonu-etiket{
+    color:var(--accent);
+  }
 
   .mini-takvim-gunler{
     display:grid;
@@ -1215,6 +1289,16 @@
   .mini-takvim-gun.secili.bugun{
     background:var(--accent);
     box-shadow:none;
+  }
+  /* hafta sonu (cumartesi/pazar) günlerini mavi renk tonuyla belirginleştir */
+  .mini-takvim-gun.hafta-sonu{
+    color:var(--accent);
+  }
+  .mini-takvim-gun.hafta-sonu.disi-ay{
+    opacity:0.4;
+  }
+  .mini-takvim-gun.hafta-sonu.secili{
+    color:var(--bg);
   }
 
   /* ---- Saat için mini zaman seçici ---- */
@@ -1480,6 +1564,29 @@
   }
   .deneme-edit-btn.aktif .icon-duzenle{ display:none; }
   .deneme-edit-btn.aktif .icon-tamam{ display:block; }
+
+  .deneme-analiz-btn{
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    padding:0.4rem 0.9rem;
+    border:1px solid var(--line);
+    border-radius:100px;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:0.72rem;
+    letter-spacing:0.04em;
+    cursor:pointer;
+    transition:border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+  .deneme-analiz-btn svg{ width:0.9rem; height:0.9rem; flex-shrink:0; }
+  .deneme-analiz-btn:hover{
+    border-color:var(--accent);
+    color:var(--ink);
+    background:rgba(var(--accent-rgb),0.08);
+  }
+  .deneme-analiz-btn:active{ transform:scale(0.97); }
 
   .deneme-empty-msg{
     display:none;
@@ -1935,6 +2042,44 @@
     flex-wrap:wrap;
     gap:0.45rem;
   }
+  /* ---- soru butonu + görsel ekleme rozeti sarmalayıcısı ---- */
+  .soru-wrap{
+    position:relative;
+    display:inline-flex;
+  }
+  .soru-gorsel-btn{
+    position:absolute;
+    right:-0.32rem;
+    bottom:-0.32rem;
+    width:1.1rem;
+    height:1.1rem;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    padding:0;
+    cursor:pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  }
+  .soru-wrap.soru-gorsel-aktif .soru-gorsel-btn{
+    display:flex;
+  }
+  .soru-gorsel-btn svg{ width:0.58rem; height:0.58rem; }
+  .soru-gorsel-btn:hover{
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+  .soru-gorsel-btn:active{
+    transform:scale(0.88);
+  }
+  .soru-gorsel-btn.dolu{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--bg);
+  }
   .soru-btn{
     width:2.1rem;
     height:2.1rem;
@@ -2070,6 +2215,9 @@
     color:var(--ink-soft);
     padding:0.5rem 0;
   }
+  .takvim-haftagunleri span.hafta-sonu-etiket{
+    color:var(--accent);
+  }
 
   .takvim-gunler{
     display:grid;
@@ -2110,6 +2258,19 @@
     color:var(--ink);
     font-weight:600;
   }
+  /* hafta sonu (cumartesi/pazar) günlerini mavi renk tonuyla belirginleştir */
+  .takvim-gun.hafta-sonu{
+    color:var(--accent);
+  }
+  .takvim-gun.hafta-sonu.disi-ay{
+    opacity:0.4;
+  }
+  .takvim-gun.hafta-sonu.bugun{
+    color:var(--bg);
+  }
+  .takvim-gun.hafta-sonu.secili:not(.bugun){
+    color:var(--accent);
+  }
 
   .takvim-secili-bilgi{
     margin-top:1.5rem;
@@ -2137,7 +2298,7 @@
     to{ opacity:1; transform:translateX(0); }
   }
 
-  .stage, .view-empty, .view-gundelik, .view-denemeler, .view-takvim, .view-deneme-detay, .view-sayac, .view-sayac-listem{
+  .stage, .view-empty, .view-gundelik, .view-denemeler, .view-takvim, .view-deneme-detay, .view-sayac, .view-sayac-listem, .view-analiz{
     animation: viewFade 0.5s ease forwards;
   }
   @keyframes viewFade{
@@ -2207,12 +2368,46 @@
     text-align:center;
     margin-bottom:0.6rem;
   }
-  .sayac-kur-btn{
-    margin-top:1.9rem;
+  /* ---- ortak "eylem" butonu: Geri Sayımı Başlat / Yeni Sayaç ---- */
+  .sayac-aksiyon-btn{
+    position:relative;
     width:100%;
-    padding:0.85rem 1rem;
-    text-align:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.6rem;
+    padding:0.95rem 1.2rem;
+    border:1px solid rgba(var(--accent-rgb),0.5);
+    border-radius:9999px;
+    background:linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb),0.78));
+    color:var(--bg);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.8rem;
+    font-weight:600;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 10px 24px -6px rgba(var(--accent-rgb),0.55);
+    transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s ease, filter 0.2s ease;
   }
+  .sayac-aksiyon-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
+  .sayac-aksiyon-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 30px -6px rgba(var(--accent-rgb),0.62);
+    filter:brightness(1.04);
+  }
+  .sayac-aksiyon-btn:active{
+    transform:translateY(0) scale(0.97);
+    box-shadow:0 6px 16px -6px rgba(var(--accent-rgb),0.5);
+  }
+  .sayac-aksiyon-btn:disabled{
+    opacity:0.45;
+    cursor:default;
+    transform:none;
+    box-shadow:none;
+  }
+
+  .sayac-kur-btn{ margin-top:1.9rem; }
 
   /* ---- geri sayım kartı: hedef belirlendiğinde (yüklenen tasarım örneğinden) ---- */
   .sayac-card{
@@ -2279,11 +2474,18 @@
     gap:0.5rem;
     padding:0 1.15rem;
   }
+  /* dikey ayraç: rakamların tam boyunu sert bir çizgiyle bölmek yerine,
+     sadece rakam yüksekliği kadar, uçları yumuşakça kaybolan ince bir iz */
   .sayac-ayrac{
     width:1px;
-    align-self:stretch;
-    background:var(--line);
-    margin-top:0.3rem;
+    align-self:flex-start;
+    height:clamp(2.4rem, 9vw, 3.4rem);
+    margin-top:0.05rem;
+    background:linear-gradient(to bottom,
+      rgba(var(--ink-rgb),0) 0%,
+      rgba(var(--ink-rgb),0.22) 18%,
+      rgba(var(--ink-rgb),0.22) 82%,
+      rgba(var(--ink-rgb),0) 100%);
   }
   .sayac-sayi{
     font-size:clamp(2.4rem, 9vw, 3.4rem);
@@ -2460,6 +2662,382 @@
     padding:3rem 0;
   }
 
+  /* ================= "ANALİZLERİM" SAYFASI ================= */
+  .view-analiz{
+    position:relative;
+    z-index:1;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    max-width:560px;
+  }
+  .view-analiz.active{ display:flex; }
+
+  .analiz-govde{
+    width:100%;
+    opacity:0;
+    animation: rise 0.8s ease forwards;
+    animation-delay:0.25s;
+  }
+
+  .analiz-yakinda, .analiz-bos{
+    margin-top:1.8rem;
+    max-width:26rem;
+    font-size:0.92rem;
+    font-style:italic;
+    line-height:1.65;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+
+  .analiz-sekme{
+    display:flex;
+    gap:0.6rem;
+    margin-top:0.4rem;
+  }
+  .analiz-sekme-btn{
+    flex:1;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.85rem;
+    letter-spacing:0.03em;
+    padding:0.6rem 0.8rem;
+    border-radius:0.5rem;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.15s ease;
+  }
+  .analiz-sekme-btn:hover{
+    border-color:var(--ink-soft);
+    color:var(--ink);
+  }
+  .analiz-sekme-btn:active{ transform:scale(0.97); }
+  .analiz-sekme-btn.secili{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:var(--bg);
+    font-weight:600;
+  }
+
+  .analiz-icerik{ margin-top:1.4rem; }
+
+  .analiz-grafik-kart{
+    border:1px solid var(--line);
+    border-radius:0.9rem;
+    padding:1.1rem 0.9rem 1rem;
+    background:rgba(var(--bg-rgb),0.5);
+  }
+  .analiz-grafik-svg{
+    width:100%;
+    height:auto;
+    display:block;
+    overflow:visible;
+  }
+  .analiz-cizgi{
+    fill:none;
+    stroke:var(--accent);
+    stroke-width:1.6;
+    stroke-linejoin:round;
+    stroke-linecap:round;
+  }
+  .analiz-sifir-cizgi{
+    stroke:var(--line);
+    stroke-width:0.6;
+    stroke-dasharray:2.4 2.4;
+  }
+  .analiz-nokta{
+    fill:var(--bg);
+    stroke:var(--accent);
+    stroke-width:1.4;
+    transition: r 0.15s ease;
+  }
+  .analiz-nokta-son{
+    fill:var(--accent);
+  }
+  .analiz-nokta-aktif{
+    stroke:var(--ink);
+  }
+  .analiz-tooltip{
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(2px);
+    transform-box:fill-box;
+    transform-origin:center;
+    transition: opacity 0.6s ease, transform 0.3s ease;
+  }
+  .analiz-tooltip-aktif{
+    opacity:1;
+    transform:translateY(0);
+  }
+  .analiz-tooltip-kutu{
+    fill:var(--ink);
+  }
+  .analiz-tooltip-metin{
+    fill:var(--bg);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:6.6px;
+    font-weight:600;
+  }
+  .analiz-nokta-detay{
+    margin-top:0.9rem;
+    padding-top:0.85rem;
+    border-top:1px solid var(--line);
+    text-align:center;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+  }
+  .analiz-nokta-detay b{
+    color:var(--ink);
+    font-weight:600;
+  }
+
+  .analiz-ozet{
+    margin-top:1.1rem;
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.6rem;
+  }
+  .analiz-rozet{
+    flex:1 1 calc(50% - 0.6rem);
+    min-width:7.2rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.2rem;
+    padding:0.75rem 0.9rem;
+    border:1px solid var(--line);
+    border-radius:0.7rem;
+    background:rgba(var(--bg-rgb),0.5);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+  }
+  .analiz-rozet b{
+    font-size:1.15rem;
+    font-weight:600;
+    color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;
+  }
+  .analiz-rozet span{
+    font-size:0.62rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .analiz-rozet-dogru b{ color:var(--dogru); }
+  .analiz-rozet-yanlis b{ color:var(--yanlis); }
+
+  /* ---- 0 Hata Testleri: branş bazlı havuz listesi ---- */
+  .sifirhata-blok{ margin-bottom:1.5rem; }
+  .sifirhata-blok:last-child{ margin-bottom:0; }
+  .sifirhata-blok-baslik{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:0.65rem;
+  }
+  .sifirhata-liste{ display:flex; flex-direction:column; gap:0.55rem; }
+  .sifirhata-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.8rem;
+    border:1px solid var(--line);
+    border-radius:0.8rem;
+    background:rgba(var(--bg-rgb),0.5);
+    padding:0.8rem 1rem;
+    cursor:pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease;
+  }
+  .sifirhata-card:hover{ border-color:var(--accent); background:rgba(var(--accent-rgb),0.06); }
+  .sifirhata-card:active{ transform:scale(0.99); }
+  .sifirhata-card-sol{ display:flex; flex-direction:column; gap:0.25rem; min-width:0; }
+  .sifirhata-card-ad{
+    font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;
+    font-size:0.98rem;
+    color:var(--ink);
+  }
+  .sifirhata-card-alt{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    display:flex;
+    gap:0.55rem;
+    flex-wrap:wrap;
+  }
+  .sifirhata-card-alt em{ font-style:normal; color:var(--dogru); font-weight:600; }
+  .sifirhata-card-alt i{ font-style:normal; color:var(--yanlis); font-weight:600; }
+  .sifirhata-card-sayi{
+    flex-shrink:0;
+    font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;
+    font-size:1.25rem;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1;
+    text-align:right;
+  }
+  .sifirhata-card-sayi span{
+    display:block;
+    margin-top:0.2rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.6rem;
+    font-weight:400;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+
+  /* ---- 0 Hata Testleri: tam ekran çözüm (quiz) katmanı ---- */
+  .sifirhata-overlay{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    display:none;
+    flex-direction:column;
+    background:#000;
+    opacity:0;
+  }
+  .sifirhata-overlay.active{
+    display:flex;
+    animation: overlayIn 0.25s ease forwards;
+  }
+  .sifirhata-bar{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    padding:calc(0.9rem + env(safe-area-inset-top,0px)) 1.1rem 0.9rem 1.2rem;
+    background:rgba(0,0,0,0.55);
+  }
+  .sifirhata-baslik{
+    flex:1;
+    min-width:0;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    letter-spacing:0.02em;
+    color:#F3EFE6;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .sifirhata-ilerleme{
+    flex-shrink:0;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    color:#A8A199;
+  }
+  .sifirhata-govde{
+    flex:1;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:auto;
+    padding:0.6rem 0.6rem;
+  }
+  .sifirhata-govde img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    border-radius:0.3rem;
+  }
+  .sifirhata-govde-durum{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.85rem;
+    color:#A8A199;
+    text-align:center;
+    padding:0 1.5rem;
+  }
+  .sifirhata-alt{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.7rem;
+    padding:0.8rem 1.1rem calc(0.9rem + env(safe-area-inset-bottom,0px));
+    background:rgba(0,0,0,0.55);
+  }
+  .sifirhata-secenekler{
+    display:flex;
+    gap:0.5rem;
+  }
+  .sifirhata-secenek-btn{
+    width:2.6rem;
+    height:2.6rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08);
+    color:#F3EFE6;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.95rem;
+    cursor:pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+  }
+  .sifirhata-secenek-btn:hover{ border-color:rgba(255,255,255,0.5); }
+  .sifirhata-secenek-btn:active{ transform:scale(0.92); }
+  .sifirhata-secenek-btn:disabled{ cursor:default; }
+  .sifirhata-secenek-btn.dogru{
+    background:var(--dogru);
+    border-color:var(--dogru);
+    color:#fff;
+    font-weight:600;
+  }
+  .sifirhata-secenek-btn.yanlis{
+    background:var(--yanlis);
+    border-color:var(--yanlis);
+    color:#fff;
+    font-weight:600;
+  }
+  .sifirhata-geribildirim{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.82rem;
+    color:#F3EFE6;
+    text-align:center;
+  }
+  .sifirhata-geribildirim.dogru-metin{ color:var(--dogru); }
+  .sifirhata-geribildirim.yanlis-metin{ color:var(--yanlis); }
+  .sifirhata-devam-btn{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.85rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    padding:0.75rem 1.6rem;
+    border-radius:2rem;
+    border:none;
+    background:#F3EFE6;
+    color:#1A1A1A;
+    cursor:pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .sifirhata-devam-btn:hover{ opacity:0.9; }
+  .sifirhata-devam-btn:active{ transform:scale(0.96); }
+  .sifirhata-ozet-govde{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.4rem;
+    color:#F3EFE6;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    text-align:center;
+    padding:0 1.5rem;
+  }
+  .sifirhata-ozet-govde b{
+    font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;
+    font-size:1.6rem;
+    font-weight:600;
+  }
+  .sifirhata-ozet-govde b em{ font-style:normal; color:var(--dogru); }
+  .sifirhata-ozet-govde b i{ font-style:normal; color:var(--yanlis); }
+  .sifirhata-ozet-govde p{
+    font-size:0.82rem;
+    color:#A8A199;
+    margin:0;
+  }
+
   /* ---- tek bir sayaç kartı: solda küçültülmüş canlı geri sayım, sağda isim ---- */
   .sayac-listem-item{
     display:flex;
@@ -2476,10 +3054,8 @@
     border-color:var(--accent);
     background:rgba(var(--accent-rgb),0.06);
   }
-  .sayac-listem-item-aktif{
-    border-color:var(--accent);
-    background:rgba(var(--accent-rgb),0.09);
-  }
+  /* Not: "aktif" (o an gösterilen) sayaç artık ayrı bir mavi/accent çerçeveyle
+     vurgulanmıyor; listede diğer kartlarla aynı görünür, sadece dahili state olarak kalır. */
 
   .sayac-listem-mini{
     display:flex;
@@ -2513,6 +3089,11 @@
     color:var(--ink-soft);
   }
   .sayac-listem-item.sayac-listem-bitti .sayac-listem-mini-sayi{ color:var(--accent); }
+
+  /* saniye kolonu: gerçek geri sayım sayacındaki gibi sabit mavi/accent renk */
+  .sayac-listem-mini > .sayac-listem-mini-birim:last-child .sayac-listem-mini-sayi{
+    color:var(--accent);
+  }
 
   .sayac-listem-item-sag{
     flex:1;
@@ -2562,12 +3143,7 @@
   }
   .sayac-listem-item-sil svg{ width:1rem; height:1rem; }
 
-  .sayac-listem-yeni-btn{
-    margin-top:1.7rem;
-    width:100%;
-    padding:0.8rem 1rem;
-    text-align:center;
-  }
+  .sayac-listem-yeni-btn{ margin-top:1.7rem; }
 
   @media (max-width:400px){
     .sayac-birim{ padding:0 0.7rem; gap:0.4rem; }
@@ -2587,6 +3163,7 @@
     .bottom-nav-wrap{ animation:none !important; opacity:1 !important; transform:translateX(-50%) !important; }
     .view-denemeler{ transition:none !important; transform:none !important; }
     .view-sayac, .sayac-eyebrow, .sayac-title, .sayac-kur-card, .sayac-card, .sayac-bitti-mesaji, .view-sayac-listem{ animation:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
+    .view-analiz, .analiz-govde{ animation:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
     .sayac-birim.sayac-saniye .sayac-sayi.sayac-pulse{ animation:none !important; opacity:1 !important; }
     .dsayac-serit{ transition:none !important; }
   }
@@ -2719,6 +3296,10 @@
           <svg class="icon-tamam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span id="denemeEditText">Düzenle</span>
         </button>
+        <button type="button" class="deneme-analiz-btn" id="denemeAnalizBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 15l4-5 3 3 5-7"></path></svg>
+          <span>Analizlerim</span>
+        </button>
       </div>
     </div>
     <p class="deneme-empty-msg" id="denemeEmptyMsg">Bu kategoride henüz deneme yok.</p>
@@ -2794,7 +3375,7 @@
         </button>
       </div>
       <div class="takvim-haftagunleri">
-        <span>Pz</span><span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span>
+        <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span class="hafta-sonu-etiket">Ct</span><span class="hafta-sonu-etiket">Pz</span>
       </div>
       <div class="takvim-gunler" id="takvimGunler"></div>
       <div class="takvim-secili-bilgi" id="takvimSeciliBilgi"></div>
@@ -2833,7 +3414,10 @@
         </button>
         <input type="hidden" id="sayacSaatInput">
       </div>
-      <button type="button" class="modal-btn modal-btn-primary sayac-kur-btn" id="sayacKurBtn">Geri Sayımı Başlat</button>
+      <button type="button" class="sayac-aksiyon-btn sayac-kur-btn" id="sayacKurBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+        Geri Sayımı Başlat
+      </button>
     </div>
 
     <div class="sayac-card" id="sayacCard" style="display:none">
@@ -2886,7 +3470,10 @@
 
     <div class="sayac-listem-govde" id="sayacListemGovde"></div>
 
-    <button type="button" class="modal-btn modal-btn-primary sayac-listem-yeni-btn" id="sayacListemYeniBtn">+ Yeni Sayaç</button>
+    <button type="button" class="sayac-aksiyon-btn sayac-listem-yeni-btn" id="sayacListemYeniBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Yeni Sayaç
+    </button>
   </div>
 
   <div class="view-gundelik" id="viewGundelik">
@@ -2895,6 +3482,25 @@
       <h2 class="gundelik-title" id="gundelikTitle">Gündelik Defterin</h2>
     </div>
     <p class="gundelik-sub" id="gundelikSub">Yakında burada günlük yazılarını bulacaksın.</p>
+  </div>
+
+  <!-- "Analizlerim": Denemelerim araç çubuğundan açılan, henüz yapım aşamasında olan sayfa -->
+  <div class="view-analiz" id="viewAnaliz">
+    <div class="sayac-listem-heading">
+      <button type="button" class="sayac-listem-geri-btn" id="analizGeriBtn" aria-label="Geri dön">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <span class="sayac-listem-eyebrow" id="analizEyebrow">Deneme Analizin</span>
+      <h2 class="sayac-listem-title" id="analizTitle">Analizlerim</h2>
+    </div>
+    <div class="analiz-govde" id="analizGovde">
+      <div class="analiz-sekme" id="analizSekme" role="radiogroup" aria-label="Sınav türü">
+        <button type="button" class="analiz-sekme-btn secili" data-alan="TYT" role="radio" aria-checked="true">TYT</button>
+        <button type="button" class="analiz-sekme-btn" data-alan="AYT" role="radio" aria-checked="false">AYT</button>
+        <button type="button" class="analiz-sekme-btn" data-alan="SIFIR" role="radio" aria-checked="false">0 Hata</button>
+      </div>
+      <div class="analiz-icerik" id="analizIcerik"></div>
+    </div>
   </div>
 
   <footer id="pageFooter">Sayfayı yeniden yükleyerek animasyonu tekrar izleyebilirsiniz</footer>
@@ -3008,11 +3614,36 @@
   <div class="dosya-goruntule-overlay" id="dosyaGoruntuleOverlay">
     <div class="dosya-goruntule-bar">
       <span class="dosya-goruntule-ad" id="dosyaGoruntuleAd"></span>
-      <button class="dosya-goruntule-kapat" id="dosyaGoruntuleKapat" type="button" aria-label="Kapat">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
-      </button>
+      <div class="dosya-goruntule-aksiyonlar">
+        <button class="dosya-goruntule-sil" id="dosyaGoruntuleSil" type="button" aria-label="Görseli kaldır" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+        </button>
+        <button class="dosya-goruntule-kapat" id="dosyaGoruntuleKapat" type="button" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
     </div>
     <div class="dosya-goruntule-govde" id="dosyaGoruntuleGovde"></div>
+    <div class="dosya-goruntule-cevap" id="dosyaGoruntuleCevap" style="display:none">
+      <span class="dosya-goruntule-cevap-etiket">Doğru Cevap</span>
+      <div class="dosya-goruntule-cevap-secenekler" id="dosyaGoruntuleCevapSecenekler"></div>
+    </div>
+  </div>
+
+  <!-- Yanlış işaretlenen sorulara görsel eklemek için gizli dosya seçici (tek, paylaşılan input) -->
+  <input type="file" id="soruGorselInput" accept="image/*" style="display:none">
+
+  <!-- 0 Hata Testleri: yanlış/boş bırakılan, görseli eklenmiş soruların branş bazlı çözüm ekranı -->
+  <div class="sifirhata-overlay" id="sifirhataOverlay">
+    <div class="sifirhata-bar">
+      <button class="dosya-goruntule-kapat" id="sifirhataKapat" type="button" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <span class="sifirhata-baslik" id="sifirhataBaslik"></span>
+      <span class="sifirhata-ilerleme" id="sifirhataIlerleme"></span>
+    </div>
+    <div class="sifirhata-govde" id="sifirhataGovde"></div>
+    <div class="sifirhata-alt" id="sifirhataAlt"></div>
   </div>
 
   <!-- Tarih seçici: modal-box'ın DIŞINDA duruyor, çünkü modal-box transform animasyonu -->
@@ -3030,7 +3661,7 @@
         </button>
       </div>
       <div class="mini-takvim-haftagunleri">
-        <span>Pz</span><span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span>
+        <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span class="hafta-sonu-etiket">Ct</span><span class="hafta-sonu-etiket">Pz</span>
       </div>
       <div class="mini-takvim-gunler" id="miniTakvimGunler"></div>
     </div>
@@ -3295,11 +3926,19 @@
     const dosyaGoruntuleGovde = document.getElementById('dosyaGoruntuleGovde');
     const dosyaGoruntuleAd = document.getElementById('dosyaGoruntuleAd');
     const dosyaGoruntuleKapat = document.getElementById('dosyaGoruntuleKapat');
+    const dosyaGoruntuleSil = document.getElementById('dosyaGoruntuleSil');
+    const dosyaGoruntuleCevap = document.getElementById('dosyaGoruntuleCevap');
+    const dosyaGoruntuleCevapSecenekler = document.getElementById('dosyaGoruntuleCevapSecenekler');
     let dosyaGoruntuleUrl = null;
+    let dosyaGoruntuleKaldirCallback = null;
 
     function dosyaGoruntuleyiciKapat(){
       dosyaGoruntuleOverlay.classList.remove('active');
       dosyaGoruntuleGovde.innerHTML = '';
+      dosyaGoruntuleSil.style.display = 'none';
+      dosyaGoruntuleKaldirCallback = null;
+      dosyaGoruntuleCevap.style.display = 'none';
+      dosyaGoruntuleCevapSecenekler.innerHTML = '';
       if(dosyaGoruntuleUrl){
         URL.revokeObjectURL(dosyaGoruntuleUrl);
         dosyaGoruntuleUrl = null;
@@ -3307,12 +3946,18 @@
     }
 
     // blob: gösterilecek dosya (image/* veya application/pdf). ad: dosya adı (başlıkta ve tür tahmininde kullanılır).
-    function dosyaGoster(blob, ad){
+    // kaldirCallback: verilirse görüntüleyici çubuğunda bir "Kaldır" (çöp kutusu) düğmesi belirir;
+    // tıklandığında bu geri çağrı çalıştırılır ve görüntüleyici kapatılır (ör. bir soruya eklenen görseli silmek için).
+    // cevapSecici: verilirse (yalnızca yanlış/boş işaretli sorulara eklenen görsellerde), görüntüleyicinin
+    // altında A-E şıklarından oluşan bir "doğru cevap" seçici belirir: { secenekler:[...], deger, ayarla(yeni) }.
+    function dosyaGoster(blob, ad, kaldirCallback, cevapSecici){
       if(!blob) return;
       dosyaGoruntuleGovde.innerHTML = '';
       if(dosyaGoruntuleUrl){ URL.revokeObjectURL(dosyaGoruntuleUrl); }
       dosyaGoruntuleUrl = URL.createObjectURL(blob);
       dosyaGoruntuleAd.textContent = ad || '';
+      dosyaGoruntuleKaldirCallback = kaldirCallback || null;
+      dosyaGoruntuleSil.style.display = dosyaGoruntuleKaldirCallback ? '' : 'none';
 
       const tur = (blob.type || '').toLowerCase();
       const adKucuk = (ad || '').toLowerCase();
@@ -3334,10 +3979,39 @@
         dosyaGoruntuleGovde.appendChild(durum);
       }
 
+      dosyaGoruntuleCevapSecenekler.innerHTML = '';
+      if(cevapSecici && cevapSecici.secenekler && cevapSecici.secenekler.length){
+        dosyaGoruntuleCevap.style.display = '';
+        cevapSecici.secenekler.forEach(function(secenek){
+          const secBtn = document.createElement('button');
+          secBtn.type = 'button';
+          secBtn.className = 'dosya-goruntule-cevap-btn';
+          secBtn.textContent = secenek;
+          secBtn.setAttribute('aria-label', 'Doğru cevap: ' + secenek);
+          if(cevapSecici.deger === secenek){ secBtn.classList.add('secili'); }
+          secBtn.addEventListener('click', function(){
+            const zatenSeciliMi = secBtn.classList.contains('secili');
+            Array.from(dosyaGoruntuleCevapSecenekler.children).forEach(function(b){ b.classList.remove('secili'); });
+            const yeniDeger = zatenSeciliMi ? null : secenek;
+            if(!zatenSeciliMi){ secBtn.classList.add('secili'); }
+            cevapSecici.deger = yeniDeger;
+            if(typeof cevapSecici.ayarla === 'function'){ cevapSecici.ayarla(yeniDeger); }
+          });
+          dosyaGoruntuleCevapSecenekler.appendChild(secBtn);
+        });
+      } else {
+        dosyaGoruntuleCevap.style.display = 'none';
+      }
+
       dosyaGoruntuleOverlay.classList.add('active');
     }
 
     dosyaGoruntuleKapat.addEventListener('click', dosyaGoruntuleyiciKapat);
+    dosyaGoruntuleSil.addEventListener('click', function(){
+      const cb = dosyaGoruntuleKaldirCallback;
+      dosyaGoruntuleyiciKapat();
+      if(typeof cb === 'function'){ cb(); }
+    });
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape' && dosyaGoruntuleOverlay.classList.contains('active')){
         dosyaGoruntuleyiciKapat();
@@ -3437,6 +4111,7 @@
     const viewTakvim = document.getElementById('viewTakvim');
     const viewSayac = document.getElementById('viewSayac');
     const viewSayacListem = document.getElementById('viewSayacListem');
+    const viewAnaliz = document.getElementById('viewAnaliz');
     const pageFooter = document.getElementById('pageFooter');
     const emptyWord = document.getElementById('emptyWord');
     const emptyRule = document.getElementById('emptyRule');
@@ -3459,6 +4134,7 @@
       viewTakvim.classList.remove('active');
       viewSayac.classList.remove('active');
       viewSayacListem.classList.remove('active');
+      viewAnaliz.classList.remove('active');
       if(typeof window.sayacListemDurdur === 'function'){ window.sayacListemDurdur(); }
       pageFooter.style.display = 'none';
     }
@@ -3543,6 +4219,615 @@
         card.style.animationDelay = (0.25 + i * 0.08) + 's';
         card.classList.add('animate');
       });
+    }
+
+    // ---- "Analizlerim": TYT/AYT bazında net gelişim grafiği ----
+    let analizSeciliAlan = 'TYT';
+
+    // Seçili alana (TYT/AYT) ait denemeleri tarihe göre eskiden yeniye sıralı, net değerleriyle döner.
+    function analizDenemeListesi(alan){
+      return Object.keys(denemeVerileri)
+        .map(function(id){ return denemeVerileri[id]; })
+        .filter(function(v){ return v.alan === alan; })
+        .sort(function(a, b){ return (a.tarih || '').localeCompare(b.tarih || ''); })
+        .map(function(v){
+          const toplam = denemeToplamHesapla(v);
+          return { isim: v.isim, tarih: v.tarih, net: toplam.net };
+        });
+    }
+
+    function analizGrafikCiz(alan){
+      const analizIcerik = document.getElementById('analizIcerik');
+      if(!analizIcerik) return;
+      analizIcerik.innerHTML = '';
+
+      const liste = analizDenemeListesi(alan);
+
+      if(liste.length === 0){
+        const bos = document.createElement('p');
+        bos.className = 'analiz-bos';
+        bos.textContent = alan + ' türünde henüz bir deneme eklemedin. Bir deneme eklediğinde net gelişim grafiğin burada görünecek.';
+        analizIcerik.appendChild(bos);
+        return;
+      }
+
+      const netler = liste.map(function(x){ return x.net; });
+      const enYuksek = Math.max.apply(null, netler);
+      const enDusuk = Math.min.apply(null, netler);
+      const ortalama = netler.reduce(function(a, b){ return a + b; }, 0) / netler.length;
+
+      const grafikKart = document.createElement('div');
+      grafikKart.className = 'analiz-grafik-kart';
+
+      if(liste.length === 1){
+        grafikKart.appendChild(analizTekNoktaOlustur(liste[0]));
+      } else {
+        grafikKart.appendChild(analizSvgOlustur(liste, netler));
+      }
+
+      analizIcerik.appendChild(grafikKart);
+
+      const ozet = document.createElement('div');
+      ozet.className = 'analiz-ozet';
+      ozet.appendChild(analizRozetOlustur('Deneme', String(liste.length)));
+      ozet.appendChild(analizRozetOlustur('Ortalama Net', denemeNetMetni(ortalama)));
+      ozet.appendChild(analizRozetOlustur('En Yüksek', denemeNetMetni(enYuksek), 'analiz-rozet-dogru'));
+      ozet.appendChild(analizRozetOlustur('En Düşük', denemeNetMetni(enDusuk), 'analiz-rozet-yanlis'));
+      analizIcerik.appendChild(ozet);
+    }
+
+    function analizRozetOlustur(etiket, deger, ekstraSinif){
+      const el = document.createElement('div');
+      el.className = 'analiz-rozet' + (ekstraSinif ? ' ' + ekstraSinif : '');
+      const b = document.createElement('b');
+      b.textContent = deger;
+      const span = document.createElement('span');
+      span.textContent = etiket;
+      el.appendChild(b);
+      el.appendChild(span);
+      return el;
+    }
+
+    // Tek deneme varken çizgi grafiği yerine sade bir net kartı gösterir.
+    function analizTekNoktaOlustur(kayit){
+      const tek = document.createElement('p');
+      tek.className = 'analiz-nokta-detay';
+      tek.style.marginTop = '0';
+      tek.style.paddingTop = '0';
+      tek.style.borderTop = 'none';
+      tek.innerHTML = '<b>' + denemeNetMetni(kayit.net) + ' net</b> — ' + (kayit.isim || 'Deneme') +
+        (kayit.tarih ? ' · ' + formatTarih(kayit.tarih) : '') +
+        '<br>Karşılaştırmalı bir gelişim grafiği için en az iki deneme ekle.';
+      return tek;
+    }
+
+    // Birden fazla deneme varken büyük bir iniş-çıkış (line/area) grafiği çizer.
+    function analizSvgOlustur(liste, netler){
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const W = 300, H = 150;
+      const padL = 6, padR = 6, padT = 22, padB = 10;
+      const icW = W - padL - padR;
+      const icH = H - padT - padB;
+
+      let minY = Math.min.apply(null, netler);
+      let maxY = Math.max.apply(null, netler);
+      if(minY === maxY){
+        minY -= 1;
+        maxY += 1;
+      } else {
+        const pay = (maxY - minY) * 0.18;
+        minY -= pay;
+        maxY += pay;
+      }
+
+      function xAt(i){ return padL + (icW * i) / (netler.length - 1); }
+      function yAt(net){ return padT + icH - ((net - minY) / (maxY - minY)) * icH; }
+
+      const noktalar = netler.map(function(n, i){ return [xAt(i), yAt(n)]; });
+
+      // Catmull-Rom eğrisini kübik Bezier segmentlerine çevirir; keskin kırılmalar yerine
+      // dalga gibi yumuşak geçişler elde edilir. Uç noktalarda komşu nokta olmadığında
+      // kendi noktasını tekrarlayarak (kenetleme) doğal bir başlangıç/bitiş sağlanır.
+      function pAt(i){ return noktalar[Math.max(0, Math.min(noktalar.length - 1, i))]; }
+      let cizgiD = 'M' + noktalar[0][0].toFixed(1) + ',' + noktalar[0][1].toFixed(1);
+      for(let i = 0; i < noktalar.length - 1; i++){
+        const p0 = pAt(i - 1), p1 = pAt(i), p2 = pAt(i + 1), p3 = pAt(i + 2);
+        const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+        const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+        const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+        const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+        cizgiD += ' C' + cp1x.toFixed(1) + ',' + cp1y.toFixed(1) + ' ' +
+          cp2x.toFixed(1) + ',' + cp2y.toFixed(1) + ' ' +
+          p2[0].toFixed(1) + ',' + p2[1].toFixed(1);
+      }
+      const altSinir = (padT + icH).toFixed(1);
+      const alanD = cizgiD +
+        ' L' + noktalar[noktalar.length - 1][0].toFixed(1) + ',' + altSinir +
+        ' L' + noktalar[0][0].toFixed(1) + ',' + altSinir + ' Z';
+
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      svg.setAttribute('class', 'analiz-grafik-svg');
+      svg.setAttribute('preserveAspectRatio', 'none');
+
+      const gradId = 'analizGrad' + Math.random().toString(36).slice(2, 8);
+      const defs = document.createElementNS(svgNS, 'defs');
+      defs.innerHTML = '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="var(--accent)" stop-opacity="0.32"></stop>' +
+        '<stop offset="100%" stop-color="var(--accent)" stop-opacity="0"></stop></linearGradient>';
+      svg.appendChild(defs);
+
+      if(minY < 0 && maxY > 0){
+        const sifirY = yAt(0);
+        const sifirCizgi = document.createElementNS(svgNS, 'line');
+        sifirCizgi.setAttribute('x1', padL);
+        sifirCizgi.setAttribute('x2', W - padR);
+        sifirCizgi.setAttribute('y1', sifirY.toFixed(1));
+        sifirCizgi.setAttribute('y2', sifirY.toFixed(1));
+        sifirCizgi.setAttribute('class', 'analiz-sifir-cizgi');
+        svg.appendChild(sifirCizgi);
+      }
+
+      const alanPath = document.createElementNS(svgNS, 'path');
+      alanPath.setAttribute('d', alanD);
+      alanPath.setAttribute('fill', 'url(#' + gradId + ')');
+      alanPath.setAttribute('stroke', 'none');
+      svg.appendChild(alanPath);
+
+      const cizgiPath = document.createElementNS(svgNS, 'path');
+      cizgiPath.setAttribute('d', cizgiD);
+      cizgiPath.setAttribute('class', 'analiz-cizgi');
+      svg.appendChild(cizgiPath);
+
+      const detay = document.createElement('p');
+      detay.className = 'analiz-nokta-detay';
+
+      const daireListesi = [];
+      const tooltipListesi = [];
+      let tooltipZamanlayici = null;
+
+      function noktaSec(i){
+        const kayit = liste[i];
+        daireListesi.forEach(function(el, idx){ el.classList.toggle('analiz-nokta-aktif', idx === i); });
+        tooltipListesi.forEach(function(el, idx){ el.classList.toggle('analiz-tooltip-aktif', idx === i); });
+        detay.innerHTML = '<b>' + denemeNetMetni(kayit.net) + ' net</b> — ' + (kayit.isim || 'Deneme') +
+          (kayit.tarih ? ' · ' + formatTarih(kayit.tarih) : '');
+
+        // Ön izleme baloncuğu bir süre görünür kaldıktan sonra kendiliğinden,
+        // yumuşak bir geçişle (bkz. .analiz-tooltip transition) kaybolur.
+        if(tooltipZamanlayici) clearTimeout(tooltipZamanlayici);
+        tooltipZamanlayici = setTimeout(function(){
+          tooltipListesi.forEach(function(el){ el.classList.remove('analiz-tooltip-aktif'); });
+        }, 2000);
+      }
+
+      noktalar.forEach(function(p, i){
+        // Noktanın hemen üstünde (sığmazsa altında) beliren, o denemenin netini gösteren küçük baloncuk.
+        const metin = denemeNetMetni(netler[i]);
+        const genislik = Math.max(24, metin.length * 5.6 + 10);
+        const yukseklik = 15;
+        let bx = p[0] - genislik / 2;
+        if(bx < padL) bx = padL;
+        if(bx + genislik > W - padR) bx = W - padR - genislik;
+        let by = p[1] - yukseklik - 8;
+        if(by < 1){ by = p[1] + 8; }
+
+        const tooltipG = document.createElementNS(svgNS, 'g');
+        tooltipG.setAttribute('class', 'analiz-tooltip');
+        const rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('x', bx.toFixed(1));
+        rect.setAttribute('y', by.toFixed(1));
+        rect.setAttribute('width', genislik.toFixed(1));
+        rect.setAttribute('height', yukseklik);
+        rect.setAttribute('rx', 4);
+        rect.setAttribute('class', 'analiz-tooltip-kutu');
+        const text = document.createElementNS(svgNS, 'text');
+        text.setAttribute('x', (bx + genislik / 2).toFixed(1));
+        text.setAttribute('y', (by + yukseklik / 2 + 2.8).toFixed(1));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('class', 'analiz-tooltip-metin');
+        text.textContent = metin;
+        tooltipG.appendChild(rect);
+        tooltipG.appendChild(text);
+        svg.appendChild(tooltipG);
+        tooltipListesi.push(tooltipG);
+
+        const dokunma = document.createElementNS(svgNS, 'circle');
+        dokunma.setAttribute('cx', p[0].toFixed(1));
+        dokunma.setAttribute('cy', p[1].toFixed(1));
+        dokunma.setAttribute('r', 8);
+        dokunma.setAttribute('fill', 'transparent');
+        dokunma.style.cursor = 'pointer';
+        dokunma.addEventListener('mouseenter', function(){ noktaSec(i); });
+        dokunma.addEventListener('click', function(){ noktaSec(i); });
+        svg.appendChild(dokunma);
+
+        const daire = document.createElementNS(svgNS, 'circle');
+        daire.setAttribute('cx', p[0].toFixed(1));
+        daire.setAttribute('cy', p[1].toFixed(1));
+        daire.setAttribute('r', i === noktalar.length - 1 ? 3.2 : 2.4);
+        daire.setAttribute('class', 'analiz-nokta' + (i === noktalar.length - 1 ? ' analiz-nokta-son' : ''));
+        daire.style.cursor = 'pointer';
+        daire.addEventListener('mouseenter', function(){ noktaSec(i); });
+        daire.addEventListener('click', function(){ noktaSec(i); });
+        svg.appendChild(daire);
+        daireListesi.push(daire);
+      });
+
+      noktaSec(liste.length - 1);
+
+      const sarmalayici = document.createDocumentFragment();
+      sarmalayici.appendChild(svg);
+      sarmalayici.appendChild(detay);
+      return sarmalayici;
+    }
+
+    // ==================== 0 HATA TESTLERİ ====================
+    // Yanlış işaretlenip görsel eklenmiş, veya boş bırakılıp görsel eklenmiş sorular; alan (TYT/AYT)
+    // ve branşa göre gruplanarak burada bir "havuz" oluşturur. Havuzdaki bir soru doğru çözülse
+    // bile havuzdan çıkmaz (kullanıcı tercihi) — sadece doğru/yanlış deneme sayaçları güncellenir.
+
+    const SIFIRHATA_ISTATISTIK_ANAHTARI = 'sessizlik-sifirhata-istatistik';
+    let sifirHataIstatistikleri = {};
+
+    function sifirHataIstatistikleriYukle(){
+      try{
+        const ham = localStorage.getItem(SIFIRHATA_ISTATISTIK_ANAHTARI);
+        if(ham) sifirHataIstatistikleri = JSON.parse(ham);
+      }catch(e){
+        console.log('0 Hata istatistikleri okunamadı:', e);
+      }
+    }
+
+    function sifirHataIstatistikleriKaydet(){
+      try{
+        localStorage.setItem(SIFIRHATA_ISTATISTIK_ANAHTARI, JSON.stringify(sifirHataIstatistikleri));
+      }catch(e){
+        console.log('0 Hata istatistikleri kaydedilemedi:', e);
+      }
+    }
+
+    function sifirHataAnahtar(soru){
+      return soru.denemeId + '|' + soru.brans + '|' + soru.index;
+    }
+
+    function sifirHataSoruIstatistigi(soru){
+      return sifirHataIstatistikleri[sifirHataAnahtar(soru)] || { dogru:0, yanlis:0 };
+    }
+
+    function sifirHataIstatistikGuncelle(soru, dogruMu){
+      const anahtar = sifirHataAnahtar(soru);
+      const mevcut = sifirHataIstatistikleri[anahtar] || { dogru:0, yanlis:0 };
+      if(dogruMu){ mevcut.dogru += 1; } else { mevcut.yanlis += 1; }
+      sifirHataIstatistikleri[anahtar] = mevcut;
+      sifirHataIstatistikleriKaydet();
+    }
+
+    // Belirli bir alana (TYT/AYT) ait, görseli eklenmiş yanlış/boş soruları branşlara göre gruplar.
+    function sifirHataHavuzu(alan){
+      const bransHaritasi = {};
+      (BRANS_YAPISI[alan] || []).forEach(function(b){ bransHaritasi[b.ad] = []; });
+      Object.keys(denemeVerileri).forEach(function(id){
+        const v = denemeVerileri[id];
+        if(v.alan !== alan) return;
+        const gorseller = v.soruGorselleri || {};
+        Object.keys(gorseller).forEach(function(brans){
+          if(!bransHaritasi[brans]) bransHaritasi[brans] = [];
+          const indeksler = gorseller[brans] || {};
+          Object.keys(indeksler).forEach(function(idxStr){
+            const dosyaId = indeksler[idxStr];
+            if(!dosyaId) return;
+            const idx = parseInt(idxStr, 10);
+            const dogruCevap = ((v.soruDogruCevaplari || {})[brans] || {})[idx] || null;
+            bransHaritasi[brans].push({
+              denemeId: id,
+              denemeIsim: v.isim,
+              brans: brans,
+              index: idx,
+              dosyaId: dosyaId,
+              dogruCevap: dogruCevap
+            });
+          });
+        });
+      });
+      return bransHaritasi;
+    }
+
+    function sifirHataListesiCiz(){
+      const analizIcerik = document.getElementById('analizIcerik');
+      if(!analizIcerik) return;
+      analizIcerik.innerHTML = '';
+
+      let toplamSoru = 0;
+
+      ['TYT', 'AYT'].forEach(function(alan){
+        const havuz = sifirHataHavuzu(alan);
+        const bransSirasi = (BRANS_YAPISI[alan] || []).map(function(b){ return b.ad; });
+        const doluBranslar = bransSirasi.filter(function(ad){ return (havuz[ad] || []).length > 0; });
+
+        const blok = document.createElement('div');
+        blok.className = 'sifirhata-blok';
+
+        const baslik = document.createElement('div');
+        baslik.className = 'sifirhata-blok-baslik';
+        baslik.textContent = alan;
+        blok.appendChild(baslik);
+
+        if(doluBranslar.length === 0){
+          const bos = document.createElement('p');
+          bos.className = 'analiz-bos';
+          bos.style.textAlign = 'left';
+          bos.style.marginTop = '0';
+          bos.textContent = alan + ' türünde henüz görsel eklenmiş yanlış veya boş sorun yok.';
+          blok.appendChild(bos);
+          analizIcerik.appendChild(blok);
+          return;
+        }
+
+        const liste = document.createElement('div');
+        liste.className = 'sifirhata-liste';
+
+        doluBranslar.forEach(function(brans){
+          const sorular = havuz[brans];
+          toplamSoru += sorular.length;
+
+          let dogruToplam = 0, yanlisToplam = 0;
+          sorular.forEach(function(s){
+            const ist = sifirHataSoruIstatistigi(s);
+            dogruToplam += ist.dogru;
+            yanlisToplam += ist.yanlis;
+          });
+
+          const kart = document.createElement('div');
+          kart.className = 'sifirhata-card';
+
+          const sol = document.createElement('div');
+          sol.className = 'sifirhata-card-sol';
+          const ad = document.createElement('div');
+          ad.className = 'sifirhata-card-ad';
+          ad.textContent = brans;
+          sol.appendChild(ad);
+          const alt = document.createElement('div');
+          alt.className = 'sifirhata-card-alt';
+          if(dogruToplam > 0 || yanlisToplam > 0){
+            const em = document.createElement('em');
+            em.textContent = '✓ ' + dogruToplam;
+            const i = document.createElement('i');
+            i.textContent = '✗ ' + yanlisToplam;
+            alt.appendChild(em);
+            alt.appendChild(i);
+          } else {
+            alt.textContent = 'Henüz çözülmedi';
+          }
+          sol.appendChild(alt);
+
+          const sayi = document.createElement('div');
+          sayi.className = 'sifirhata-card-sayi';
+          sayi.textContent = String(sorular.length);
+          const sayiEtiket = document.createElement('span');
+          sayiEtiket.textContent = sorular.length === 1 ? 'SORU' : 'SORU';
+          sayi.appendChild(sayiEtiket);
+
+          kart.appendChild(sol);
+          kart.appendChild(sayi);
+          kart.addEventListener('click', function(){
+            sifirHataQuizAc(alan + ' · ' + brans, sorular);
+          });
+
+          liste.appendChild(kart);
+        });
+
+        blok.appendChild(liste);
+        analizIcerik.appendChild(blok);
+      });
+
+      if(toplamSoru === 0){
+        const genelBos = document.createElement('p');
+        genelBos.className = 'analiz-bos';
+        genelBos.textContent = 'Bir soruyu yanlış ya da boş işaretleyip görselini eklediğinde, o soru burada branş bazlı bir test olarak birikmeye başlayacak.';
+        analizIcerik.insertBefore(genelBos, analizIcerik.firstChild);
+      }
+    }
+
+    // ---- 0 Hata quiz (tam ekran, tek tek soru) ----
+    const sifirhataOverlay = document.getElementById('sifirhataOverlay');
+    const sifirhataKapatBtn = document.getElementById('sifirhataKapat');
+    const sifirhataBaslikEl = document.getElementById('sifirhataBaslik');
+    const sifirhataIlerlemeEl = document.getElementById('sifirhataIlerleme');
+    const sifirhataGovdeEl = document.getElementById('sifirhataGovde');
+    const sifirhataAltEl = document.getElementById('sifirhataAlt');
+
+    let sifirhataAktifSorular = [];
+    let sifirhataAktifIndex = 0;
+    let sifirhataAktifBaslik = '';
+    let sifirhataOturumDogru = 0;
+    let sifirhataOturumYanlis = 0;
+    let sifirhataGuncelUrl = null;
+
+    function sifirHataQuizAc(baslik, sorular){
+      sifirhataAktifSorular = sorular;
+      sifirhataAktifIndex = 0;
+      sifirhataAktifBaslik = baslik;
+      sifirhataOturumDogru = 0;
+      sifirhataOturumYanlis = 0;
+      sifirhataOverlay.classList.add('active');
+      sifirHataSoruGoster();
+    }
+
+    function sifirHataQuizKapat(){
+      sifirhataOverlay.classList.remove('active');
+      sifirhataGovdeEl.innerHTML = '';
+      sifirhataAltEl.innerHTML = '';
+      if(sifirhataGuncelUrl){ URL.revokeObjectURL(sifirhataGuncelUrl); sifirhataGuncelUrl = null; }
+      // Havuzdaki doğru/yanlış sayaçları güncellenmiş olabileceğinden liste yeniden çizilir.
+      if(analizSeciliAlan === 'SIFIR'){ sifirHataListesiCiz(); }
+    }
+
+    sifirhataKapatBtn.addEventListener('click', sifirHataQuizKapat);
+
+    function sifirHataSoruGoster(){
+      const soru = sifirhataAktifSorular[sifirhataAktifIndex];
+      sifirhataBaslikEl.textContent = sifirhataAktifBaslik;
+      sifirhataIlerlemeEl.textContent = (sifirhataAktifIndex + 1) + ' / ' + sifirhataAktifSorular.length;
+
+      sifirhataGovdeEl.innerHTML = '';
+      const durum = document.createElement('p');
+      durum.className = 'sifirhata-govde-durum';
+      durum.textContent = 'Görsel yükleniyor…';
+      sifirhataGovdeEl.appendChild(durum);
+
+      if(sifirhataGuncelUrl){ URL.revokeObjectURL(sifirhataGuncelUrl); sifirhataGuncelUrl = null; }
+
+      dosyaOku(soru.dosyaId).then(function(blob){
+        if(!blob) throw new Error('boş');
+        sifirhataGovdeEl.innerHTML = '';
+        sifirhataGuncelUrl = URL.createObjectURL(blob);
+        const img = document.createElement('img');
+        img.src = sifirhataGuncelUrl;
+        sifirhataGovdeEl.appendChild(img);
+      }).catch(function(){
+        sifirhataGovdeEl.innerHTML = '';
+        const hata = document.createElement('p');
+        hata.className = 'sifirhata-govde-durum';
+        hata.textContent = 'Bu sorunun görseli yüklenemedi.';
+        sifirhataGovdeEl.appendChild(hata);
+      });
+
+      sifirHataAltCiz(soru, false, null);
+    }
+
+    // cevaplandiMi: bu soru için bir şık seçildi mi. secilenHarf: seçilen şık (varsa).
+    function sifirHataAltCiz(soru, cevaplandiMi, secilenHarf){
+      sifirhataAltEl.innerHTML = '';
+
+      if(!soru.dogruCevap){
+        // Doğru cevabı işaretlenmemiş sorular puanlanamaz; kullanıcı sadece görüp geçebilir.
+        const bilgi = document.createElement('p');
+        bilgi.className = 'sifirhata-geribildirim';
+        bilgi.textContent = 'Bu soru için doğru cevap işaretlenmemiş.';
+        sifirhataAltEl.appendChild(bilgi);
+        sifirhataAltEl.appendChild(sifirHataDevamBtnOlustur());
+        return;
+      }
+
+      const secenekler = document.createElement('div');
+      secenekler.className = 'sifirhata-secenekler';
+      SORU_CEVAP_SECENEKLERI.forEach(function(harf){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sifirhata-secenek-btn';
+        btn.textContent = harf;
+        if(cevaplandiMi){
+          btn.disabled = true;
+          if(harf === soru.dogruCevap){ btn.classList.add('dogru'); }
+          else if(harf === secilenHarf){ btn.classList.add('yanlis'); }
+        } else {
+          btn.addEventListener('click', function(){
+            const dogruMu = harf === soru.dogruCevap;
+            if(dogruMu){ sifirhataOturumDogru++; } else { sifirhataOturumYanlis++; }
+            sifirHataIstatistikGuncelle(soru, dogruMu);
+            sifirHataAltCiz(soru, true, harf);
+          });
+        }
+        secenekler.appendChild(btn);
+      });
+      sifirhataAltEl.appendChild(secenekler);
+
+      if(cevaplandiMi){
+        const geri = document.createElement('p');
+        const dogruMu = secilenHarf === soru.dogruCevap;
+        geri.className = 'sifirhata-geribildirim ' + (dogruMu ? 'dogru-metin' : 'yanlis-metin');
+        geri.textContent = dogruMu ? 'Doğru!' : ('Yanlış — doğru cevap ' + soru.dogruCevap);
+        sifirhataAltEl.appendChild(geri);
+        sifirhataAltEl.appendChild(sifirHataDevamBtnOlustur());
+      }
+    }
+
+    function sifirHataDevamBtnOlustur(){
+      const sonSoru = sifirhataAktifIndex === sifirhataAktifSorular.length - 1;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sifirhata-devam-btn';
+      btn.textContent = sonSoru ? 'Bitir' : 'Sonraki Soru';
+      btn.addEventListener('click', function(){
+        if(sonSoru){ sifirHataOzetGoster(); }
+        else { sifirhataAktifIndex++; sifirHataSoruGoster(); }
+      });
+      return btn;
+    }
+
+    function sifirHataOzetGoster(){
+      sifirhataBaslikEl.textContent = sifirhataAktifBaslik;
+      sifirhataIlerlemeEl.textContent = '';
+      if(sifirhataGuncelUrl){ URL.revokeObjectURL(sifirhataGuncelUrl); sifirhataGuncelUrl = null; }
+
+      sifirhataGovdeEl.innerHTML = '';
+      const ozet = document.createElement('div');
+      ozet.className = 'sifirhata-ozet-govde';
+      const b = document.createElement('b');
+      const em = document.createElement('em');
+      em.textContent = sifirhataOturumDogru;
+      const i = document.createElement('i');
+      i.textContent = sifirhataOturumYanlis;
+      b.appendChild(em);
+      b.appendChild(document.createTextNode(' / '));
+      b.appendChild(i);
+      const p = document.createElement('p');
+      p.textContent = 'Bu oturumda doğru / yanlış';
+      ozet.appendChild(b);
+      ozet.appendChild(p);
+      sifirhataGovdeEl.appendChild(ozet);
+
+      sifirhataAltEl.innerHTML = '';
+      const kapatBtn = document.createElement('button');
+      kapatBtn.type = 'button';
+      kapatBtn.className = 'sifirhata-devam-btn';
+      kapatBtn.textContent = 'Kapat';
+      kapatBtn.addEventListener('click', sifirHataQuizKapat);
+      sifirhataAltEl.appendChild(kapatBtn);
+    }
+
+    sifirHataIstatistikleriYukle();
+
+    // ==================== /0 HATA TESTLERİ ====================
+
+    function analizIcerikCiz(){
+      if(analizSeciliAlan === 'SIFIR'){ sifirHataListesiCiz(); }
+      else { analizGrafikCiz(analizSeciliAlan); }
+    }
+
+    const analizSekmeBtns = Array.from(document.querySelectorAll('#analizSekme .analiz-sekme-btn'));
+    analizSekmeBtns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(btn.classList.contains('secili')) return;
+        analizSekmeBtns.forEach(function(b){
+          b.classList.remove('secili');
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('secili');
+        btn.setAttribute('aria-checked', 'true');
+        analizSeciliAlan = btn.dataset.alan;
+        analizIcerikCiz();
+      });
+    });
+
+    function showAnalizView(){
+      hideAllViews();
+
+      viewAnaliz.classList.add('active');
+      void viewAnaliz.offsetWidth;
+      viewAnaliz.style.animation = 'none';
+      void viewAnaliz.offsetWidth;
+      viewAnaliz.style.animation = '';
+
+      analizIcerikCiz();
+
+      const analizGovde = document.getElementById('analizGovde');
+      if(analizGovde){
+        analizGovde.style.animation = 'none';
+        void analizGovde.offsetWidth;
+        analizGovde.style.animation = '';
+      }
     }
 
     // ---- SAYAÇ: animated-counter.tsx'in vanilla JS karşılığı (motion/react bağımlılığı yok) ----
@@ -3675,7 +4960,61 @@
       }
     }
 
+    // Yanlış işaretlenen bir soruya (branş + soru index'i) görsel eklemek için paylaşılan gizli dosya girişi.
+    // Kullanıcı bir soru üstündeki küçük rozete dokunduğunda hedef burada tutulur, dosya seçilince kaydedilir.
+    const soruGorselInput = document.getElementById('soruGorselInput');
+    let soruGorselHedefi = null; // { veri, brans, index, guncelle }
+
+    soruGorselInput.addEventListener('change', function(){
+      const dosya = soruGorselInput.files && soruGorselInput.files[0];
+      soruGorselInput.value = '';
+      if(!dosya || !soruGorselHedefi) return;
+      const hedef = soruGorselHedefi;
+      soruGorselHedefi = null;
+
+      const eskiDosyaId = (hedef.veri.soruGorselleri[hedef.brans] || {})[hedef.index] || null;
+      const yeniDosyaId = dosyaIdUret();
+      dosyaKaydet(yeniDosyaId, dosya).then(function(){
+        hedef.veri.soruGorselleri[hedef.brans] = hedef.veri.soruGorselleri[hedef.brans] || {};
+        hedef.veri.soruGorselleri[hedef.brans][hedef.index] = yeniDosyaId;
+        denemeleriKaydet();
+        hedef.guncelle();
+        if(eskiDosyaId){ dosyaSil(eskiDosyaId); }
+        // Görsel eklenir eklenmez, aynı ekranda o sorunun doğru cevabını da işaretleyebilsin diye
+        // görüntüleyici açılır (doğru cevap seçici, alttaki A-E şıklarıyla birlikte gelir).
+        const cevapSecici = typeof hedef.cevapSecici === 'function' ? hedef.cevapSecici() : null;
+        dosyaGoster(dosya, hedef.brans + ' - Soru ' + (hedef.index + 1), function(){
+          dosyaSil(yeniDosyaId);
+          delete hedef.veri.soruGorselleri[hedef.brans][hedef.index];
+          soruDogruCevapAyarla(hedef.veri, hedef.brans, hedef.index, null);
+          denemeleriKaydet();
+          hedef.guncelle();
+        }, cevapSecici);
+      }).catch(function(err){
+        console.log('Soru görseli kaydedilemedi:', err);
+      });
+    });
+
+    // Yanlış/boş işaretli bir soruya eklenen görselin yanında gösterilecek "doğru cevap" şık listesi.
+    const SORU_CEVAP_SECENEKLERI = ['A', 'B', 'C', 'D', 'E'];
+
+    function soruDogruCevapAyarla(veri, brans, index, yeniDeger){
+      veri.soruDogruCevaplari = veri.soruDogruCevaplari || {};
+      veri.soruDogruCevaplari[brans] = veri.soruDogruCevaplari[brans] || {};
+      if(yeniDeger){
+        veri.soruDogruCevaplari[brans][index] = yeniDeger;
+      } else {
+        delete veri.soruDogruCevaplari[brans][index];
+      }
+      denemeleriKaydet();
+    }
+
     function denemeBransKartOlustur(veri, brans, soruSayisi){
+      veri.soruGorselleri = veri.soruGorselleri || {};
+      veri.soruGorselleri[brans] = veri.soruGorselleri[brans] || {};
+      veri.soruDogruCevaplari = veri.soruDogruCevaplari || {};
+      veri.soruDogruCevaplari[brans] = veri.soruDogruCevaplari[brans] || {};
+
       const kart = document.createElement('div');
       kart.className = 'brans-card';
 
@@ -3698,6 +5037,9 @@
       }
 
       for(let i = 0; i < soruSayisi; i++){
+        const wrap = document.createElement('div');
+        wrap.className = 'soru-wrap';
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'soru-btn';
@@ -3705,6 +5047,51 @@
         const durum = veri.cevaplar[brans][i];
         if(durum === 1) btn.classList.add('dogru');
         else if(durum === 2) btn.classList.add('yanlis');
+        // Görsel ekleme rozeti "boş" ve "yanlış" sorularda görünür; "doğru" işaretlenince gizlenir.
+        if(durum !== 1) wrap.classList.add('soru-gorsel-aktif');
+
+        // Yanlış işaretlenen soruya küçük bir görsel ekleme rozeti (ör. sorunun fotoğrafı / çözümü)
+        const gorselBtn = document.createElement('button');
+        gorselBtn.type = 'button';
+        gorselBtn.className = 'soru-gorsel-btn';
+        gorselBtn.setAttribute('aria-label', 'Soruya görsel ekle');
+        const kameraSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+        gorselBtn.innerHTML = kameraSvg;
+
+        function gorselRozetiGuncelle(){
+          const varMi = !!veri.soruGorselleri[brans][i];
+          gorselBtn.classList.toggle('dolu', varMi);
+          gorselBtn.setAttribute('aria-label', varMi ? 'Eklenen görseli görüntüle' : 'Soruya görsel ekle');
+        }
+        gorselRozetiGuncelle();
+
+        function soruCevapSeciciOlustur(){
+          return {
+            secenekler: SORU_CEVAP_SECENEKLERI,
+            deger: veri.soruDogruCevaplari[brans][i] || null,
+            ayarla: function(yeniDeger){ soruDogruCevapAyarla(veri, brans, i, yeniDeger); }
+          };
+        }
+
+        gorselBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          const mevcutDosyaId = veri.soruGorselleri[brans][i];
+          if(mevcutDosyaId){
+            dosyaOku(mevcutDosyaId).then(function(blob){
+              if(!blob){ console.log('Görsel bulunamadı.'); return; }
+              dosyaGoster(blob, brans + ' - Soru ' + (i + 1), function(){
+                dosyaSil(mevcutDosyaId);
+                delete veri.soruGorselleri[brans][i];
+                soruDogruCevapAyarla(veri, brans, i, null);
+                denemeleriKaydet();
+                gorselRozetiGuncelle();
+              }, soruCevapSeciciOlustur());
+            }).catch(function(err){ console.log('Görsel açılamadı:', err); });
+          } else {
+            soruGorselHedefi = { veri: veri, brans: brans, index: i, guncelle: gorselRozetiGuncelle, cevapSecici: soruCevapSeciciOlustur };
+            soruGorselInput.click();
+          }
+        });
 
         btn.addEventListener('click', function(){
           const yeni = (veri.cevaplar[brans][i] + 1) % 3;
@@ -3712,12 +5099,15 @@
           btn.classList.remove('dogru', 'yanlis');
           if(yeni === 1) btn.classList.add('dogru');
           else if(yeni === 2) btn.classList.add('yanlis');
+          wrap.classList.toggle('soru-gorsel-aktif', yeni !== 1);
           bransNetGuncelle();
           denemeToplamGuncelle(veri);
           denemeleriKaydet();
         });
 
-        sorularEl.appendChild(btn);
+        wrap.appendChild(btn);
+        wrap.appendChild(gorselBtn);
+        sorularEl.appendChild(wrap);
       }
 
       bransNetGuncelle();
@@ -3885,6 +5275,16 @@
       denemeDuzenlemeModunuAyarla(!denemeDuzenlemeModu);
     });
 
+    // ---- "Analizlerim" butonu: yapım aşamasındaki analiz sayfasını açar ----
+    const denemeAnalizBtn = document.getElementById('denemeAnalizBtn');
+    const analizGeriBtn = document.getElementById('analizGeriBtn');
+    denemeAnalizBtn.addEventListener('click', function(){
+      showAnalizView();
+    });
+    analizGeriBtn.addEventListener('click', function(){
+      showDenemelerView();
+    });
+
     // ---- Deneme Ekle pop-up ----
     (function(){
       const overlay = document.getElementById('denemeModalOverlay');
@@ -3951,7 +5351,8 @@
         const ay = tarih.getMonth();
         const ayinIlkGunu = new Date(yil, ay, 1);
         const baslangic = new Date(ayinIlkGunu);
-        baslangic.setDate(baslangic.getDate() - ayinIlkGunu.getDay());
+        // Hafta Pazartesi'den başlasın: Pazar (0) için 6 gün, diğer günler için (gün-1) kadar geriye git
+        baslangic.setDate(baslangic.getDate() - ((ayinIlkGunu.getDay() + 6) % 7));
 
         const gunler = [];
         const bugun = new Date();
@@ -3959,11 +5360,13 @@
         for(let i = 0; i < 42; i++){
           const gun = new Date(baslangic);
           gun.setDate(baslangic.getDate() + i);
+          const haftaGunu = gun.getDay();
           gunler.push({
             tarih: gun,
             buAyIcinde: gun.getMonth() === ay,
             bugunMu: gun.toDateString() === bugun.toDateString(),
-            seciliMi: miniSecili ? gun.toDateString() === miniSecili.toDateString() : false
+            seciliMi: miniSecili ? gun.toDateString() === miniSecili.toDateString() : false,
+            haftaSonuMu: haftaGunu === 0 || haftaGunu === 6
           });
         }
         return gunler;
@@ -3980,6 +5383,7 @@
           if(!gun.buAyIcinde) btn.classList.add('disi-ay');
           if(gun.bugunMu) btn.classList.add('bugun');
           if(gun.seciliMi) btn.classList.add('secili');
+          if(gun.haftaSonuMu) btn.classList.add('hafta-sonu');
           btn.textContent = gun.tarih.getDate();
           btn.addEventListener('click', function(){
             miniSecili = gun.tarih;
@@ -4180,6 +5584,8 @@
           tarih: tarih,
           alan: alan,
           cevaplar: bosCevaplarOlustur(alan),
+          soruGorselleri: {},
+          soruDogruCevaplari: {},
           video: '',
           cevapAnahtari: null
         };
@@ -4244,6 +5650,14 @@
         const silinecekVeri = denemeVerileri[silinecekId];
         if(silinecekVeri && silinecekVeri.cevapAnahtari && silinecekVeri.cevapAnahtari.tur === 'dosya' && silinecekVeri.cevapAnahtari.dosyaId){
           dosyaSil(silinecekVeri.cevapAnahtari.dosyaId);
+        }
+        if(silinecekVeri && silinecekVeri.soruGorselleri){
+          Object.keys(silinecekVeri.soruGorselleri).forEach(function(brans){
+            const bransGorselleri = silinecekVeri.soruGorselleri[brans] || {};
+            Object.keys(bransGorselleri).forEach(function(idx){
+              if(bransGorselleri[idx]){ dosyaSil(bransGorselleri[idx]); }
+            });
+          });
         }
         delete denemeVerileri[silinecekId];
         denemeleriKaydet();
@@ -4456,7 +5870,8 @@
         const ay = tarih.getMonth();
         const ayinIlkGunu = new Date(yil, ay, 1);
         const baslangic = new Date(ayinIlkGunu);
-        baslangic.setDate(baslangic.getDate() - ayinIlkGunu.getDay());
+        // Hafta Pazartesi'den başlasın: Pazar (0) için 6 gün, diğer günler için (gün-1) kadar geriye git
+        baslangic.setDate(baslangic.getDate() - ((ayinIlkGunu.getDay() + 6) % 7));
 
         const gunler = [];
         const bugun = new Date();
@@ -4464,11 +5879,13 @@
         for(let i = 0; i < 42; i++){
           const gun = new Date(baslangic);
           gun.setDate(baslangic.getDate() + i);
+          const haftaGunu = gun.getDay();
           gunler.push({
             tarih: gun,
             buAyIcinde: gun.getMonth() === ay,
             bugunMu: gun.toDateString() === bugun.toDateString(),
-            seciliMi: seciliTarih ? gun.toDateString() === seciliTarih.toDateString() : false
+            seciliMi: seciliTarih ? gun.toDateString() === seciliTarih.toDateString() : false,
+            haftaSonuMu: haftaGunu === 0 || haftaGunu === 6
           });
         }
         return gunler;
@@ -4492,6 +5909,7 @@
           if(!gun.buAyIcinde) btn.classList.add('disi-ay');
           if(gun.bugunMu) btn.classList.add('bugun');
           if(gun.seciliMi) btn.classList.add('secili');
+          if(gun.haftaSonuMu) btn.classList.add('hafta-sonu');
           btn.textContent = gun.tarih.getDate();
           btn.addEventListener('click', function(){
             const zatenSeciliMi = seciliTarih && gun.tarih.toDateString() === seciliTarih.toDateString();
