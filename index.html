@@ -6215,7 +6215,9 @@
         const soruId = soruHavuzuSoruEkle(dosyaId, brans, null);
         const kart = gundelikKartOlustur(soruHavuzuVerileri[soruId]);
         gundelikGrid.insertBefore(kart, gundelikGrid.firstChild);
-        gundelikEmptyMsg.classList.remove('aktif');
+        // Yeni eklenen kartın branşı henüz filtre çubuğunda yoksa (ilk sorusu bu olan
+        // bir kategoriyse) hemen görünsün diye filtreler burada yeniden çiziliyor.
+        gundelikBosDurumGuncelle();
         requestAnimationFrame(function(){ kart.classList.add('animate'); });
 
         // Görsel eklenir eklenmez doğru cevabı da işaretleyebilsin diye görüntüleyici açılır.
