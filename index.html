@@ -3164,6 +3164,19 @@
     font-size:0.72rem;
     color:#A8A199;
   }
+  .sifirhata-kaynak{
+    flex-shrink:0;
+    padding:0 1.1rem 0.6rem 1.2rem;
+    margin-top:-0.5rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.7rem;
+    letter-spacing:0.01em;
+    color:#8B8479;
+    background:rgba(0,0,0,0.55);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
   .sifirhata-govde{
     flex:1;
     min-height:0;
@@ -4403,6 +4416,7 @@
       <span class="sifirhata-baslik" id="sifirhataBaslik"></span>
       <span class="sifirhata-ilerleme" id="sifirhataIlerleme"></span>
     </div>
+    <div class="sifirhata-kaynak" id="sifirhataKaynak"></div>
     <div class="sifirhata-govde" id="sifirhataGovde"></div>
     <div class="sifirhata-alt" id="sifirhataAlt"></div>
   </div>
@@ -5083,6 +5097,13 @@
       viewSoruHavuzu.style.animation = 'none';
       void viewSoruHavuzu.offsetWidth;
       viewSoruHavuzu.style.animation = '';
+
+      const havuzGovde = document.getElementById('havuzGovde');
+      if(havuzGovde){
+        havuzGovde.style.animation = 'none';
+        void havuzGovde.offsetWidth;
+        havuzGovde.style.animation = '';
+      }
       });
 
       havuzFiltreCiz();
@@ -5526,6 +5547,7 @@
     const sifirhataKapatBtn = document.getElementById('sifirhataKapat');
     const sifirhataBaslikEl = document.getElementById('sifirhataBaslik');
     const sifirhataIlerlemeEl = document.getElementById('sifirhataIlerleme');
+    const sifirhataKaynakEl = document.getElementById('sifirhataKaynak');
     const sifirhataGovdeEl = document.getElementById('sifirhataGovde');
     const sifirhataAltEl = document.getElementById('sifirhataAlt');
 
@@ -5561,6 +5583,9 @@
       const soru = sifirhataAktifSorular[sifirhataAktifIndex];
       sifirhataBaslikEl.textContent = sifirhataAktifBaslik;
       sifirhataIlerlemeEl.textContent = (sifirhataAktifIndex + 1) + ' / ' + sifirhataAktifSorular.length;
+      if(sifirhataKaynakEl){
+        sifirhataKaynakEl.textContent = (soru.denemeIsim || 'Bilinmeyen Deneme') + ' · ' + (soru.index + 1) + '. Soru';
+      }
 
       sifirhataGovdeEl.innerHTML = '';
       const durum = document.createElement('p');
@@ -5674,6 +5699,7 @@
     function sifirHataOzetGoster(){
       sifirhataBaslikEl.textContent = sifirhataAktifBaslik;
       sifirhataIlerlemeEl.textContent = '';
+      if(sifirhataKaynakEl){ sifirhataKaynakEl.textContent = ''; }
       if(sifirhataGuncelUrl){ URL.revokeObjectURL(sifirhataGuncelUrl); sifirhataGuncelUrl = null; }
 
       sifirhataGovdeEl.innerHTML = '';
