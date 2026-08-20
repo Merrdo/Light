@@ -9368,14 +9368,18 @@
     // Drive'a gönderilmemiş (kirliAnahtarlar içindeki) anahtarların üzerine yazmaz —
     // sadece Drive'da olup bu cihazda henüz değişmemiş alanları günceller. Böylece
     // "hangisi üzerine yazılsın" diye kullanıcıya sormaya gerek kalmaz.
-    function paketiCihazaBirlestir(paket){
+    function paketiCihazaBirlestir(paket, zorlaUzerineYaz){
       if(!paket) return Promise.resolve(false);
       const veri = paket.localStorage || {};
       let degisiklikOldu = false;
       try{
         Object.keys(veri).forEach(function(anahtar){
           if(buluttanMuaf(anahtar)) return; // hesap anahtarı ya da cihaza özel ayar (ör. Nav Bar) — asla ezme
-          if(kirliAnahtarlar.has(anahtar)) return; // bu cihazda henüz gönderilmemiş yerel değişiklik var — ezme
+          // zorlaUzerineYaz=true iken (mecburi giriş ekranından gelen giriş): bu
+          // cihazdaki henüz buluta gönderilmemiş "kirli" değişiklikler de dahil,
+          // buluttaki veri cihazın üzerine doğrudan yazılır — kullanıcı bilerek
+          // "diğer cihazdaki veriyi indir" istemiş demektir.
+          if(!zorlaUzerineYaz && kirliAnahtarlar.has(anahtar)) return;
           if(localStorage.getItem(anahtar) === veri[anahtar]) return; // zaten aynı
           orijinalSetItem(anahtar, veri[anahtar]);
           degisiklikOldu = true;
@@ -9572,25 +9576,24 @@
         // karşılaştırılıp otomatik birleştirilir — bu cihazda henüz buluta gönderilmemiş
         // (kirli) bir değişiklik varsa o korunur, yoksa buluttaki alınır. Böylece "Tamam/
         // İptal" seçimi yapmaya hiç gerek kalmaz.
-        kapiMetniGuncelle('Veriler eşitleniyor…');
-        if(girisEkraniIleMi) girisEkraniDurumGuncelle('Veriler eşitleniyor…');
+        kapiMetniGuncelle('Veriler indiriliyor…');
+        if(girisEkraniIleMi) girisEkraniDurumGuncelle('Veriler indiriliyor…');
         return drivedenIndir().then(function(paket){
-          return paketiCihazaBirlestir(paket).then(function(degisti){
+          // DEĞİŞİKLİK: Mecburi giriş ekranından yapılan her girişte, buluttaki veri
+          // bu cihazdaki (henüz buluta gönderilmemiş "kirli" değişiklikler dahil)
+          // verinin üzerine ZORLA yazılır — birleştirme yapılmaz, bulut kazanır.
+          return paketiCihazaBirlestir(paket, true).then(function(degisti){
             const uzakZaman = sonBilinenDegisimZamani();
             if(uzakZaman) sonBilinenDegisimZamaniniKaydet(uzakZaman);
             sonYedekZamaniniKaydet();
+            // Cihaz artık buluttakiyle birebir aynı: bekleyen "kirli" (gönderilmemiş)
+            // değişiklik kalmadı, üzerine yazıldı.
+            kirliAnahtarlar.clear();
+            kirliAnahtarlariKaydet();
             arayuzuGuncelle();
-            // Bu cihazda hâlâ buluta gönderilmemiş (kirli) veri varsa onu da yükle,
-            // böylece iki taraf da güncel kalır.
-            if(kirliAnahtarlar.size){
-              return driveyeYedekle().then(function(){ kapiyiGizle(); girisEkraniniGizle(); });
-            }
-            if(degisti && (kapiAcikMi || girisEkraniAcikMi)){
+            if(degisti){
               // İndirilen yeni veri (görseller, denemeler, sayaçlar, tema, branşlar…)
-              // ekrana yansısın diye sayfayı tazele — bu SADECE giriş/senkron
-              // ekranlarından biri açıkken olur, yani kullanıcı henüz uygulamayı
-              // kullanmaya başlamamışken. Uygulama zaten açıkken/kullanılırken bu
-              // asla tetiklenmez — az önce yazdığın veri asla sessizce kaybolmaz.
+              // ekrana yansısın diye sayfayı tazele.
               window.location.reload();
               return;
             }
@@ -9773,17 +9776,14 @@
 
     const yonlendirmeDonusVar = window.location.hash.indexOf('access_token=') !== -1 || window.location.hash.indexOf('error=') !== -1;
     const kayitliVarMi = !!kayitliKullanici();
-    const kapiGerekebilir = !kapiOturumdaGosterildiMi && (kayitliVarMi || yonlendirmeDonusVar);
-    // Kayıtlı hesap yok VE bir yönlendirme dönüşü de yoksa: cihazda ilk açılış
-    // ya da kullanıcı daha önce çıkış yapmış demektir.
-    const girisEkraniGerekebilir = !kapiOturumdaGosterildiMi && !kayitliVarMi && !yonlendirmeDonusVar;
+    // DEĞİŞİKLİK: Artık kayıtlı hesap olsa bile "kapı" (sessiz/hızlı) yerine HER
+    // açılışta tam ekran giriş ekranı zorunlu gösteriliyor — kullanıcı Google ile
+    // bilerek giriş yapmadan uygulamayı kullanamıyor (istersek "Şimdilik atla" ile
+    // yerel devam edebiliyor). Bir Google yönlendirme dönüşü sırasında (sayfa az
+    // önce Google'dan token ile geri döndüyse) ekranı tekrar açmıyoruz.
+    const girisEkraniGerekebilir = !kapiOturumdaGosterildiMi && !yonlendirmeDonusVar;
 
-    if(kapiGerekebilir){
-      try{ sessionStorage.setItem(KAPI_OTURUM_ANAHTARI, '1'); }catch(e){}
-      kapiyiGoster('Senkronize ediliyor…');
-      // Güvenlik freni: bir şeyler ters giderse kapı sonsuza dek açık kalmasın.
-      window.setTimeout(kapiyiGizle, 8000);
-    } else if(girisEkraniGerekebilir){
+    if(girisEkraniGerekebilir){
       try{ sessionStorage.setItem(KAPI_OTURUM_ANAHTARI, '1'); }catch(e){}
       girisEkraniniGoster();
     }
@@ -9791,25 +9791,12 @@
     // Önce: Google'dan tam sayfa yönlendirmesiyle dönüş var mı diye bak (iPhone/ana ekran akışı).
     const yonlendirmedenDondu = yonlendirmedenDonusuIsle();
 
-    // Sayfa açıldığında daha önce giriş yapılmışsa arayüzü buna göre gösterir; erişim
-    // jetonu sayfa yenilenince kaybolduğu için sessizce yeniden istenir — hem normal
-    // tarayıcı sekmesinde (popup) hem de ana ekrana eklenmiş standalone modda (tam
-    // sayfa prompt=none yönlendirmesiyle). Bu, arka plan otomatik yedeklemesinin ve
-    // en son kaydedilmiş verinin bu cihaza inmesinin ön koşuludur.
+    // DEĞİŞİKLİK: Artık burada otomatik/sessiz yeniden bağlanma YOK. Giriş artık
+    // SADECE tam ekran giriş ekranındaki "Google ile Giriş Yap" butonuna kullanıcının
+    // bilerek dokunmasıyla olur (bkz. girisEkraniGoogleBtn → girisYap(false)); bu da
+    // girisTamamlandi() içinde buluttaki veriyi cihaza ZORLA (üzerine yazarak) indirir.
     arayuzuGuncelle();
-    if(!yonlendirmedenDondu && kayitliVarMi){
-      window.setTimeout(function(){ girisYap(true); }, 600);
-    } else if(!yonlendirmedenDondu && kapiGerekebilir){
-      // Kapı açıldı ama ne kayıtlı kullanıcı var ne de gerçek bir yönlendirme
-      // dönüşü oldu (ör. hash başka bir şeydendi) — kapatalım, bekleyen bir
-      // giriş akışı yok.
-      kapiyiGizle();
-    } else if(yonlendirmedenDondu && !kayitliVarMi){
-      // Yönlendirme işlendi ama (hata vb. nedenle) girisTamamlandi hiç
-      // çağrılmadıysa/kullanıcı kaydolmadıysa kapı açık kalmasın; kayıtlı hesap
-      // hâlâ yoksa tam ekran giriş ekranı zaten kullanıcıyı bekliyor olacak.
-      kapiyiGizle();
-    }
+    kapiyiGizle();
   })();
 
   // ================= DENEMELER: YUMUŞAK KAYDIRMA + HAFİF BOUNCE =================
