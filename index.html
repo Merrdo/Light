@@ -3969,6 +3969,7 @@
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
           </button>
+          <button type="button" class="google-signout-btn" id="googleRestoreBtn" style="display:none;">Drive'dan Getir</button>
           <button type="button" class="google-signout-btn" id="googleSignOutBtn">Çıkış</button>
         </div>
       </div>
@@ -4815,6 +4816,33 @@
         });
       });
     }
+
+    // Tüm dosya blob'larını (id -> blob) tek seferde döndürür. Google Drive yedekleme/
+    // geri yükleme kodu, telefon ile tablet arasında SADECE localStorage'daki küçük metni
+    // değil, yüklenen görsel/PDF dosyalarını da taşıyabilsin diye bu fonksiyona ihtiyaç
+    // duyuyor. O kod ayrı bir kapanış (IIFE) içinde çalıştığından fonksiyonlar aşağıda
+    // window üzerinden dışa açılıyor.
+    function dosyaTumIcerigiAl(){
+      return dosyaDbAc().then(function(db){
+        return new Promise(function(resolve, reject){
+          const sonuc = {};
+          const islem = db.transaction(DOSYA_STORE_ADI, 'readonly');
+          const istek = islem.objectStore(DOSYA_STORE_ADI).openCursor();
+          istek.onsuccess = function(e){
+            const cursor = e.target.result;
+            if(cursor){
+              sonuc[cursor.key] = cursor.value;
+              cursor.continue();
+            } else {
+              resolve(sonuc);
+            }
+          };
+          istek.onerror = function(){ reject(istek.error); };
+        });
+      });
+    }
+    window.__sessizlikDosyaKaydet = dosyaKaydet;
+    window.__sessizlikDosyaTumIcerigiAl = dosyaTumIcerigiAl;
 
     // ---- Dosya görüntüleyici: yüklenen PNG/PDF'i yeni sekme yerine uygulama içinde açar ----
     const dosyaGoruntuleOverlay = document.getElementById('dosyaGoruntuleOverlay');
@@ -8865,11 +8893,17 @@
     const KULLANICI_ANAHTAR = 'sessizlik-google-kullanici';
     const STATE_ANAHTAR = 'sessizlik-google-state';
     const SON_YEDEK_ANAHTAR = 'sessizlik-google-son-yedek';
+    const SON_YEDEK_OZET_ANAHTAR = 'sessizlik-google-son-yedek-ozet';
+    // Bu cihazda "gerçek" kullanıcı verisi olup olmadığını anlamak için bakılan anahtarlar.
+    // Yeni bir cihazda (ör. tablet ilk kurulum) bu anahtarların hepsi boşsa, girişte
+    // Drive'daki yedek otomatik indirilir; doluysa kullanıcıya sorulur (veri kaybını önlemek için).
+    const ANLAMLI_VERI_ANAHTARLARI = ['sessizlik-denemeler', 'sessizlik-soru-havuzu', 'sessizlik-sayac-listesi'];
 
     const googleRow = document.getElementById('googleRow');
     const googleStateLabel = document.getElementById('googleStateLabel');
     const googleSignInBtn = document.getElementById('googleSignInBtn');
     const googleSignOutBtn = document.getElementById('googleSignOutBtn');
+    const googleRestoreBtn = document.getElementById('googleRestoreBtn');
     const googleAvatar = document.getElementById('googleAvatar');
     if(!googleRow) return;
 
@@ -8877,6 +8911,11 @@
     let driveDosyaId = null;
     let yedeklemeSurmekte = false;
     let jetonIstemcisi = null;
+    // Sayfa her açıldığında jetonu tazelemek için yapılan SESSİZ/otomatik yeniden bağlanma ile
+    // kullanıcının "Google ile Yedekle" satırına bilinçli dokunuşuyla yaptığı girişi ayırt eder.
+    // Bu ayrım önemli: aşağıdaki geri yükleme/üzerine yazma kararı ve onay penceresi SADECE
+    // kullanıcı bilerek dokunduğunda gösterilmeli; her sayfa yenilemesinde sessizce çıkmamalı.
+    let sonGirisSessizMi = true;
 
     function standaloneMi(){
       try{
@@ -8913,6 +8952,46 @@
     function sonYedekVarMi(){
       try{ return !!localStorage.getItem(SON_YEDEK_ANAHTAR); }catch(e){ return false; }
     }
+    function sonYedekOzetiniKaydet(ozet){
+      try{ localStorage.setItem(SON_YEDEK_OZET_ANAHTAR, JSON.stringify(ozet || {})); }catch(e){}
+    }
+    function sonYedekOzetiniAl(){
+      try{
+        const ham = localStorage.getItem(SON_YEDEK_OZET_ANAHTAR);
+        return ham ? JSON.parse(ham) : null;
+      }catch(e){ return null; }
+    }
+
+    // Bu cihazda kullanıcının girdiği gerçek bir veri var mı? (deneme, soru havuzu, sayaç listesi vb.)
+    // Boş bir cihazda otomatik geri yükleme yapılabilir; doluysa üzerine sessizce yazılmaz.
+    function cihazdaAnlamliVeriVarMi(){
+      try{
+        return ANLAMLI_VERI_ANAHTARLARI.some(function(anahtar){
+          const ham = localStorage.getItem(anahtar);
+          if(!ham) return false;
+          try{
+            const ayrisik = JSON.parse(ham);
+            if(Array.isArray(ayrisik)) return ayrisik.length > 0;
+            if(ayrisik && typeof ayrisik === 'object') return Object.keys(ayrisik).length > 0;
+            return !!ayrisik;
+          }catch(e){ return ham.length > 2; }
+        });
+      }catch(e){ return false; }
+    }
+
+    // Blob <-> base64 (data URL) dönüşümleri: Drive'a JSON olarak yazabilmek ve
+    // geri yüklerken tekrar dosyaya çevirebilmek için kullanılır.
+    function blobDenBase64e(blob){
+      return new Promise(function(resolve, reject){
+        const okuyucu = new FileReader();
+        okuyucu.onloadend = function(){ resolve(okuyucu.result); };
+        okuyucu.onerror = function(){ reject(okuyucu.error); };
+        okuyucu.readAsDataURL(blob);
+      });
+    }
+    function base64tenBloba(dataUrl){
+      return fetch(dataUrl).then(function(res){ return res.blob(); });
+    }
 
     function durumSiniflariniTemizle(){
       googleRow.classList.remove('yedekleniyor', 'yedeklendi', 'hata');
@@ -8945,10 +9024,16 @@
         googleRow.classList.add('bagli');
         googleRow.setAttribute('aria-label', 'Google ile bağlı, yeniden yedeklemek için dokun');
         const isim = kullanici.name || kullanici.email || 'Google hesabı';
+        if(googleRestoreBtn){ googleRestoreBtn.style.display = ''; }
 
         if(durum === 'yedeklendi' || (durum === undefined && sonYedekVarMi())){
           googleRow.classList.add('yedeklendi');
-          googleStateLabel.textContent = isim + ' ile bağlı · Veriler yedeklendi';
+          const ozet = sonYedekOzetiniAl();
+          if(ozet && (ozet.anahtarSayisi || ozet.dosyaSayisi)){
+            googleStateLabel.textContent = isim + ' ile bağlı · Doğrulandı: ' + (ozet.anahtarSayisi || 0) + ' kayıt, ' + (ozet.dosyaSayisi || 0) + ' dosya';
+          } else {
+            googleStateLabel.textContent = isim + ' ile bağlı · Veriler yedeklendi';
+          }
         } else {
           googleStateLabel.textContent = isim + ' ile bağlı';
         }
@@ -8966,6 +9051,7 @@
         googleRow.classList.remove('bagli');
         googleRow.setAttribute('aria-label', 'Google ile giriş yap ve verileri yedekle');
         googleStateLabel.textContent = 'Bağlı değil · Dokunarak giriş yap';
+        if(googleRestoreBtn){ googleRestoreBtn.style.display = 'none'; }
       }
     }
 
@@ -8978,16 +9064,37 @@
       });
     }
 
+    // Not: Önceki sürüm sadece localStorage'daki küçük metin verisini yedekliyordu.
+    // Ancak yüklenen görsel/PDF dosyaları (cevap anahtarları vb.) ayrı bir IndexedDB
+    // katmanında tutuluyor ve yedeğe hiç dahil edilmiyordu — yani bir cihaz kaybolsa/
+    // sıfırlansa o dosyalar geri getirilemezdi. Şimdi hem localStorage hem de IndexedDB
+    // içeriği tek bir pakette toplanıyor.
     function yedekVerisiTopla(){
       const veri = {};
       try{
         for(let i=0; i<localStorage.length; i++){
           const anahtar = localStorage.key(i);
-          if(anahtar === KULLANICI_ANAHTAR || anahtar === STATE_ANAHTAR) continue; // hesap/oturum bilgisini yedeğin içine koyma
+          // Hesap/oturum/yerel-yedek-durumu bilgisini yedeğin içine koyma; bunlar cihaza özeldir.
+          if(anahtar === KULLANICI_ANAHTAR || anahtar === STATE_ANAHTAR || anahtar === SON_YEDEK_ANAHTAR || anahtar === SON_YEDEK_OZET_ANAHTAR) continue;
           veri[anahtar] = localStorage.getItem(anahtar);
         }
       }catch(e){}
-      return veri;
+
+      const dosyalariAl = window.__sessizlikDosyaTumIcerigiAl;
+      const dosyaSozu = dosyalariAl ? dosyalariAl().catch(function(){ return {}; }) : Promise.resolve({});
+
+      return dosyaSozu.then(function(dosyalar){
+        const idler = Object.keys(dosyalar);
+        return Promise.all(idler.map(function(id){
+          return blobDenBase64e(dosyalar[id]).then(function(base64){
+            return { id: id, tur: dosyalar[id].type || '', veri: base64 };
+          }).catch(function(){ return null; });
+        })).then(function(sonuclar){
+          const dosyaPaketi = {};
+          sonuclar.forEach(function(k){ if(k){ dosyaPaketi[k.id] = { tur: k.tur, veri: k.veri }; } });
+          return { surum: 2, zaman: Date.now(), localStorage: veri, dosyalar: dosyaPaketi };
+        });
+      });
     }
 
     function driveDosyasiniBul(){
@@ -8999,17 +9106,12 @@
         });
     }
 
-    function driveyeYedekle(){
-      if(!erisimJetonu || yedeklemeSurmekte) return Promise.resolve();
-      yedeklemeSurmekte = true;
-      arayuzuGuncelle('yedekleniyor');
-
-      const veri = yedekVerisiTopla();
+    function driveyeYaz(paket){
       const metadata = driveDosyaId ? {} : { name: DRIVE_DOSYA_ADI, parents: ['appDataFolder'] };
       const sinir = 'sessizlik-sinir';
       const govdeMetin =
         '--' + sinir + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata) + '\r\n' +
-        '--' + sinir + '\r\nContent-Type: application/json\r\n\r\n' + JSON.stringify(veri) + '\r\n' +
+        '--' + sinir + '\r\nContent-Type: application/json\r\n\r\n' + JSON.stringify(paket) + '\r\n' +
         '--' + sinir + '--';
 
       const yontem = driveDosyaId ? 'PATCH' : 'POST';
@@ -9027,13 +9129,111 @@
         return res.json();
       }).then(function(sonuc){
         if(sonuc && sonuc.id){ driveDosyaId = sonuc.id; }
-        yedeklemeSurmekte = false;
-        sonYedekZamaniniKaydet();
-        arayuzuGuncelle('yedeklendi');
+        return paket;
+      });
+    }
+
+    // Yedek Drive'a yazıldıktan sonra dosyayı GERİ İNDİRİP gönderilenle karşılaştırır.
+    // Böylece "yükleme başarılı görünüyordu ama dosya yarım/bozuk kaldı" gibi sessiz
+    // veri kayıplarının önüne geçilmiş, yedekleme sistematik biçimde doğrulanmış olur.
+    function driveYedeginiDogrula(paket){
+      if(!driveDosyaId) return Promise.reject(new Error('Yedek dosya kimliği yok'));
+      return fetch('https://www.googleapis.com/drive/v3/files/' + driveDosyaId + '?alt=media', {
+        headers: { Authorization: 'Bearer ' + erisimJetonu }
+      }).then(function(res){
+        if(!res.ok){ throw new Error('Doğrulama isteği başarısız: ' + res.status); }
+        return res.text();
+      }).then(function(drivedekiMetin){
+        const gonderilenMetin = JSON.stringify(paket);
+        if(drivedekiMetin.length !== gonderilenMetin.length){
+          throw new Error('Yedek doğrulanamadı: Drive üzerindeki dosya boyutu (' + drivedekiMetin.length + ') gönderilenle (' + gonderilenMetin.length + ') uyuşmuyor');
+        }
+        return {
+          anahtarSayisi: Object.keys(paket.localStorage || {}).length,
+          dosyaSayisi: Object.keys(paket.dosyalar || {}).length,
+          zaman: Date.now()
+        };
+      });
+    }
+
+    function driveyeYedekle(){
+      if(!erisimJetonu || yedeklemeSurmekte) return Promise.resolve();
+      yedeklemeSurmekte = true;
+      arayuzuGuncelle('yedekleniyor');
+
+      return yedekVerisiTopla()
+        .then(driveyeYaz)
+        .then(driveYedeginiDogrula)
+        .then(function(ozet){
+          yedeklemeSurmekte = false;
+          sonYedekZamaniniKaydet();
+          sonYedekOzetiniKaydet(ozet);
+          arayuzuGuncelle('yedeklendi');
+        }).catch(function(err){
+          yedeklemeSurmekte = false;
+          console.log('Google Drive yedekleme hatası:', err);
+          arayuzuGuncelle('hata', 'Yedekleme başarısız · Tekrar dokun');
+        });
+    }
+
+    // Drive'daki yedeği bu cihaza indirir: localStorage anahtarlarını ve (varsa)
+    // IndexedDB'deki dosyaları geri yazar. Bu, telefon ↔ tablet arasında verinin
+    // GERÇEKTEN taşınmasını sağlayan taraf; önceden bu yön hiç yoktu.
+    function paketiCihazaUygula(paket){
+      if(!paket) return Promise.resolve();
+      const veri = paket.localStorage || {};
+      const dosyalar = paket.dosyalar || {};
+      try{
+        Object.keys(veri).forEach(function(anahtar){
+          if(anahtar === KULLANICI_ANAHTAR || anahtar === STATE_ANAHTAR) return;
+          localStorage.setItem(anahtar, veri[anahtar]);
+        });
+      }catch(e){}
+
+      const dosyaKaydetFn = window.__sessizlikDosyaKaydet;
+      if(!dosyaKaydetFn) return Promise.resolve();
+      const idler = Object.keys(dosyalar);
+      return Promise.all(idler.map(function(id){
+        return base64tenBloba(dosyalar[id].veri).then(function(blob){
+          return dosyaKaydetFn(id, blob);
+        }).catch(function(){ /* tek bir dosya bozuksa diğerlerini etkilemesin */ });
+      }));
+    }
+
+    function drivedenIndir(){
+      return driveDosyasiniBul().then(function(id){
+        if(!id) return null;
+        return fetch('https://www.googleapis.com/drive/v3/files/' + id + '?alt=media', {
+          headers: { Authorization: 'Bearer ' + erisimJetonu }
+        }).then(function(res){
+          if(!res.ok){ throw new Error('İndirme başarısız: ' + res.status); }
+          return res.json();
+        });
+      });
+    }
+
+    function drivedenGeriYukle(sessiz){
+      if(!erisimJetonu) return Promise.resolve(false);
+      if(!sessiz) arayuzuGuncelle('yedekleniyor');
+      return drivedenIndir().then(function(paket){
+        if(!paket){
+          if(!sessiz) arayuzuGuncelle('hata', 'Drive üzerinde yedek bulunamadı');
+          return false;
+        }
+        return paketiCihazaUygula(paket).then(function(){
+          const ozet = {
+            anahtarSayisi: Object.keys(paket.localStorage || {}).length,
+            dosyaSayisi: Object.keys(paket.dosyalar || {}).length,
+            zaman: Date.now()
+          };
+          sonYedekZamaniniKaydet();
+          sonYedekOzetiniKaydet(ozet);
+          return true;
+        });
       }).catch(function(err){
-        yedeklemeSurmekte = false;
-        console.log('Google Drive yedekleme hatası:', err);
-        arayuzuGuncelle('hata', 'Yedekleme başarısız · Tekrar dokun');
+        console.log('Google Drive geri yükleme hatası:', err);
+        if(!sessiz) arayuzuGuncelle('hata', 'Geri yükleme başarısız · Tekrar dokun');
+        return false;
       });
     }
 
@@ -9051,7 +9251,41 @@
         const kullanici = { name: bilgi.name || '', email: bilgi.email || '', picture: bilgi.picture || '' };
         kullaniciKaydet(kullanici);
         arayuzuGuncelle();
-        return driveDosyasiniBul().then(driveyeYedekle);
+        return driveDosyasiniBul();
+      }).then(function(id){
+        if(sonGirisSessizMi){
+          // Arka planda yapılan otomatik/sessiz yeniden bağlanma: bu cihaz zaten daha önce
+          // bilinçli olarak bağlanmıştı, o yüzden burada tekrar sormadan/indirmeden sadece
+          // önceki davranış korunur (mevcut durumu yedekle).
+          return driveyeYedekle();
+        }
+        if(!id){
+          // Drive'da bu hesaba ait henüz yedek yok: bu cihazın verisini ilk kez yükle.
+          return driveyeYedekle();
+        }
+        if(!cihazdaAnlamliVeriVarMi()){
+          // Bu cihazda (ör. yeni tablet) henüz kayıt yok ama Drive'da var:
+          // körlemesine üzerine yazıp kaybetmemek için, tam tersine, Drive'daki
+          // yedek otomatik olarak bu cihaza indirilir.
+          return drivedenGeriYukle(true).then(function(basarili){
+            arayuzuGuncelle();
+            if(basarili){
+              window.setTimeout(function(){ window.location.reload(); }, 400);
+            }
+          });
+        }
+        // Hem bu cihazda hem Drive'da veri var: hiçbirini sessizce ezmeden kullanıcıya sor.
+        const drivedenGeriYuklensin = window.confirm(
+          "Drive'da bu hesaba ait bir yedek bulundu.\n\n" +
+          "Tamam → Drive'daki yedeği bu cihaza indir (bu cihazdaki mevcut veriler yedektekiyle değiştirilir)\n" +
+          "İptal → Bu cihazın verilerini Drive'a yükle (Drive'daki yedeğin üzerine yazılır)"
+        );
+        if(drivedenGeriYuklensin){
+          return drivedenGeriYukle().then(function(basarili){
+            if(basarili){ window.location.reload(); }
+          });
+        }
+        return driveyeYedekle();
       }).catch(function(err){
         console.log('Google kullanıcı bilgisi alınamadı:', err);
         arayuzuGuncelle('hata');
@@ -9110,11 +9344,13 @@
         arayuzuGuncelle('hata');
         return true;
       }
+      sonGirisSessizMi = false; // standalone modda yönlendirme akışı her zaman kullanıcının bilinçli girişidir
       girisTamamlandi({ access_token: jeton });
       return true;
     }
 
     function girisYap(sessiz){
+      sonGirisSessizMi = !!sessiz;
       if(standaloneMi()){
         if(sessiz) return; // ana ekran modunda sessiz/otomatik yeniden bağlanma yapılmaz
         arayuzuGuncelle('baglaniyor');
@@ -9158,6 +9394,22 @@
       }
     });
     if(googleSignOutBtn){ googleSignOutBtn.addEventListener('click', cikisYap); }
+    if(googleRestoreBtn){
+      googleRestoreBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(!erisimJetonu){ girisYap(false); return; }
+        const onay = window.confirm(
+          "Drive'daki en son yedek bu cihaza indirilecek.\n\n" +
+          "Bu cihazda kayıtlı olup Drive'a henüz yedeklenmemiş veriler varsa, bunların üzerine yazılabilir.\n\n" +
+          "Devam edilsin mi?"
+        );
+        if(!onay) return;
+        arayuzuGuncelle('yedekleniyor');
+        drivedenGeriYukle(false).then(function(basarili){
+          if(basarili){ window.location.reload(); }
+        });
+      });
+    }
 
     // Önce: Google'dan tam sayfa yönlendirmesiyle dönüş var mı diye bak (iPhone/ana ekran akışı).
     const yonlendirmedenDondu = yonlendirmedenDonusuIsle();
