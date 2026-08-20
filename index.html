@@ -3969,7 +3969,6 @@
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
           </button>
-          <button type="button" class="google-signout-btn" id="googleRestoreBtn" style="display:none;">Drive'dan Getir</button>
           <button type="button" class="google-signout-btn" id="googleSignOutBtn">Çıkış</button>
         </div>
       </div>
@@ -8909,16 +8908,10 @@
       KULLANICI_ANAHTAR, STATE_ANAHTAR, SON_YEDEK_ANAHTAR, SON_YEDEK_OZET_ANAHTAR,
       SON_DEGISIM_ZAMANI_ANAHTAR, KIRLI_ANAHTARLAR_ANAHTARI
     ];
-    // Bu cihazda "gerçek" kullanıcı verisi olup olmadığını anlamak için bakılan anahtarlar.
-    // Yeni bir cihazda (ör. tablet ilk kurulum) bu anahtarların hepsi boşsa, girişte
-    // Drive'daki yedek otomatik indirilir; doluysa kullanıcıya sorulur (veri kaybını önlemek için).
-    const ANLAMLI_VERI_ANAHTARLARI = ['sessizlik-denemeler', 'sessizlik-soru-havuzu', 'sessizlik-sayac-listesi'];
-
     const googleRow = document.getElementById('googleRow');
     const googleStateLabel = document.getElementById('googleStateLabel');
     const googleSignInBtn = document.getElementById('googleSignInBtn');
     const googleSignOutBtn = document.getElementById('googleSignOutBtn');
-    const googleRestoreBtn = document.getElementById('googleRestoreBtn');
     const googleAvatar = document.getElementById('googleAvatar');
     if(!googleRow) return;
 
@@ -9034,23 +9027,6 @@
       otomatikSenkronZamanlayici = setTimeout(driveyeYedekle, 2500);
     }
 
-    // Bu cihazda kullanıcının girdiği gerçek bir veri var mı? (deneme, soru havuzu, sayaç listesi vb.)
-    // Boş bir cihazda otomatik geri yükleme yapılabilir; doluysa üzerine sessizce yazılmaz.
-    function cihazdaAnlamliVeriVarMi(){
-      try{
-        return ANLAMLI_VERI_ANAHTARLARI.some(function(anahtar){
-          const ham = localStorage.getItem(anahtar);
-          if(!ham) return false;
-          try{
-            const ayrisik = JSON.parse(ham);
-            if(Array.isArray(ayrisik)) return ayrisik.length > 0;
-            if(ayrisik && typeof ayrisik === 'object') return Object.keys(ayrisik).length > 0;
-            return !!ayrisik;
-          }catch(e){ return ham.length > 2; }
-        });
-      }catch(e){ return false; }
-    }
-
     // Blob <-> base64 (data URL) dönüşümleri: Drive'a JSON olarak yazabilmek ve
     // geri yüklerken tekrar dosyaya çevirebilmek için kullanılır.
     function blobDenBase64e(blob){
@@ -9096,7 +9072,6 @@
         googleRow.classList.add('bagli');
         googleRow.setAttribute('aria-label', 'Google ile bağlı, yeniden yedeklemek için dokun');
         const isim = kullanici.name || kullanici.email || 'Google hesabı';
-        if(googleRestoreBtn){ googleRestoreBtn.style.display = ''; }
 
         if(durum === 'yedeklendi' || (durum === undefined && sonYedekVarMi())){
           googleRow.classList.add('yedeklendi');
@@ -9123,7 +9098,6 @@
         googleRow.classList.remove('bagli');
         googleRow.setAttribute('aria-label', 'Google ile giriş yap ve verileri yedekle');
         googleStateLabel.textContent = 'Bağlı değil · Dokunarak giriş yap';
-        if(googleRestoreBtn){ googleRestoreBtn.style.display = 'none'; }
       }
     }
 
@@ -9342,30 +9316,6 @@
       if(document.visibilityState === 'visible') uzakDegisiklikleriKontrolEt();
     });
 
-    // Drive'daki yedeği bu cihaza indirir: localStorage anahtarlarını ve (varsa)
-    // IndexedDB'deki dosyaları geri yazar. Bu, telefon ↔ tablet arasında verinin
-    // GERÇEKTEN taşınmasını sağlayan taraf; önceden bu yön hiç yoktu.
-    function paketiCihazaUygula(paket){
-      if(!paket) return Promise.resolve();
-      const veri = paket.localStorage || {};
-      const dosyalar = paket.dosyalar || {};
-      try{
-        Object.keys(veri).forEach(function(anahtar){
-          if(anahtar === KULLANICI_ANAHTAR || anahtar === STATE_ANAHTAR) return;
-          localStorage.setItem(anahtar, veri[anahtar]);
-        });
-      }catch(e){}
-
-      const dosyaKaydetFn = window.__sessizlikDosyaKaydet;
-      if(!dosyaKaydetFn) return Promise.resolve();
-      const idler = Object.keys(dosyalar);
-      return Promise.all(idler.map(function(id){
-        return base64tenBloba(dosyalar[id].veri).then(function(blob){
-          return dosyaKaydetFn(id, blob);
-        }).catch(function(){ /* tek bir dosya bozuksa diğerlerini etkilemesin */ });
-      }));
-    }
-
     function drivedenIndir(){
       return driveDosyasiniBul().then(function(id){
         if(!id) return null;
@@ -9375,31 +9325,6 @@
           if(!res.ok){ throw new Error('İndirme başarısız: ' + res.status); }
           return res.json();
         });
-      });
-    }
-
-    function drivedenGeriYukle(sessiz){
-      if(!erisimJetonu) return Promise.resolve(false);
-      if(!sessiz) arayuzuGuncelle('yedekleniyor');
-      return drivedenIndir().then(function(paket){
-        if(!paket){
-          if(!sessiz) arayuzuGuncelle('hata', 'Drive üzerinde yedek bulunamadı');
-          return false;
-        }
-        return paketiCihazaUygula(paket).then(function(){
-          const ozet = {
-            anahtarSayisi: Object.keys(paket.localStorage || {}).length,
-            dosyaSayisi: Object.keys(paket.dosyalar || {}).length,
-            zaman: Date.now()
-          };
-          sonYedekZamaniniKaydet();
-          sonYedekOzetiniKaydet(ozet);
-          return true;
-        });
-      }).catch(function(err){
-        console.log('Google Drive geri yükleme hatası:', err);
-        if(!sessiz) arayuzuGuncelle('hata', 'Geri yükleme başarısız · Tekrar dokun');
-        return false;
       });
     }
 
@@ -9555,22 +9480,6 @@
       }
     });
     if(googleSignOutBtn){ googleSignOutBtn.addEventListener('click', cikisYap); }
-    if(googleRestoreBtn){
-      googleRestoreBtn.addEventListener('click', function(e){
-        e.stopPropagation();
-        if(!erisimJetonu){ girisYap(false); return; }
-        const onay = window.confirm(
-          "Drive'daki en son yedek bu cihaza indirilecek.\n\n" +
-          "Bu cihazda kayıtlı olup Drive'a henüz yedeklenmemiş veriler varsa, bunların üzerine yazılabilir.\n\n" +
-          "Devam edilsin mi?"
-        );
-        if(!onay) return;
-        arayuzuGuncelle('yedekleniyor');
-        drivedenGeriYukle(false).then(function(basarili){
-          if(basarili){ window.location.reload(); }
-        });
-      });
-    }
 
     // Önce: Google'dan tam sayfa yönlendirmesiyle dönüş var mı diye bak (iPhone/ana ekran akışı).
     const yonlendirmedenDondu = yonlendirmedenDonusuIsle();
