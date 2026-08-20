@@ -852,7 +852,7 @@
   }
 
   .gundelik-soru-havuzu-btn{
-    margin-top:2.2rem;
+    margin-top:1.6rem;
     display:flex;
     align-items:center;
     gap:0.5rem;
@@ -876,6 +876,261 @@
     }
   }
   .gundelik-soru-havuzu-btn:active{ transform:scale(0.96); }
+
+  /* ================= GÜNDELİK: RUTİNLER + YAPILACAKLAR LİSTESİ ================= */
+  .gundelik-govde{
+    width:100%;
+    margin-top:0.6rem;
+    display:flex;
+    flex-direction:column;
+    gap:2.6rem;
+    padding-bottom:1.5rem;
+  }
+  .gundelik-bolum{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.75rem;
+  }
+  .gundelik-bolum-baslik{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:0.6rem;
+  }
+  .gundelik-bolum-baslik h3{
+    font-size:1.1rem;
+    font-weight:400;
+    font-style:italic;
+    color:var(--ink);
+  }
+  .gundelik-bolum-tarih{
+    flex-shrink:0;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+  }
+  .gundelik-liste{
+    display:flex;
+    flex-direction:column;
+    gap:0.6rem;
+  }
+  .gundelik-liste-bos{
+    font-size:0.85rem;
+    font-style:italic;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:1.3rem 0.8rem;
+    border:1px dashed var(--line);
+    border-radius:0.8rem;
+  }
+  .gundelik-madde{
+    display:flex;
+    align-items:center;
+    gap:0.75rem;
+    border:1px solid var(--line);
+    border-radius:0.8rem;
+    background:rgba(var(--bg-rgb),0.5);
+    padding:0.8rem 0.9rem;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-madde:hover{ border-color:var(--accent); }
+  }
+  .gundelik-check{
+    flex-shrink:0;
+    width:1.5rem;
+    height:1.5rem;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:transparent;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:transparent;
+    padding:0;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .gundelik-check svg{ width:0.8rem; height:0.8rem; }
+  .gundelik-check:active{ transform:scale(0.85); }
+  .gundelik-madde.tamam .gundelik-check{
+    background:var(--dogru);
+    border-color:var(--dogru);
+    color:var(--bg);
+  }
+  .gundelik-madde-metin{
+    flex:1;
+    min-width:0;
+    font-size:0.94rem;
+    line-height:1.4;
+    color:var(--ink);
+    word-break:break-word;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+  .gundelik-madde.tamam .gundelik-madde-metin{
+    color:var(--ink-soft);
+    text-decoration:line-through;
+    opacity:0.7;
+  }
+  .gundelik-madde-sil{
+    flex-shrink:0;
+    width:1.9rem;
+    height:1.9rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-radius:50%;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-madde-sil:hover{ color:var(--yanlis); background:rgba(var(--yanlis-rgb),0.12); }
+  }
+  .gundelik-madde-sil:active{ transform:scale(0.9); }
+  .gundelik-madde-sil svg{ width:0.95rem; height:0.95rem; }
+
+  .gundelik-ekle-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.4rem;
+    padding:0.7rem 1rem;
+    border:1px dashed var(--line);
+    border-radius:0.8rem;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    letter-spacing:0.02em;
+    cursor:pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-ekle-btn:hover{ border-color:var(--accent); color:var(--accent); background:rgba(var(--accent-rgb),0.06); }
+  }
+  .gundelik-ekle-btn:active{ transform:scale(0.97); }
+  .gundelik-ekle-btn svg{ width:0.9rem; height:0.9rem; }
+
+  .gundelik-ekle-form{
+    display:flex;
+    gap:0.5rem;
+    align-items:center;
+  }
+  .gundelik-ekle-input{
+    flex:1;
+    min-width:0;
+    border:1px solid var(--line);
+    border-radius:0.8rem;
+    background:transparent;
+    color:var(--ink);
+    font-family:inherit;
+    font-size:0.92rem;
+    padding:0.7rem 0.9rem;
+    outline:none;
+    transition: border-color 0.2s ease;
+  }
+  .gundelik-ekle-input:focus{ border-color:var(--accent); }
+  .gundelik-ekle-onay{
+    flex-shrink:0;
+    width:2.5rem;
+    height:2.5rem;
+    border-radius:50%;
+    border:1px solid rgba(var(--accent-rgb),0.5);
+    background:var(--accent);
+    color:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: filter 0.2s ease, transform 0.15s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-ekle-onay:hover{ filter:brightness(1.05); }
+  }
+  .gundelik-ekle-onay:active{ transform:scale(0.92); }
+  .gundelik-ekle-onay svg{ width:1.05rem; height:1.05rem; }
+  .gundelik-ekle-iptal{
+    flex-shrink:0;
+    width:2.2rem;
+    height:2.2rem;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-ekle-iptal:hover{ color:var(--yanlis); background:rgba(var(--yanlis-rgb),0.12); }
+  }
+  .gundelik-ekle-iptal svg{ width:1rem; height:1rem; }
+
+  /* ---- Rutin başlıkları (kategoriler): Sabah Rutinleri, Akşam Rutinleri vb. kendi oluşturduğun gruplar ---- */
+  .gundelik-kategoriler{
+    display:flex;
+    flex-direction:column;
+    gap:1.3rem;
+  }
+  .gundelik-kategori{
+    display:flex;
+    flex-direction:column;
+    gap:0.65rem;
+    padding:1rem 1rem 1.1rem;
+    border:1px solid var(--line);
+    border-radius:1rem;
+    background:rgba(var(--accent-rgb),0.03);
+  }
+  .gundelik-kategori-baslik{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.6rem;
+  }
+  .gundelik-kategori-ad{
+    font-size:0.98rem;
+    font-style:italic;
+    font-weight:400;
+    color:var(--ink);
+    word-break:break-word;
+  }
+  .gundelik-kategori-sil{
+    flex-shrink:0;
+    width:1.8rem;
+    height:1.8rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-radius:50%;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-kategori-sil:hover{ color:var(--yanlis); background:rgba(var(--yanlis-rgb),0.12); }
+  }
+  .gundelik-kategori-sil:active{ transform:scale(0.9); }
+  .gundelik-kategori-sil svg{ width:0.92rem; height:0.92rem; }
+  .gundelik-kategori-bos{
+    font-size:0.82rem;
+    font-style:italic;
+    color:var(--ink-soft);
+    padding:0.2rem 0.1rem 0.1rem;
+  }
+  .gundelik-kategori .gundelik-ekle-btn{
+    font-size:0.72rem;
+    padding:0.55rem 0.85rem;
+  }
 
   /* ================= YENİ DENEME POP-UP ================= */
   .modal-overlay{
@@ -3125,6 +3380,42 @@
     color:var(--ink-soft);
   }
 
+  /* Çözülmüş 0 Hata Testleri: bölüm başlığı ve doğru çözülmüş soru kartları */
+  .sifirhata-bolum-baslik{
+    font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;
+    font-size:1rem;
+    font-weight:600;
+    color:var(--ink);
+    margin:1.9rem 0 0.9rem;
+    padding-top:1.4rem;
+    border-top:1px solid var(--line);
+  }
+  .sifirhata-card-cozulmus{ border-left:3px solid var(--dogru); }
+  .sifirhata-card-cozulmus .sifirhata-card-alt{ color:var(--dogru); font-weight:600; }
+
+  /* İnceleme (çözülmüş soru gözden geçirme) modunda alt kısımdaki buton satırı */
+  .sifirhata-alt-buton-satiri{
+    display:flex;
+    gap:0.6rem;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .sifirhata-cozemedim-btn{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.85rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    padding:0.75rem 1.4rem;
+    border-radius:2rem;
+    border:1px solid rgba(255,255,255,0.35);
+    background:transparent;
+    color:#F3EFE6;
+    cursor:pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .sifirhata-cozemedim-btn:hover{ border-color:var(--yanlis); color:var(--yanlis); }
+  .sifirhata-cozemedim-btn:active{ transform:scale(0.96); }
+
   /* ---- 0 Hata Testleri: tam ekran çözüm (quiz) katmanı ---- */
   .sifirhata-overlay{
     position:fixed;
@@ -4089,15 +4380,77 @@
 
   <div class="view-gundelik" id="viewGundelik">
     <div class="gundelik-heading">
-      <span class="gundelik-eyebrow" id="gundelikEyebrow">Her Gün Bir Sayfa</span>
-      <h2 class="gundelik-title" id="gundelikTitle">Gündelik Defterin</h2>
+      <h2 class="gundelik-title" id="gundelikTitle">Gündeliklerim</h2>
     </div>
-    <p class="gundelik-sub" id="gundelikSub">Yakında burada günlük yazılarını bulacaksın.</p>
+    <p class="gundelik-sub" id="gundelikSub">Bugünün rutinlerini ve yapılacaklarını burada takip et.</p>
 
     <button type="button" class="gundelik-soru-havuzu-btn" id="gundelikSoruHavuzuBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path></svg>
       <span>Soru Havuzu</span>
     </button>
+
+    <div class="gundelik-govde">
+      <!-- ---- Bugünün Rutinleri: kendi başlıklarını oluşturup altına rutin ekleyebildiğin bölüm; her gün 00.00'da yalnızca işaretler sıfırlanır ---- -->
+      <section class="gundelik-bolum" id="rutinBolum">
+        <div class="gundelik-bolum-baslik">
+          <h3>Bugünün Rutinleri</h3>
+          <span class="gundelik-bolum-tarih" id="rutinTarih"></span>
+        </div>
+
+        <div class="gundelik-kategoriler" id="rutinKategorilerAlan"></div>
+        <p class="gundelik-liste-bos" id="rutinBos">Henüz bir rutin başlığı eklemedin.</p>
+
+        <button type="button" class="gundelik-ekle-btn" id="rutinBaslikEkleAcBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Rutin Başlığı Ekle
+        </button>
+        <form class="gundelik-ekle-form" id="rutinBaslikEkleForm" style="display:none;">
+          <input type="text" class="gundelik-ekle-input" id="rutinBaslikEkleInput" placeholder="Örn. Sabah Rutinleri" maxlength="40" autocomplete="off">
+          <button type="button" class="gundelik-ekle-iptal" id="rutinBaslikEkleIptal" aria-label="Vazgeç">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <button type="submit" class="gundelik-ekle-onay" aria-label="Ekle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </form>
+      </section>
+
+      <!-- ---- Yapılacaklar Listesi: kalıcı, gece yarısı sıfırlanmaz ---- -->
+      <section class="gundelik-bolum" id="todoBolum">
+        <div class="gundelik-bolum-baslik">
+          <h3>Yapılacaklar Listesi</h3>
+        </div>
+        <div class="gundelik-liste" id="todoListe"></div>
+        <p class="gundelik-liste-bos" id="todoBos">Listen şu an boş.</p>
+
+        <button type="button" class="gundelik-ekle-btn" id="todoEkleAcBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Ekle
+        </button>
+        <form class="gundelik-ekle-form" id="todoEkleForm" style="display:none;">
+          <input type="text" class="gundelik-ekle-input" id="todoEkleInput" placeholder="Unutmamam gereken bir şey..." maxlength="120" autocomplete="off">
+          <button type="button" class="gundelik-ekle-iptal" id="todoEkleIptal" aria-label="Vazgeç">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <button type="submit" class="gundelik-ekle-onay" aria-label="Ekle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <!-- Gündelik: rutin başlığı (kategori) sil onay penceresi -->
+  <div class="modal-overlay" id="rutinKategoriSilOnayOverlay">
+    <div class="modal-box" style="position:relative;">
+      <span class="modal-eyebrow">Silme Onayı</span>
+      <h3 class="modal-title">Bu başlığı sil</h3>
+      <p class="modal-onay-metin" id="rutinKategoriSilOnayMetin">Bu işlem geri alınamaz.</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="rutinKategoriSilVazgec">Vazgeç</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="rutinKategoriSilOnayla">Evet, Sil</button>
+      </div>
+    </div>
   </div>
 
   <div class="view-gundelik view-soru-havuzu" id="viewSoruHavuzu">
@@ -4946,7 +5299,6 @@
     const settingsRow = document.getElementById('settingsRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
     const renkRow = document.getElementById('renkRow');
-    const gundelikEyebrow = document.getElementById('gundelikEyebrow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
     const denemelerEyebrow = document.getElementById('denemelerEyebrow');
@@ -5029,7 +5381,6 @@
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
       renkRow.classList.remove('animate');
-      gundelikEyebrow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
 
@@ -5078,13 +5429,13 @@
       void viewGundelik.offsetWidth;
       viewGundelik.style.animation = '';
 
-      gundelikEyebrow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
       void gundelikSub.offsetWidth;
-      gundelikEyebrow.classList.add('animate');
       gundelikTitle.classList.add('animate');
       gundelikSub.classList.add('animate');
+
+      if(typeof window.gundelikRutinYenile === 'function'){ window.gundelikRutinYenile(); }
       });
     }
 
@@ -5416,6 +5767,60 @@
       sifirHataIstatistikleriKaydet();
     }
 
+    // ---- Çözülmüş 0 Hata Testleri: doğru çözülen sorular ayrı bir listede tutulur ----
+    const SIFIRHATA_COZULMUS_ANAHTARI = 'sessizlik-sifirhata-cozulmus';
+    let sifirHataCozulmusler = {};
+
+    function sifirHataCozulmuslerYukle(){
+      try{
+        const ham = localStorage.getItem(SIFIRHATA_COZULMUS_ANAHTARI);
+        if(ham) sifirHataCozulmusler = JSON.parse(ham);
+      }catch(e){
+        console.log('Çözülmüş 0 Hata listesi okunamadı:', e);
+      }
+    }
+
+    function sifirHataCozulmuslerKaydet(){
+      try{
+        localStorage.setItem(SIFIRHATA_COZULMUS_ANAHTARI, JSON.stringify(sifirHataCozulmusler));
+      }catch(e){
+        console.log('Çözülmüş 0 Hata listesi kaydedilemedi:', e);
+      }
+    }
+
+    function sifirHataCozuldu(soru){
+      return !!sifirHataCozulmusler[sifirHataAnahtar(soru)];
+    }
+
+    // Bir soru doğru çözüldüğünde "Çözülmüş 0 Hata Testleri" listesine taşınır.
+    function sifirHataCozulduIsaretle(soru){
+      const anahtar = sifirHataAnahtar(soru);
+      if(!sifirHataCozulmusler[anahtar]){
+        sifirHataCozulmusler[anahtar] = true;
+        sifirHataCozulmuslerKaydet();
+      }
+    }
+
+    // "Çözemedim" işaretlenince soru çözülmüş listesinden çıkıp asıl 0 Hata havuzuna geri döner.
+    function sifirHataCozulmedigiIsaretle(soru){
+      const anahtar = sifirHataAnahtar(soru);
+      if(sifirHataCozulmusler[anahtar]){
+        delete sifirHataCozulmusler[anahtar];
+        sifirHataCozulmuslerKaydet();
+      }
+    }
+
+    // Bir branş havuzunu çözülmüş/çözülmemiş durumuna göre ikiye ayırır.
+    function sifirHataHavuzFiltrele(havuz, cozulmusMu){
+      const sonuc = {};
+      Object.keys(havuz).forEach(function(brans){
+        sonuc[brans] = (havuz[brans] || []).filter(function(s){
+          return sifirHataCozuldu(s) === cozulmusMu;
+        });
+      });
+      return sonuc;
+    }
+
     // Belirli bir alana (TYT/AYT) ait, görseli eklenmiş yanlış/boş soruları branşlara göre gruplar.
     function sifirHataHavuzu(alan){
       const bransHaritasi = {};
@@ -5452,9 +5857,12 @@
       analizIcerik.innerHTML = '';
 
       let toplamSoru = 0;
+      let toplamCozulmus = 0;
 
+      // ---- Asıl 0 Hata havuzu (henüz doğru çözülmemiş sorular) ----
       ['TYT', 'AYT'].forEach(function(alan){
-        const havuz = sifirHataHavuzu(alan);
+        const havuzTumu = sifirHataHavuzu(alan);
+        const havuz = sifirHataHavuzFiltrele(havuzTumu, false);
         const bransSirasi = (BRANS_YAPISI[alan] || []).map(function(b){ return b.ad; });
         const doluBranslar = bransSirasi.filter(function(ad){ return (havuz[ad] || []).length > 0; });
 
@@ -5467,11 +5875,14 @@
         blok.appendChild(baslik);
 
         if(doluBranslar.length === 0){
+          const tumuVarMi = bransSirasi.some(function(ad){ return (havuzTumu[ad] || []).length > 0; });
           const bos = document.createElement('p');
           bos.className = 'analiz-bos';
           bos.style.textAlign = 'left';
           bos.style.marginTop = '0';
-          bos.textContent = alan + ' türünde henüz görsel eklenmiş yanlış veya boş sorun yok.';
+          bos.textContent = tumuVarMi
+            ? (alan + ' türündeki tüm 0 Hata sorularını doğru çözdün — aşağıdaki "Çözülmüş 0 Hata Testleri" bölümünden gözden geçirebilirsin.')
+            : (alan + ' türünde henüz görsel eklenmiş yanlış veya boş sorun yok.');
           blok.appendChild(bos);
           analizIcerik.appendChild(blok);
           return;
@@ -5524,7 +5935,7 @@
           kart.appendChild(sol);
           kart.appendChild(sayi);
           kart.addEventListener('click', function(){
-            sifirHataQuizAc(alan + ' · ' + brans, sorular);
+            sifirHataQuizAc(alan + ' · ' + brans, sorular, 'quiz');
           });
 
           liste.appendChild(kart);
@@ -5534,7 +5945,74 @@
         analizIcerik.appendChild(blok);
       });
 
-      if(toplamSoru === 0){
+      // ---- Çözülmüş 0 Hata Testleri (doğru çözülüp bu listeye taşınan sorular) ----
+      let cozulmusBaslikEklendi = false;
+
+      ['TYT', 'AYT'].forEach(function(alan){
+        const havuzTumu = sifirHataHavuzu(alan);
+        const cozulmusHavuz = sifirHataHavuzFiltrele(havuzTumu, true);
+        const bransSirasi = (BRANS_YAPISI[alan] || []).map(function(b){ return b.ad; });
+        const doluBranslar = bransSirasi.filter(function(ad){ return (cozulmusHavuz[ad] || []).length > 0; });
+        if(doluBranslar.length === 0) return;
+
+        if(!cozulmusBaslikEklendi){
+          const bolumBaslik = document.createElement('div');
+          bolumBaslik.className = 'sifirhata-bolum-baslik';
+          bolumBaslik.textContent = 'Çözülmüş 0 Hata Testleri';
+          analizIcerik.appendChild(bolumBaslik);
+          cozulmusBaslikEklendi = true;
+        }
+
+        const blok = document.createElement('div');
+        blok.className = 'sifirhata-blok';
+
+        const baslik = document.createElement('div');
+        baslik.className = 'sifirhata-blok-baslik';
+        baslik.textContent = alan;
+        blok.appendChild(baslik);
+
+        const liste = document.createElement('div');
+        liste.className = 'sifirhata-liste';
+
+        doluBranslar.forEach(function(brans){
+          const sorular = cozulmusHavuz[brans];
+          toplamCozulmus += sorular.length;
+
+          const kart = document.createElement('div');
+          kart.className = 'sifirhata-card sifirhata-card-cozulmus';
+
+          const sol = document.createElement('div');
+          sol.className = 'sifirhata-card-sol';
+          const ad = document.createElement('div');
+          ad.className = 'sifirhata-card-ad';
+          ad.textContent = brans;
+          sol.appendChild(ad);
+          const alt = document.createElement('div');
+          alt.className = 'sifirhata-card-alt';
+          alt.textContent = '✓ Çözüldü';
+          sol.appendChild(alt);
+
+          const sayi = document.createElement('div');
+          sayi.className = 'sifirhata-card-sayi';
+          sayi.textContent = String(sorular.length);
+          const sayiEtiket = document.createElement('span');
+          sayiEtiket.textContent = 'SORU';
+          sayi.appendChild(sayiEtiket);
+
+          kart.appendChild(sol);
+          kart.appendChild(sayi);
+          kart.addEventListener('click', function(){
+            sifirHataQuizAc(alan + ' · ' + brans + ' (Çözülmüş)', sorular, 'inceleme');
+          });
+
+          liste.appendChild(kart);
+        });
+
+        blok.appendChild(liste);
+        analizIcerik.appendChild(blok);
+      });
+
+      if(toplamSoru === 0 && toplamCozulmus === 0){
         const genelBos = document.createElement('p');
         genelBos.className = 'analiz-bos';
         genelBos.textContent = 'Bir soruyu yanlış ya da boş işaretleyip görselini eklediğinde, o soru burada branş bazlı bir test olarak birikmeye başlayacak.';
@@ -5557,13 +6035,19 @@
     let sifirhataOturumDogru = 0;
     let sifirhataOturumYanlis = 0;
     let sifirhataGuncelUrl = null;
+    // 'quiz': asıl 0 Hata havuzundan normal çözüm akışı.
+    // 'inceleme': Çözülmüş 0 Hata Testleri listesinden, cevabı doğrudan gösteren gözden geçirme akışı.
+    let sifirhataAktifMod = 'quiz';
+    let sifirhataIncelemeCozemedimSayisi = 0;
 
-    function sifirHataQuizAc(baslik, sorular){
+    function sifirHataQuizAc(baslik, sorular, mod){
       sifirhataAktifSorular = sorular;
       sifirhataAktifIndex = 0;
       sifirhataAktifBaslik = baslik;
       sifirhataOturumDogru = 0;
       sifirhataOturumYanlis = 0;
+      sifirhataAktifMod = mod === 'inceleme' ? 'inceleme' : 'quiz';
+      sifirhataIncelemeCozemedimSayisi = 0;
       sifirhataOverlay.classList.add('active');
       sifirHataSoruGoster();
     }
@@ -5651,6 +6135,48 @@
       sifirhataAltEl.appendChild(secenekler);
       sifirhataAltEl.appendChild(sonucDisi);
 
+      // İnceleme modu: bu soru zaten daha önce doğru çözülüp "Çözülmüş 0 Hata
+      // Testleri"ne taşınmış. Şıklara tıklamaya gerek yok — doğru cevap doğrudan
+      // gösterilir, kullanıcı isterse "Çözemedim" diyerek soruyu asıl 0 Hata
+      // havuzuna geri gönderebilir.
+      if(sifirhataAktifMod === 'inceleme'){
+        butonlar.forEach(function(b, j){
+          b.disabled = true;
+          const h = SORU_CEVAP_SECENEKLERI[j];
+          if(h === soru.dogruCevap){ b.classList.add('dogru'); }
+        });
+
+        const geri = document.createElement('p');
+        geri.className = 'sifirhata-geribildirim dogru-metin';
+        geri.textContent = 'Doğru cevap: ' + soru.dogruCevap;
+        sonucIci.appendChild(geri);
+
+        const butonSatiri = document.createElement('div');
+        butonSatiri.className = 'sifirhata-alt-buton-satiri';
+
+        const cozemedimBtn = document.createElement('button');
+        cozemedimBtn.type = 'button';
+        cozemedimBtn.className = 'sifirhata-cozemedim-btn';
+        cozemedimBtn.textContent = 'Çözemedim';
+        cozemedimBtn.addEventListener('click', function(){
+          if(cozemedimBtn.disabled) return;
+          cozemedimBtn.disabled = true;
+          // Soruyu Çözülmüş listesinden çıkarıp asıl 0 Hata havuzuna geri ekle.
+          sifirHataCozulmedigiIsaretle(soru);
+          sifirhataIncelemeCozemedimSayisi++;
+
+          const sonSoru = sifirhataAktifIndex === sifirhataAktifSorular.length - 1;
+          if(sonSoru){ sifirHataOzetGoster(); }
+          else { sifirhataAktifIndex++; sifirHataSoruGoster(); }
+        });
+        butonSatiri.appendChild(cozemedimBtn);
+        butonSatiri.appendChild(sifirHataDevamBtnOlustur());
+        sonucIci.appendChild(butonSatiri);
+
+        requestAnimationFrame(function(){ sonucDisi.classList.add('acik'); });
+        return;
+      }
+
       butonlar.forEach(function(btn, i){
         const harf = SORU_CEVAP_SECENEKLERI[i];
         btn.addEventListener('click', function(){
@@ -5668,6 +6194,8 @@
           const dogruMu = harf === soru.dogruCevap;
           if(dogruMu){ sifirhataOturumDogru++; } else { sifirhataOturumYanlis++; }
           sifirHataIstatistikGuncelle(soru, dogruMu);
+          // Soru doğru çözüldüyse "Çözülmüş 0 Hata Testleri" listesine taşı.
+          if(dogruMu){ sifirHataCozulduIsaretle(soru); }
 
           const geri = document.createElement('p');
           geri.className = 'sifirhata-geribildirim ' + (dogruMu ? 'dogru-metin' : 'yanlis-metin');
@@ -5705,18 +6233,29 @@
       sifirhataGovdeEl.innerHTML = '';
       const ozet = document.createElement('div');
       ozet.className = 'sifirhata-ozet-govde';
-      const b = document.createElement('b');
-      const em = document.createElement('em');
-      em.textContent = sifirhataOturumDogru;
-      const i = document.createElement('i');
-      i.textContent = sifirhataOturumYanlis;
-      b.appendChild(em);
-      b.appendChild(document.createTextNode(' / '));
-      b.appendChild(i);
-      const p = document.createElement('p');
-      p.textContent = 'Bu oturumda doğru / yanlış';
-      ozet.appendChild(b);
-      ozet.appendChild(p);
+
+      if(sifirhataAktifMod === 'inceleme'){
+        const p = document.createElement('p');
+        p.style.fontSize = '0.95rem';
+        p.style.color = '#F3EFE6';
+        p.textContent = sifirhataIncelemeCozemedimSayisi > 0
+          ? (sifirhataIncelemeCozemedimSayisi + ' soru "Çözemedim" olarak işaretlenip asıl 0 Hata listesine geri eklendi.')
+          : 'İnceleme tamamlandı — tüm sorular Çözülmüş listesinde kaldı.';
+        ozet.appendChild(p);
+      } else {
+        const b = document.createElement('b');
+        const em = document.createElement('em');
+        em.textContent = sifirhataOturumDogru;
+        const i = document.createElement('i');
+        i.textContent = sifirhataOturumYanlis;
+        b.appendChild(em);
+        b.appendChild(document.createTextNode(' / '));
+        b.appendChild(i);
+        const p = document.createElement('p');
+        p.textContent = 'Bu oturumda doğru / yanlış';
+        ozet.appendChild(b);
+        ozet.appendChild(p);
+      }
       sifirhataGovdeEl.appendChild(ozet);
 
       sifirhataAltEl.innerHTML = '';
@@ -5729,8 +6268,386 @@
     }
 
     sifirHataIstatistikleriYukle();
+    sifirHataCozulmuslerYukle();
 
     // ==================== /0 HATA TESTLERİ ====================
+
+    // ==================== GÜNDELİK: RUTİNLER (BAŞLIKLI/KATEGORİLİ) + YAPILACAKLAR LİSTESİ ====================
+    // Rutinler: kullanıcının kendi oluşturduğu başlıklar altında (Sabah Rutinleri, Akşam Rutinleri,
+    //           Sağlık Rutinleri vb.) gruplanan alışkanlıklar. Başlıklar ve rutin maddeleri kalıcıdır,
+    //           yalnızca "tamamlandı" işaretleri her gün 00.00'da sıfırlanır.
+    // Yapılacaklar Listesi: unutulmaması gereken şeyler. Hem maddeler hem işaretler kalıcıdır, sıfırlanmaz.
+    (function(){
+      const RUTIN_KATEGORI_ANAHTARI = 'sessizlik-rutin-kategoriler';
+      const RUTIN_ANAHTARI = 'sessizlik-rutinler-maddeler';
+      const RUTIN_TARIH_ANAHTARI = 'sessizlik-rutinler-tarih';
+      const TODO_ANAHTARI = 'sessizlik-todo-liste';
+      const VARSAYILAN_KATEGORI_ID = 'genel-varsayilan';
+
+      const rutinKategorilerAlanEl = document.getElementById('rutinKategorilerAlan');
+      const rutinBosEl = document.getElementById('rutinBos');
+      const rutinTarihEl = document.getElementById('rutinTarih');
+      const rutinBaslikEkleAcBtn = document.getElementById('rutinBaslikEkleAcBtn');
+      const rutinBaslikEkleForm = document.getElementById('rutinBaslikEkleForm');
+      const rutinBaslikEkleInput = document.getElementById('rutinBaslikEkleInput');
+      const rutinBaslikEkleIptal = document.getElementById('rutinBaslikEkleIptal');
+
+      const todoListeEl = document.getElementById('todoListe');
+      const todoBosEl = document.getElementById('todoBos');
+      const todoEkleAcBtn = document.getElementById('todoEkleAcBtn');
+      const todoEkleForm = document.getElementById('todoEkleForm');
+      const todoEkleInput = document.getElementById('todoEkleInput');
+      const todoEkleIptal = document.getElementById('todoEkleIptal');
+
+      const kategoriSilOverlay = document.getElementById('rutinKategoriSilOnayOverlay');
+      const kategoriSilMetinEl = document.getElementById('rutinKategoriSilOnayMetin');
+      const kategoriSilVazgecBtn = document.getElementById('rutinKategoriSilVazgec');
+      const kategoriSilOnaylaBtn = document.getElementById('rutinKategoriSilOnayla');
+
+      if(!rutinKategorilerAlanEl || !todoListeEl) return;
+
+      const AY_ISIMLERI_GUNDELIK = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+      const GUN_ISIMLERI_GUNDELIK = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+
+      function gundelikBugunAnahtari(){
+        const d = new Date();
+        const yy = d.getFullYear();
+        const aa = String(d.getMonth() + 1).padStart(2, '0');
+        const gg = String(d.getDate()).padStart(2, '0');
+        return yy + '-' + aa + '-' + gg;
+      }
+
+      function gundelikBugunEtiketi(){
+        const d = new Date();
+        return d.getDate() + ' ' + AY_ISIMLERI_GUNDELIK[d.getMonth()] + ' ' + GUN_ISIMLERI_GUNDELIK[d.getDay()];
+      }
+
+      function gundelikIdUret(onEk){
+        return onEk + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      }
+
+      // ---- kategoriler (rutin başlıkları) ----
+      function kategorileriOku(){
+        try{
+          const ham = localStorage.getItem(RUTIN_KATEGORI_ANAHTARI);
+          const liste = ham ? JSON.parse(ham) : [];
+          return Array.isArray(liste) ? liste : [];
+        }catch(e){ return []; }
+      }
+      function kategorileriYaz(liste){
+        try{ localStorage.setItem(RUTIN_KATEGORI_ANAHTARI, JSON.stringify(liste)); }catch(e){}
+      }
+
+      // ---- rutin maddeleri ----
+      function rutinleriOku(){
+        try{
+          const ham = localStorage.getItem(RUTIN_ANAHTARI);
+          const liste = ham ? JSON.parse(ham) : [];
+          return Array.isArray(liste) ? liste : [];
+        }catch(e){ return []; }
+      }
+      function rutinleriYaz(liste){
+        try{ localStorage.setItem(RUTIN_ANAHTARI, JSON.stringify(liste)); }catch(e){}
+      }
+      function todoOku(){
+        try{
+          const ham = localStorage.getItem(TODO_ANAHTARI);
+          const liste = ham ? JSON.parse(ham) : [];
+          return Array.isArray(liste) ? liste : [];
+        }catch(e){ return []; }
+      }
+      function todoYaz(liste){
+        try{ localStorage.setItem(TODO_ANAHTARI, JSON.stringify(liste)); }catch(e){}
+      }
+
+      // Önceki (başlıksız) sürümden kalan rutin maddelerini "Genel Rutinler" başlığına taşı.
+      function eskiVerileriGoc(){
+        const maddeler = rutinleriOku();
+        const basliksizVarMi = maddeler.some(function(m){ return !m.kategoriId; });
+        if(!basliksizVarMi) return;
+        const kategoriler = kategorileriOku();
+        if(!kategoriler.some(function(k){ return k.id === VARSAYILAN_KATEGORI_ID; })){
+          kategoriler.push({ id: VARSAYILAN_KATEGORI_ID, ad: 'Genel Rutinler' });
+          kategorileriYaz(kategoriler);
+        }
+        maddeler.forEach(function(m){ if(!m.kategoriId){ m.kategoriId = VARSAYILAN_KATEGORI_ID; } });
+        rutinleriYaz(maddeler);
+      }
+
+      // Gün değiştiyse: başlıklar ve rutin maddeleri silinmez, yalnızca "tamamlandı" işaretleri sıfırlanır.
+      function gunSonuKontrolEt(){
+        let kayitliTarih = '';
+        try{ kayitliTarih = localStorage.getItem(RUTIN_TARIH_ANAHTARI) || ''; }catch(e){}
+        const guncelTarih = gundelikBugunAnahtari();
+        if(kayitliTarih !== guncelTarih){
+          const liste = rutinleriOku();
+          liste.forEach(function(m){ m.tamam = false; });
+          rutinleriYaz(liste);
+          try{ localStorage.setItem(RUTIN_TARIH_ANAHTARI, guncelTarih); }catch(e){}
+        }
+        if(rutinTarihEl){ rutinTarihEl.textContent = gundelikBugunEtiketi(); }
+      }
+
+      function gundelikMaddeSatiriOlustur(madde, tur){
+        const satir = document.createElement('div');
+        satir.className = 'gundelik-madde' + (madde.tamam ? ' tamam' : '');
+        satir.dataset.id = madde.id;
+
+        const check = document.createElement('button');
+        check.type = 'button';
+        check.className = 'gundelik-check';
+        check.setAttribute('role', 'checkbox');
+        check.setAttribute('aria-checked', madde.tamam ? 'true' : 'false');
+        check.setAttribute('aria-label', 'Tamamlandı olarak işaretle');
+        check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+        const metin = document.createElement('span');
+        metin.className = 'gundelik-madde-metin';
+        metin.textContent = madde.text;
+
+        const sil = document.createElement('button');
+        sil.type = 'button';
+        sil.className = 'gundelik-madde-sil';
+        sil.setAttribute('aria-label', 'Sil');
+        sil.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
+
+        check.addEventListener('click', function(){
+          if(tur === 'rutin'){
+            const liste = rutinleriOku();
+            const hedef = liste.find(function(m){ return m.id === madde.id; });
+            if(hedef){ hedef.tamam = !hedef.tamam; rutinleriYaz(liste); }
+            gundelikRutinCiz();
+          } else {
+            const liste = todoOku();
+            const hedef = liste.find(function(m){ return m.id === madde.id; });
+            if(hedef){ hedef.tamam = !hedef.tamam; todoYaz(liste); }
+            gundelikTodoCiz();
+          }
+        });
+
+        sil.addEventListener('click', function(){
+          if(tur === 'rutin'){
+            rutinleriYaz(rutinleriOku().filter(function(m){ return m.id !== madde.id; }));
+            gundelikRutinCiz();
+          } else {
+            todoYaz(todoOku().filter(function(m){ return m.id !== madde.id; }));
+            gundelikTodoCiz();
+          }
+        });
+
+        satir.appendChild(check);
+        satir.appendChild(metin);
+        satir.appendChild(sil);
+        return satir;
+      }
+
+      // ---- bir kategori kartı (başlık + kendi rutin listesi + kendi ekleme formu) ----
+      function kategoriKartiOlustur(kategori, maddeler){
+        const kart = document.createElement('div');
+        kart.className = 'gundelik-kategori';
+        kart.dataset.id = kategori.id;
+
+        const baslikSatiri = document.createElement('div');
+        baslikSatiri.className = 'gundelik-kategori-baslik';
+
+        const ad = document.createElement('h4');
+        ad.className = 'gundelik-kategori-ad';
+        ad.textContent = kategori.ad;
+
+        const silBtn = document.createElement('button');
+        silBtn.type = 'button';
+        silBtn.className = 'gundelik-kategori-sil';
+        silBtn.setAttribute('aria-label', 'Başlığı sil');
+        silBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
+        silBtn.addEventListener('click', function(){ kategoriSilOnayAc(kategori); });
+
+        baslikSatiri.appendChild(ad);
+        baslikSatiri.appendChild(silBtn);
+        kart.appendChild(baslikSatiri);
+
+        const liste = document.createElement('div');
+        liste.className = 'gundelik-liste';
+        maddeler.forEach(function(m){ liste.appendChild(gundelikMaddeSatiriOlustur(m, 'rutin')); });
+        kart.appendChild(liste);
+
+        if(maddeler.length === 0){
+          const bos = document.createElement('p');
+          bos.className = 'gundelik-kategori-bos';
+          bos.textContent = 'Bu başlık altında henüz rutin yok.';
+          kart.appendChild(bos);
+        }
+
+        const ekleAcBtn = document.createElement('button');
+        ekleAcBtn.type = 'button';
+        ekleAcBtn.className = 'gundelik-ekle-btn';
+        ekleAcBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Rutin Ekle';
+
+        const ekleForm = document.createElement('form');
+        ekleForm.className = 'gundelik-ekle-form';
+        ekleForm.style.display = 'none';
+        ekleForm.innerHTML =
+          '<input type="text" class="gundelik-ekle-input" placeholder="Örn. Su iç" maxlength="80" autocomplete="off">' +
+          '<button type="button" class="gundelik-ekle-iptal" aria-label="Vazgeç"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>' +
+          '<button type="submit" class="gundelik-ekle-onay" aria-label="Ekle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>';
+
+        const ekleInput = ekleForm.querySelector('.gundelik-ekle-input');
+        const ekleIptalBtn = ekleForm.querySelector('.gundelik-ekle-iptal');
+
+        ekleAcBtn.addEventListener('click', function(){
+          ekleAcBtn.style.display = 'none';
+          ekleForm.style.display = 'flex';
+          ekleInput.value = '';
+          ekleInput.focus();
+        });
+        ekleIptalBtn.addEventListener('click', function(){
+          ekleForm.style.display = 'none';
+          ekleAcBtn.style.display = '';
+        });
+        ekleForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          const metin = ekleInput.value.trim();
+          if(!metin) return;
+          const liste2 = rutinleriOku();
+          liste2.push({ id: gundelikIdUret('r'), kategoriId: kategori.id, text: metin, tamam: false });
+          rutinleriYaz(liste2);
+          gundelikRutinCiz();
+        });
+
+        kart.appendChild(ekleAcBtn);
+        kart.appendChild(ekleForm);
+        return kart;
+      }
+
+      function gundelikRutinCiz(){
+        eskiVerileriGoc();
+        const kategoriler = kategorileriOku();
+        const maddeler = rutinleriOku();
+        rutinKategorilerAlanEl.innerHTML = '';
+        if(kategoriler.length === 0){
+          rutinBosEl.style.display = '';
+        } else {
+          rutinBosEl.style.display = 'none';
+          kategoriler.forEach(function(kategori){
+            const kendiMaddeleri = maddeler.filter(function(m){ return m.kategoriId === kategori.id; });
+            rutinKategorilerAlanEl.appendChild(kategoriKartiOlustur(kategori, kendiMaddeleri));
+          });
+        }
+      }
+
+      function gundelikTodoCiz(){
+        const liste = todoOku();
+        todoListeEl.innerHTML = '';
+        if(liste.length === 0){
+          todoBosEl.style.display = '';
+        } else {
+          todoBosEl.style.display = 'none';
+          liste.forEach(function(m){ todoListeEl.appendChild(gundelikMaddeSatiriOlustur(m, 'todo')); });
+        }
+      }
+
+      function gundelikFormAc(acBtn, form, input){
+        acBtn.style.display = 'none';
+        form.style.display = 'flex';
+        input.value = '';
+        input.focus();
+      }
+      function gundelikFormKapat(acBtn, form){
+        form.style.display = 'none';
+        acBtn.style.display = '';
+      }
+
+      // ---- yeni rutin başlığı (kategori) ekleme ----
+      if(rutinBaslikEkleAcBtn){
+        rutinBaslikEkleAcBtn.addEventListener('click', function(){ gundelikFormAc(rutinBaslikEkleAcBtn, rutinBaslikEkleForm, rutinBaslikEkleInput); });
+      }
+      if(rutinBaslikEkleIptal){
+        rutinBaslikEkleIptal.addEventListener('click', function(){ gundelikFormKapat(rutinBaslikEkleAcBtn, rutinBaslikEkleForm); });
+      }
+      if(rutinBaslikEkleForm){
+        rutinBaslikEkleForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          const ad = rutinBaslikEkleInput.value.trim();
+          if(!ad) return;
+          const kategoriler = kategorileriOku();
+          kategoriler.push({ id: gundelikIdUret('k'), ad: ad });
+          kategorileriYaz(kategoriler);
+          gundelikRutinCiz();
+          gundelikFormKapat(rutinBaslikEkleAcBtn, rutinBaslikEkleForm);
+        });
+      }
+
+      // ---- rutin başlığı (kategori) silme onayı ----
+      let silinecekKategori = null;
+      function kategoriSilOnayAc(kategori){
+        if(!kategoriSilOverlay) return;
+        silinecekKategori = kategori;
+        const maddeSayisi = rutinleriOku().filter(function(m){ return m.kategoriId === kategori.id; }).length;
+        if(kategoriSilMetinEl){
+          kategoriSilMetinEl.textContent = maddeSayisi > 0
+            ? ('"' + kategori.ad + '" başlığı kalıcı olarak silinecek. Bu başlık altındaki ' + maddeSayisi + ' rutin de silinecek. Bu işlem geri alınamaz.')
+            : ('"' + kategori.ad + '" başlığı kalıcı olarak silinecek. Bu işlem geri alınamaz.');
+        }
+        kategoriSilOverlay.classList.add('active');
+      }
+      function kategoriSilOnayKapat(){
+        if(kategoriSilOverlay){ kategoriSilOverlay.classList.remove('active'); }
+        silinecekKategori = null;
+      }
+      if(kategoriSilVazgecBtn){ kategoriSilVazgecBtn.addEventListener('click', kategoriSilOnayKapat); }
+      if(kategoriSilOverlay){
+        kategoriSilOverlay.addEventListener('click', function(e){
+          if(e.target === kategoriSilOverlay){ kategoriSilOnayKapat(); }
+        });
+      }
+      if(kategoriSilOnaylaBtn){
+        kategoriSilOnaylaBtn.addEventListener('click', function(){
+          if(!silinecekKategori) return;
+          const kategoriId = silinecekKategori.id;
+          kategorileriYaz(kategorileriOku().filter(function(k){ return k.id !== kategoriId; }));
+          rutinleriYaz(rutinleriOku().filter(function(m){ return m.kategoriId !== kategoriId; }));
+          kategoriSilOnayKapat();
+          gundelikRutinCiz();
+        });
+      }
+
+      // ---- yapılacaklar listesi ekleme ----
+      if(todoEkleAcBtn){
+        todoEkleAcBtn.addEventListener('click', function(){ gundelikFormAc(todoEkleAcBtn, todoEkleForm, todoEkleInput); });
+      }
+      if(todoEkleIptal){
+        todoEkleIptal.addEventListener('click', function(){ gundelikFormKapat(todoEkleAcBtn, todoEkleForm); });
+      }
+      if(todoEkleForm){
+        todoEkleForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          const metin = todoEkleInput.value.trim();
+          if(!metin) return;
+          const liste = todoOku();
+          liste.push({ id: gundelikIdUret('t'), text: metin, tamam: false });
+          todoYaz(liste);
+          gundelikTodoCiz();
+          gundelikFormKapat(todoEkleAcBtn, todoEkleForm);
+        });
+      }
+
+      // Gündelik sekmesine her girişte (showGundelikView içinden) çağrılır.
+      window.gundelikRutinYenile = function(){
+        gunSonuKontrolEt();
+        gundelikRutinCiz();
+        gundelikTodoCiz();
+      };
+
+      // İlk yükleme
+      gunSonuKontrolEt();
+      gundelikRutinCiz();
+      gundelikTodoCiz();
+
+      // Uygulama açık kalırken gece yarısı geçerse rutin işaretlerini otomatik sıfırla
+      setInterval(function(){
+        gunSonuKontrolEt();
+        gundelikRutinCiz();
+      }, 30000);
+    })();
 
     // ==================== SORU HAVUZU (GÜNDELİK) ====================
     // Kullanıcının çözemediği soruların görsellerini branş etiketiyle topladığı, deneme
