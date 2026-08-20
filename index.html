@@ -150,15 +150,6 @@
     -webkit-touch-callout:none;
     -webkit-tap-highlight-color:transparent;
   }
-  /* Metin girişleri (ör. Rutinlerim'de yazdığın rutin metni) için seçim/kopyalama serbest bırakılır;
-     yukarıdaki genel engelleme kuralı input/textarea içinde de kopyalamayı imkansız kılıyordu. */
-  input, textarea, [contenteditable="true"]{
-    -webkit-user-select:text;
-    -moz-user-select:text;
-    -ms-user-select:text;
-    user-select:text;
-    -webkit-touch-callout:default;
-  }
 
   body{
     display:flex;
@@ -1844,16 +1835,13 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    overflow:hidden;
-    touch-action:none;
+    overflow:auto;
     padding:0.6rem 0.6rem calc(0.6rem + env(safe-area-inset-bottom,0px));
   }
   .dosya-goruntule-govde img{
     max-width:100%;
     max-height:100%;
     object-fit:contain;
-    transform-origin:center center;
-    will-change:transform;
   }
   .dosya-goruntule-govde iframe{
     width:100%;
@@ -3817,8 +3805,7 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    overflow:hidden;
-    touch-action:none;
+    overflow:auto;
     padding:0.6rem 0.6rem;
   }
   .sifirhata-govde img{
@@ -3826,8 +3813,7 @@
     max-height:100%;
     object-fit:contain;
     border-radius:0.3rem;
-    transform-origin:center center;
-    will-change:transform;
+    animation: sifirhataBelir 0.35s ease forwards;
   }
   @keyframes sifirhataBelir{
     from{ opacity:0; transform:scale(0.97); }
@@ -5478,144 +5464,12 @@
       }
     }
 
-    // ---- Açılan soru görsellerinde ortak etkileşim: iki parmakla / çift dokunarak yakınlaştırma-uzaklaştırma,
-    // yakınlaştırılmışken tek parmakla kaydırarak gezinme; yakınlaştırılmamışken (yalnızca 'gezinme' verilmişse)
-    // sağa/sola hızlı kaydırma ile bir sonraki/önceki soruya geçiş.
-    // kapsayici: görselin içinde bulunduğu, overflow:hidden olan kapsayıcı eleman.
-    // img: yakınlaştırılacak <img> elemanı.
-    // gezinme: { onceki, sonraki } — verilirse (yalnızca Denemeler ve Soru Havuzu'nda) yatay kaydırma
-    // ile soru değiştirme aktif olur; Test mantığındaki (0 Hata / Test Modu) sorularda bu parametre
-    // geçilmez, yalnızca yakınlaştırma çalışır.
-    function soruGorseliEtkilesimKur(kapsayici, img, gezinme){
-      if(!kapsayici || !img) return;
-      const MIN_OLCEK = 1, MAKS_OLCEK = 4;
-      let olcek = 1, x = 0, y = 0;
-      let pinchBaslangicMesafe = 0, pinchBaslangicOlcek = 1;
-      let panBaslangicX = 0, panBaslangicY = 0, panBaslangicOx = 0, panBaslangicOy = 0;
-      let pinchAktif = false, panAktif = false, kaydirmaAktif = false;
-      let dokunmaBaslangicX = 0, dokunmaBaslangicY = 0, dokunmaBaslangicZaman = 0;
-      let sonDokunmaZaman = 0, sonDokunmaX = 0, sonDokunmaY = 0;
-
-      function uygula(animasyonlu){
-        img.style.transition = animasyonlu ? 'transform 0.22s cubic-bezier(.22,1,.36,1)' : 'none';
-        img.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + olcek + ')';
-      }
-      function sinirlaVeUygula(animasyonlu){
-        const dik = kapsayici.getBoundingClientRect();
-        const maksX = Math.max(0, (dik.width * (olcek - 1)) / 2);
-        const maksY = Math.max(0, (dik.height * (olcek - 1)) / 2);
-        x = Math.min(maksX, Math.max(-maksX, x));
-        y = Math.min(maksY, Math.max(-maksY, y));
-        uygula(animasyonlu);
-      }
-      function sifirla(animasyonlu){
-        olcek = 1; x = 0; y = 0;
-        uygula(animasyonlu);
-      }
-      function mesafeHesapla(t0, t1){
-        const dx = t0.clientX - t1.clientX, dy = t0.clientY - t1.clientY;
-        return Math.sqrt(dx * dx + dy * dy);
-      }
-
-      // Görsel değiştiğinde (ör. sonraki soruya geçildiğinde) yumuşak bir giriş belirmesi sağlanır.
-      img.style.animation = 'none';
-      img.style.opacity = '0';
-      olcek = 1; x = 0; y = 0;
-      uygula(false);
-      requestAnimationFrame(function(){
-        img.style.transition = 'opacity 0.3s ease';
-        img.style.opacity = '1';
-      });
-
-      kapsayici.addEventListener('touchstart', function(e){
-        if(e.touches.length === 2){
-          pinchAktif = true; kaydirmaAktif = false; panAktif = false;
-          pinchBaslangicMesafe = mesafeHesapla(e.touches[0], e.touches[1]);
-          pinchBaslangicOlcek = olcek;
-        } else if(e.touches.length === 1){
-          dokunmaBaslangicX = e.touches[0].clientX;
-          dokunmaBaslangicY = e.touches[0].clientY;
-          dokunmaBaslangicZaman = Date.now();
-          if(olcek > 1.01){
-            panAktif = true;
-            panBaslangicX = dokunmaBaslangicX; panBaslangicY = dokunmaBaslangicY;
-            panBaslangicOx = x; panBaslangicOy = y;
-          } else {
-            kaydirmaAktif = !!(gezinme && (gezinme.onceki || gezinme.sonraki));
-          }
-        }
-      }, { passive:true });
-
-      kapsayici.addEventListener('touchmove', function(e){
-        if(pinchAktif && e.touches.length === 2){
-          const yeniMesafe = mesafeHesapla(e.touches[0], e.touches[1]);
-          olcek = Math.min(MAKS_OLCEK, Math.max(MIN_OLCEK, pinchBaslangicOlcek * (yeniMesafe / pinchBaslangicMesafe)));
-          sinirlaVeUygula(false);
-          e.preventDefault();
-        } else if(panAktif && e.touches.length === 1){
-          x = panBaslangicOx + (e.touches[0].clientX - panBaslangicX);
-          y = panBaslangicOy + (e.touches[0].clientY - panBaslangicY);
-          sinirlaVeUygula(false);
-          e.preventDefault();
-        }
-      }, { passive:false });
-
-      kapsayici.addEventListener('touchend', function(e){
-        if(pinchAktif){
-          pinchAktif = false;
-          if(olcek <= 1.02){ sifirla(true); }
-          return;
-        }
-        if(panAktif){ panAktif = false; return; }
-
-        const t = e.changedTouches && e.changedTouches[0];
-        if(kaydirmaAktif && t){
-          const dx = t.clientX - dokunmaBaslangicX;
-          const dy = t.clientY - dokunmaBaslangicY;
-          const gecenSure = Date.now() - dokunmaBaslangicZaman;
-          if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4 && gecenSure < 700){
-            if(dx < 0 && typeof gezinme.sonraki === 'function'){ gezinme.sonraki(); }
-            else if(dx > 0 && typeof gezinme.onceki === 'function'){ gezinme.onceki(); }
-          }
-        }
-        kaydirmaAktif = false;
-
-        // çift dokunma ile yakınlaştır / sıfırla
-        if(t){
-          const simdi = Date.now();
-          const yakinDokunma = Math.abs(t.clientX - sonDokunmaX) < 30 && Math.abs(t.clientY - sonDokunmaY) < 30;
-          if(simdi - sonDokunmaZaman < 320 && yakinDokunma){
-            if(olcek > 1.01){ sifirla(true); }
-            else { olcek = 2.4; sinirlaVeUygula(true); }
-            sonDokunmaZaman = 0;
-          } else {
-            sonDokunmaZaman = simdi; sonDokunmaX = t.clientX; sonDokunmaY = t.clientY;
-          }
-        }
-      });
-
-      // Masaüstü tarayıcılar için: Ctrl + fare tekerleği ve çift tıklama ile yakınlaştırma.
-      kapsayici.addEventListener('wheel', function(e){
-        if(!e.ctrlKey) return;
-        e.preventDefault();
-        olcek = Math.min(MAKS_OLCEK, Math.max(MIN_OLCEK, olcek - e.deltaY * 0.01));
-        sinirlaVeUygula(false);
-      }, { passive:false });
-
-      kapsayici.addEventListener('dblclick', function(){
-        if(olcek > 1.01){ sifirla(true); }
-        else { olcek = 2.4; sinirlaVeUygula(true); }
-      });
-    }
-
     // blob: gösterilecek dosya (image/* veya application/pdf). ad: dosya adı (başlıkta ve tür tahmininde kullanılır).
     // kaldirCallback: verilirse görüntüleyici çubuğunda bir "Kaldır" (çöp kutusu) düğmesi belirir;
     // tıklandığında bu geri çağrı çalıştırılır ve görüntüleyici kapatılır (ör. bir soruya eklenen görseli silmek için).
     // cevapSecici: verilirse (yalnızca yanlış/boş işaretli sorulara eklenen görsellerde), görüntüleyicinin
     // altında A-E şıklarından oluşan bir "doğru cevap" seçici belirir: { secenekler:[...], deger, ayarla(yeni) }.
-    // gezinme: verilirse (yalnızca Denemeler ve Soru Havuzu'nda), sağa/sola kaydırarak bir sonraki/önceki
-    // soru görseline geçişi sağlar: { onceki, sonraki } (fonksiyon ya da null).
-    function dosyaGoster(blob, ad, kaldirCallback, cevapSecici, gezinme){
+    function dosyaGoster(blob, ad, kaldirCallback, cevapSecici){
       if(!blob) return;
       dosyaGoruntuleGovde.innerHTML = '';
       if(dosyaGoruntuleUrl){ URL.revokeObjectURL(dosyaGoruntuleUrl); }
@@ -5632,7 +5486,6 @@
         img.src = dosyaGoruntuleUrl;
         img.alt = ad || 'Görsel';
         dosyaGoruntuleGovde.appendChild(img);
-        soruGorseliEtkilesimKur(dosyaGoruntuleGovde, img, gezinme || null);
       } else if(tur === 'application/pdf' || /\.pdf$/.test(adKucuk)){
         const iframe = document.createElement('iframe');
         iframe.src = dosyaGoruntuleUrl;
@@ -6573,7 +6426,6 @@
         const img = document.createElement('img');
         img.src = sifirhataGuncelUrl;
         sifirhataGovdeEl.appendChild(img);
-        soruGorseliEtkilesimKur(sifirhataGovdeEl, img, null);
       }).catch(function(){
         sifirhataGovdeEl.innerHTML = '';
         const hata = document.createElement('p');
@@ -7812,23 +7664,6 @@
       });
     }
 
-    // Havuz listesinde görsel olarak gösterilen sıra (branşa göre gruplanıp alfabetik sıralanmış); tam ekran
-    // görüntüleyicideki sağa/sola kaydırma bu sırayı takip eder.
-    function havuzGoruntulemeSirasi(){
-      const sorular = havuzGosterilecekSorular();
-      const gruplu = {};
-      sorular.forEach(function(s){
-        const anahtar = s.alan + ' · ' + s.brans;
-        gruplu[anahtar] = gruplu[anahtar] || [];
-        gruplu[anahtar].push(s);
-      });
-      const sirali = [];
-      Object.keys(gruplu).sort().forEach(function(baslik){
-        gruplu[baslik].forEach(function(s){ sirali.push(s); });
-      });
-      return sirali;
-    }
-
     function havuzKartOlustur(soru){
       const kart = document.createElement('div');
       kart.className = 'havuz-kart';
@@ -7899,16 +7734,9 @@
             havuzListeCiz();
           }
         };
-        // Sağa/sola kaydırarak listedeki bir sonraki/önceki soruya geçiş (yalnızca Soru Havuzu'nda).
-        const sira = havuzGoruntulemeSirasi();
-        const konum = sira.findIndex(function(s){ return s.id === soru.id; });
-        const gezinme = {
-          onceki: konum > 0 ? function(){ havuzSoruGoruntule(sira[konum - 1]); } : null,
-          sonraki: (konum >= 0 && konum < sira.length - 1) ? function(){ havuzSoruGoruntule(sira[konum + 1]); } : null
-        };
         dosyaGoster(blob, soru.alan + ' · ' + soru.brans, function(){
           havuzSoruSilOnayAc(soru);
-        }, cevapSecici, gezinme);
+        }, cevapSecici);
       }).catch(function(err){ console.log('Görsel açılamadı:', err); });
     }
 
@@ -8193,7 +8021,6 @@
         const img = document.createElement('img');
         img.src = havuzQuizUrl;
         havuzQuizGovdeEl.appendChild(img);
-        soruGorseliEtkilesimKur(havuzQuizGovdeEl, img, null);
       }).catch(function(){
         havuzQuizGovdeEl.innerHTML = '';
         const hata = document.createElement('p');
@@ -8514,9 +8341,15 @@
         hedef.guncelle();
         if(eskiDosyaId){ dosyaSil(eskiDosyaId); }
         // Görsel eklenir eklenmez, aynı ekranda o sorunun doğru cevabını da işaretleyebilsin diye
-        // görüntüleyici açılır (doğru cevap seçici, alttaki A-E şıklarıyla birlikte, ve o branştaki
-        // diğer görselli sorular arasında sağa/sola kaydırarak gezinme desteğiyle gelir).
-        denemeSoruGorseliniAc(hedef.veri, hedef.brans, hedef.index);
+        // görüntüleyici açılır (doğru cevap seçici, alttaki A-E şıklarıyla birlikte gelir).
+        const cevapSecici = typeof hedef.cevapSecici === 'function' ? hedef.cevapSecici() : null;
+        dosyaGoster(dosya, hedef.brans + ' - Soru ' + (hedef.index + 1), function(){
+          dosyaSil(yeniDosyaId);
+          delete hedef.veri.soruGorselleri[hedef.brans][hedef.index];
+          soruDogruCevapAyarla(hedef.veri, hedef.brans, hedef.index, null);
+          denemeleriKaydet();
+          hedef.guncelle();
+        }, cevapSecici);
       }).catch(function(err){
         console.log('Soru görseli kaydedilemedi:', err);
       });
@@ -8534,42 +8367,6 @@
         delete veri.soruDogruCevaplari[brans][index];
       }
       denemeleriKaydet();
-    }
-
-    // Bir denemenin belirli bir branşında, görseli olan soruları artan index sırasına göre listeler.
-    function denemeGorselliIndeksler(veri, brans){
-      return Object.keys((veri.soruGorselleri && veri.soruGorselleri[brans]) || {})
-        .map(Number)
-        .sort(function(a, b){ return a - b; });
-    }
-
-    // Bir denemenin bir branşındaki soru görselini tam ekran açar; aynı branştaki diğer görselli
-    // sorular arasında sağa/sola kaydırarak (yalnızca Denemeler'de) gezinme sağlar.
-    function denemeSoruGorseliniAc(veri, brans, index){
-      const dosyaId = (veri.soruGorselleri[brans] || {})[index];
-      if(!dosyaId) return;
-      dosyaOku(dosyaId).then(function(blob){
-        if(!blob){ console.log('Görsel bulunamadı.'); return; }
-        const indeksler = denemeGorselliIndeksler(veri, brans);
-        const konum = indeksler.indexOf(index);
-        const gezinme = {
-          onceki: konum > 0 ? function(){ denemeSoruGorseliniAc(veri, brans, indeksler[konum - 1]); } : null,
-          sonraki: (konum >= 0 && konum < indeksler.length - 1) ? function(){ denemeSoruGorseliniAc(veri, brans, indeksler[konum + 1]); } : null
-        };
-        const cevapSecici = {
-          secenekler: SORU_CEVAP_SECENEKLERI,
-          deger: (veri.soruDogruCevaplari[brans] || {})[index] || null,
-          ayarla: function(yeniDeger){ soruDogruCevapAyarla(veri, brans, index, yeniDeger); }
-        };
-        dosyaGoster(blob, brans + ' - Soru ' + (index + 1), function(){
-          dosyaSil(dosyaId);
-          delete veri.soruGorselleri[brans][index];
-          soruDogruCevapAyarla(veri, brans, index, null);
-          denemeleriKaydet();
-          const guncelle = veri._gorselRozetGuncelleMap && veri._gorselRozetGuncelleMap[brans] && veri._gorselRozetGuncelleMap[brans][index];
-          if(typeof guncelle === 'function'){ guncelle(); }
-        }, cevapSecici, gezinme);
-      }).catch(function(err){ console.log('Görsel açılamadı:', err); });
     }
 
     function denemeBransKartOlustur(veri, brans, soruSayisi){
@@ -8628,12 +8425,6 @@
         }
         gorselRozetiGuncelle();
 
-        // Bu güncelleyici, denemeSoruGorseliniAc'in (sağa/sola kaydırma ile gezinirken) rozeti
-        // doğru soru için tazeleyebilmesi amacıyla veri üstünde branşa/soruya göre saklanır.
-        veri._gorselRozetGuncelleMap = veri._gorselRozetGuncelleMap || {};
-        veri._gorselRozetGuncelleMap[brans] = veri._gorselRozetGuncelleMap[brans] || {};
-        veri._gorselRozetGuncelleMap[brans][i] = gorselRozetiGuncelle;
-
         function soruCevapSeciciOlustur(){
           return {
             secenekler: SORU_CEVAP_SECENEKLERI,
@@ -8646,8 +8437,16 @@
           e.stopPropagation();
           const mevcutDosyaId = veri.soruGorselleri[brans][i];
           if(mevcutDosyaId){
-            // Aynı branştaki diğer görselli sorular arasında sağa/sola kaydırarak gezinmeyi de sağlar.
-            denemeSoruGorseliniAc(veri, brans, i);
+            dosyaOku(mevcutDosyaId).then(function(blob){
+              if(!blob){ console.log('Görsel bulunamadı.'); return; }
+              dosyaGoster(blob, brans + ' - Soru ' + (i + 1), function(){
+                dosyaSil(mevcutDosyaId);
+                delete veri.soruGorselleri[brans][i];
+                soruDogruCevapAyarla(veri, brans, i, null);
+                denemeleriKaydet();
+                gorselRozetiGuncelle();
+              }, soruCevapSeciciOlustur());
+            }).catch(function(err){ console.log('Görsel açılamadı:', err); });
           } else {
             soruGorselHedefi = { veri: veri, brans: brans, index: i, guncelle: gorselRozetiGuncelle, cevapSecici: soruCevapSeciciOlustur };
             soruGorselInput.click();
