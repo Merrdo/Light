@@ -9619,11 +9619,23 @@
     // yönlendirmesiyle dönüş anıysa), sessiz yeniden bağlanma + olası bulut
     // birleştirmesi bitene kadar ekranı kısa süreliğine kapatıyoruz — aksi halde
     // başka bir cihazdan gelen bir değişiklik localStorage'a sessizce yazılıp da
-    // ekranda hiç görünmeden kalabilir. Güvenlik freni: bir şeyler ters giderse
-    // kapı sonsuza dek açık kalmasın diye bir üst sınır koyuyoruz.
-    const kapiGerekebilir = !!kayitliKullanici() || window.location.hash.indexOf('access_token=') !== -1;
+    // ekranda hiç görünmeden kalabilir.
+    // ÖNEMLİ: Bu SADECE sekmenin/oturumun gerçek ilk açılışında yapılır. Arka plan
+    // senkron taramasının (bulutTaramasiniBaslat → uzakDegisiklikleriKontrolEt)
+    // tetiklediği reload'larda kapı BİR DAHA açılmaz — o senkron Early'deki gibi
+    // arka planda sessizce yapılmalı, kullanıcı bir daha bu ekranı görmemeli.
+    // sessionStorage sekme kapanana kadar kalıcı olduğu için, aynı sekmede olan
+    // sonraki reload'ları "aynı oturum" olarak tanıyıp kapıyı atlıyoruz.
+    const KAPI_OTURUM_ANAHTARI = 'sessizlik-kapi-gosterildi';
+    let kapiOturumdaGosterildiMi = false;
+    try{ kapiOturumdaGosterildiMi = sessionStorage.getItem(KAPI_OTURUM_ANAHTARI) === '1'; }catch(e){}
+
+    const kapiGerekebilir = !kapiOturumdaGosterildiMi &&
+      (!!kayitliKullanici() || window.location.hash.indexOf('access_token=') !== -1);
     if(kapiGerekebilir){
+      try{ sessionStorage.setItem(KAPI_OTURUM_ANAHTARI, '1'); }catch(e){}
       kapiyiGoster('Senkronize ediliyor…');
+      // Güvenlik freni: bir şeyler ters giderse kapı sonsuza dek açık kalmasın.
       window.setTimeout(kapiyiGizle, 8000);
     }
 
