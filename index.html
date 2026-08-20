@@ -8894,6 +8894,21 @@
     const STATE_ANAHTAR = 'sessizlik-google-state';
     const SON_YEDEK_ANAHTAR = 'sessizlik-google-son-yedek';
     const SON_YEDEK_OZET_ANAHTAR = 'sessizlik-google-son-yedek-ozet';
+    // Drive'daki dosyanın en son bildiğimiz değişim zamanı (modifiedTime). Bu, "bu
+    // değişikliği ben mi yaptım yoksa başka bir cihaz mı?" ayrımını yapabilmek ve
+    // arka planda periyodik kontrol edebilmek için saklanır.
+    const SON_DEGISIM_ZAMANI_ANAHTAR = 'sessizlik-google-son-degisim-zamani';
+    // Bu cihazda, henüz Drive'a yedeklenmemiş yerel değişikliğe uğramış localStorage
+    // anahtarlarının listesi. Buluttan otomatik bir veri indirilirken bu anahtarların
+    // üzerine sessizce yazılmaz — aksi halde az önce bu cihazda yapılan bir değişiklik
+    // arka plandaki otomatik senkronla kaybolabilirdi.
+    const KIRLI_ANAHTARLAR_ANAHTARI = 'sessizlik-google-kirli-anahtarlar';
+    // Yedeğin/eşitlemenin kendi muhasebe anahtarları — buluta gönderilmez, buluttan
+    // gelen veriyle de asla ezilmez.
+    const HESAP_ANAHTARLARI = [
+      KULLANICI_ANAHTAR, STATE_ANAHTAR, SON_YEDEK_ANAHTAR, SON_YEDEK_OZET_ANAHTAR,
+      SON_DEGISIM_ZAMANI_ANAHTAR, KIRLI_ANAHTARLAR_ANAHTARI
+    ];
     // Bu cihazda "gerçek" kullanıcı verisi olup olmadığını anlamak için bakılan anahtarlar.
     // Yeni bir cihazda (ör. tablet ilk kurulum) bu anahtarların hepsi boşsa, girişte
     // Drive'daki yedek otomatik indirilir; doluysa kullanıcıya sorulur (veri kaybını önlemek için).
@@ -8960,6 +8975,63 @@
         const ham = localStorage.getItem(SON_YEDEK_OZET_ANAHTAR);
         return ham ? JSON.parse(ham) : null;
       }catch(e){ return null; }
+    }
+
+    // ---- Kirli anahtar takibi + arka planda otomatik senkron ----
+    // "Orijinal" localStorage.setItem/removeItem referansları: buluttan gelen veriyi
+    // cihaza uygularken bunları kullanıyoruz ki uyguladığımız veri tekrar "kirli"
+    // işaretlenip gereksiz bir yüklemeye yol açmasın.
+    const orijinalSetItem = localStorage.setItem.bind(localStorage);
+    const orijinalRemoveItem = localStorage.removeItem.bind(localStorage);
+
+    let kirliAnahtarlar = new Set();
+    try{
+      const ham = localStorage.getItem(KIRLI_ANAHTARLAR_ANAHTARI);
+      if(ham) JSON.parse(ham).forEach(function(a){ kirliAnahtarlar.add(a); });
+    }catch(e){}
+
+    function kirliAnahtarlariKaydet(){
+      try{ orijinalSetItem(KIRLI_ANAHTARLAR_ANAHTARI, JSON.stringify(Array.from(kirliAnahtarlar))); }catch(e){}
+    }
+
+    function sonBilinenDegisimZamani(){
+      try{ return localStorage.getItem(SON_DEGISIM_ZAMANI_ANAHTAR); }catch(e){ return null; }
+    }
+    function sonBilinenDegisimZamaniniKaydet(val){
+      if(!val) return;
+      try{ orijinalSetItem(SON_DEGISIM_ZAMANI_ANAHTAR, val); }catch(e){}
+    }
+
+    let otomatikSenkronZamanlayici = null;
+    let bulutSenkronuBekliyor = false;
+
+    // Uygulamanın herhangi bir yerinde localStorage.setItem/removeItem çağrılınca
+    // (ör. yeni deneme eklenince, soru havuzuna dosya eklenince) bu anahtarı "kirli"
+    // işaretler ve birkaç saniye sonra otomatik olarak Drive'a yedekler. Kullanıcının
+    // "Google ile Yedekle" satırına elle dokunmasına gerek kalmaz.
+    localStorage.setItem = function(anahtar, deger){
+      const sonuc = orijinalSetItem(anahtar, deger);
+      if(HESAP_ANAHTARLARI.indexOf(anahtar) === -1){
+        kirliAnahtarlar.add(anahtar);
+        kirliAnahtarlariKaydet();
+        otomatikSenkronuZamanla();
+      }
+      return sonuc;
+    };
+    localStorage.removeItem = function(anahtar){
+      const sonuc = orijinalRemoveItem(anahtar);
+      if(HESAP_ANAHTARLARI.indexOf(anahtar) === -1){
+        kirliAnahtarlar.add(anahtar);
+        kirliAnahtarlariKaydet();
+        otomatikSenkronuZamanla();
+      }
+      return sonuc;
+    };
+
+    function otomatikSenkronuZamanla(){
+      if(!kayitliKullanici() || !erisimJetonu) return; // giriş yapılmamışsa arka planda senkron yok
+      clearTimeout(otomatikSenkronZamanlayici);
+      otomatikSenkronZamanlayici = setTimeout(driveyeYedekle, 2500);
     }
 
     // Bu cihazda kullanıcının girdiği gerçek bir veri var mı? (deneme, soru havuzu, sayaç listesi vb.)
@@ -9099,11 +9171,51 @@
 
     function driveDosyasiniBul(){
       const sorgu = encodeURIComponent("name='" + DRIVE_DOSYA_ADI + "' and trashed=false");
-      return driveIstek('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=' + sorgu + '&fields=files(id,name)')
+      return driveIstek('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=' + sorgu + '&fields=files(id,name,modifiedTime)')
         .then(function(sonuc){
-          if(sonuc.files && sonuc.files.length){ driveDosyaId = sonuc.files[0].id; }
+          const dosya = sonuc.files && sonuc.files[0];
+          if(dosya){
+            driveDosyaId = dosya.id;
+            if(dosya.modifiedTime) sonBilinenDegisimZamaniniKaydet(dosya.modifiedTime);
+          }
           return driveDosyaId;
         });
+    }
+
+    // Drive'daki dosyanın SADECE modifiedTime bilgisini ucuza kontrol eder — periyodik
+    // arka plan taramasında tüm dosyayı indirmemek için kullanılır.
+    function driveDegisimZamaniniGetir(){
+      if(!driveDosyaId) return Promise.resolve(null);
+      return driveIstek('https://www.googleapis.com/drive/v3/files/' + driveDosyaId + '?fields=modifiedTime')
+        .then(function(sonuc){ return sonuc && sonuc.modifiedTime ? sonuc.modifiedTime : null; });
+    }
+
+    // Buluttaki paketi cihaza SESSİZCE ve GÜVENLİ biçimde uygular: bu cihazda henüz
+    // Drive'a gönderilmemiş (kirliAnahtarlar içindeki) anahtarların üzerine yazmaz —
+    // sadece Drive'da olup bu cihazda henüz değişmemiş alanları günceller. Böylece
+    // "hangisi üzerine yazılsın" diye kullanıcıya sormaya gerek kalmaz.
+    function paketiCihazaBirlestir(paket){
+      if(!paket) return Promise.resolve(false);
+      const veri = paket.localStorage || {};
+      let degisiklikOldu = false;
+      try{
+        Object.keys(veri).forEach(function(anahtar){
+          if(HESAP_ANAHTARLARI.indexOf(anahtar) !== -1) return;
+          if(kirliAnahtarlar.has(anahtar)) return; // bu cihazda henüz gönderilmemiş yerel değişiklik var — ezme
+          if(localStorage.getItem(anahtar) === veri[anahtar]) return; // zaten aynı
+          orijinalSetItem(anahtar, veri[anahtar]);
+          degisiklikOldu = true;
+        });
+      }catch(e){}
+
+      const dosyaKaydetFn = window.__sessizlikDosyaKaydet;
+      const dosyalar = paket.dosyalar || {};
+      const idler = dosyaKaydetFn ? Object.keys(dosyalar) : [];
+      return Promise.all(idler.map(function(id){
+        return base64tenBloba(dosyalar[id].veri).then(function(blob){
+          return dosyaKaydetFn(id, blob);
+        }).catch(function(){ /* tek bir dosya bozuksa diğerlerini etkilemesin */ });
+      })).then(function(){ return degisiklikOldu; });
     }
 
     function driveyeYaz(paket){
@@ -9161,13 +9273,30 @@
       yedeklemeSurmekte = true;
       arayuzuGuncelle('yedekleniyor');
 
-      return yedekVerisiTopla()
+      // Yüklemeden hemen önce: Drive'da bizim bilmediğimiz (başka bir cihazın yaptığı)
+      // bir değişiklik var mı diye bak. Varsa önce onu indirip, SADECE bu cihazda henüz
+      // değişmemiş (kirli olmayan) anahtarlara uygula — az önce burada yapılan
+      // değişiklikler asla sessizce üzerine yazılmaz. Bu kontrol olmadan, iki cihaz
+      // art arda senkronlarsa biri diğerinin verisini silebilirdi.
+      return (driveDosyaId ? driveDegisimZamaniniGetir() : Promise.resolve(null))
+        .then(function(uzakZaman){
+          if(uzakZaman && uzakZaman !== sonBilinenDegisimZamani()){
+            return drivedenIndir().then(function(paket){
+              return paketiCihazaBirlestir(paket).then(function(){
+                sonBilinenDegisimZamaniniKaydet(uzakZaman);
+              });
+            }).catch(function(){ /* indirilemezse yine de yüklemeye devam et */ });
+          }
+        })
+        .then(yedekVerisiTopla)
         .then(driveyeYaz)
         .then(driveYedeginiDogrula)
         .then(function(ozet){
           yedeklemeSurmekte = false;
           sonYedekZamaniniKaydet();
           sonYedekOzetiniKaydet(ozet);
+          kirliAnahtarlar.clear();
+          kirliAnahtarlariKaydet();
           arayuzuGuncelle('yedeklendi');
         }).catch(function(err){
           yedeklemeSurmekte = false;
@@ -9175,6 +9304,43 @@
           arayuzuGuncelle('hata', 'Yedekleme başarısız · Tekrar dokun');
         });
     }
+
+    // ---- Diğer cihazlardaki değişiklikleri arka planda yakalama (polling) ----
+    // Drive'ın ücretsiz/basit kurulumunda gerçek anlık (push) bildirim yok; bunun
+    // yerine birkaç saniyede bir dosyanın modifiedTime'ını ucuza kontrol edip,
+    // değiştiyse (ve bu değişikliği biz yapmadıysak) veriyi indirip sessizce uygular.
+    // Böylece bir cihazda eklenen deneme/soru, kısa süre içinde diğer cihazda da görünür.
+    let bulutTaramaZamanlayici = null;
+    function bulutTaramasiniBaslat(){
+      bulutTaramasiniDurdur();
+      if(!erisimJetonu) return;
+      bulutTaramaZamanlayici = setInterval(uzakDegisiklikleriKontrolEt, 8000);
+    }
+    function bulutTaramasiniDurdur(){
+      clearInterval(bulutTaramaZamanlayici);
+      bulutTaramaZamanlayici = null;
+    }
+    function uzakDegisiklikleriKontrolEt(){
+      if(!erisimJetonu || !navigator.onLine) return;
+      if(yedeklemeSurmekte) return; // yükleme sürüyorsa üstüne binme
+      if(!driveDosyaId) return; // bulutta henüz dosya yok
+      driveDegisimZamaniniGetir().then(function(uzakZaman){
+        if(!uzakZaman || uzakZaman === sonBilinenDegisimZamani()) return; // değişiklik yok ya da bizim kendi yazdığımız
+        return drivedenIndir().then(function(paket){
+          return paketiCihazaBirlestir(paket).then(function(degisti){
+            sonBilinenDegisimZamaniniKaydet(uzakZaman);
+            if(degisti){
+              // Uygulama, açılışta okuduğu localStorage verisini bellekte tuttuğu için
+              // yeni veri ekranlara ancak sayfa tazelenince yansır.
+              window.location.reload();
+            }
+          });
+        });
+      }).catch(function(e){ console.log('Arka plan Drive kontrolü başarısız:', e); });
+    }
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState === 'visible') uzakDegisiklikleriKontrolEt();
+    });
 
     // Drive'daki yedeği bu cihaza indirir: localStorage anahtarlarını ve (varsa)
     // IndexedDB'deki dosyaları geri yazar. Bu, telefon ↔ tablet arasında verinin
@@ -9251,41 +9417,35 @@
         const kullanici = { name: bilgi.name || '', email: bilgi.email || '', picture: bilgi.picture || '' };
         kullaniciKaydet(kullanici);
         arayuzuGuncelle();
+        bulutTaramasiniBaslat();
         return driveDosyasiniBul();
       }).then(function(id){
-        if(sonGirisSessizMi){
-          // Arka planda yapılan otomatik/sessiz yeniden bağlanma: bu cihaz zaten daha önce
-          // bilinçli olarak bağlanmıştı, o yüzden burada tekrar sormadan/indirmeden sadece
-          // önceki davranış korunur (mevcut durumu yedekle).
-          return driveyeYedekle();
-        }
         if(!id){
           // Drive'da bu hesaba ait henüz yedek yok: bu cihazın verisini ilk kez yükle.
           return driveyeYedekle();
         }
-        if(!cihazdaAnlamliVeriVarMi()){
-          // Bu cihazda (ör. yeni tablet) henüz kayıt yok ama Drive'da var:
-          // körlemesine üzerine yazıp kaybetmemek için, tam tersine, Drive'daki
-          // yedek otomatik olarak bu cihaza indirilir.
-          return drivedenGeriYukle(true).then(function(basarili){
+        // Drive'da bir yedek var: kullanıcıya SORMADAN, cihazdaki her anahtar tek tek
+        // karşılaştırılıp otomatik birleştirilir — bu cihazda henüz buluta gönderilmemiş
+        // (kirli) bir değişiklik varsa o korunur, yoksa buluttaki alınır. Böylece "Tamam/
+        // İptal" seçimi yapmaya hiç gerek kalmaz.
+        return drivedenIndir().then(function(paket){
+          return paketiCihazaBirlestir(paket).then(function(degisti){
+            const uzakZaman = sonBilinenDegisimZamani();
+            if(uzakZaman) sonBilinenDegisimZamaniniKaydet(uzakZaman);
+            sonYedekZamaniniKaydet();
             arayuzuGuncelle();
-            if(basarili){
-              window.setTimeout(function(){ window.location.reload(); }, 400);
+            // Bu cihazda hâlâ buluta gönderilmemiş (kirli) veri varsa onu da yükle,
+            // böylece iki taraf da güncel kalır.
+            if(kirliAnahtarlar.size){
+              return driveyeYedekle();
+            }
+            if(degisti && !sonGirisSessizMi){
+              // Sessiz/otomatik yeniden bağlanmada değil, kullanıcının BİLEREK
+              // dokunduğu bir girişte, indirilen yeni veri ekrana yansısın diye tazele.
+              window.setTimeout(function(){ window.location.reload(); }, 300);
             }
           });
-        }
-        // Hem bu cihazda hem Drive'da veri var: hiçbirini sessizce ezmeden kullanıcıya sor.
-        const drivedenGeriYuklensin = window.confirm(
-          "Drive'da bu hesaba ait bir yedek bulundu.\n\n" +
-          "Tamam → Drive'daki yedeği bu cihaza indir (bu cihazdaki mevcut veriler yedektekiyle değiştirilir)\n" +
-          "İptal → Bu cihazın verilerini Drive'a yükle (Drive'daki yedeğin üzerine yazılır)"
-        );
-        if(drivedenGeriYuklensin){
-          return drivedenGeriYukle().then(function(basarili){
-            if(basarili){ window.location.reload(); }
-          });
-        }
-        return driveyeYedekle();
+        });
       }).catch(function(err){
         console.log('Google kullanıcı bilgisi alınamadı:', err);
         arayuzuGuncelle('hata');
@@ -9371,6 +9531,7 @@
       if(erisimJetonu && typeof google !== 'undefined' && google.accounts){
         google.accounts.oauth2.revoke(erisimJetonu, function(){});
       }
+      bulutTaramasiniDurdur();
       erisimJetonu = null;
       driveDosyaId = null;
       kullaniciSil();
