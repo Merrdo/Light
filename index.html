@@ -16,6 +16,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 
+<!-- Google Drive senkronizasyonu için Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <script>
   // Koyu mod tercihini stiller çizilmeden önce uygula (yanıp sönmeyi engeller)
   // Not: meta[name="theme-color"] da burada, aynı anda güncelleniyor; aksi
@@ -598,11 +601,14 @@
   #renkRow.animate{
     animation-delay:1s;
   }
-  #yedekleRow.animate{
+  #driveSyncRow.animate{
     animation-delay:1.15s;
   }
-  #geriYukleRow.animate{
+  #yedekleRow.animate{
     animation-delay:1.3s;
+  }
+  #geriYukleRow.animate{
+    animation-delay:1.45s;
   }
   .ayar-aksiyon-btn{
     font-family:"Helvetica Neue",Arial,sans-serif;
@@ -3891,6 +3897,15 @@
           <button type="button" class="renk-swatch" data-renk="yesil" aria-label="Yeşil"></button>
         </div>
       </div>
+      <div class="settings-row" id="driveSyncRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Google Drive Senkronizasyonu</span>
+          <span class="settings-row-sub" id="driveSyncStateLabel">Bağlı değil</span>
+        </div>
+        <button type="button" class="theme-switch" id="driveSyncSwitch" role="switch" aria-checked="false" aria-label="Google Drive senkronizasyonu anahtarı">
+          <span class="theme-switch-knob"></span>
+        </button>
+      </div>
       <div class="settings-row" id="yedekleRow">
         <div class="settings-row-text">
           <span class="settings-row-title">Yedekle</span>
@@ -4786,7 +4801,7 @@
       const localVeri = {};
       for(let i = 0; i < localStorage.length; i++){
         const anahtar = localStorage.key(i);
-        if(anahtar && anahtar.indexOf('sessizlik-') === 0){
+        if(anahtar && anahtar.indexOf('sessizlik-') === 0 && anahtar.indexOf('sessizlik-drive-') !== 0){
           localVeri[anahtar] = localStorage.getItem(anahtar);
         }
       }
@@ -4844,7 +4859,7 @@
           const silinecekler = [];
           for(let i = 0; i < localStorage.length; i++){
             const anahtar = localStorage.key(i);
-            if(anahtar && anahtar.indexOf('sessizlik-') === 0) silinecekler.push(anahtar);
+            if(anahtar && anahtar.indexOf('sessizlik-') === 0 && anahtar.indexOf('sessizlik-drive-') !== 0) silinecekler.push(anahtar);
           }
           silinecekler.forEach(function(a){ localStorage.removeItem(a); });
           Object.keys(paket.localStorage).forEach(function(anahtar){
@@ -4887,6 +4902,308 @@
         geriYukleInputEl.value = '';
       });
     }
+
+    // ---- Google Drive Senkronizasyonu (appDataFolder - gizli alan) ----
+    // Not: Bu bir sunucusuz (statik) uygulama olduğu için "refresh token" ile kalıcı
+    // arka plan bağlantısı yerine, Google Identity Services'in oturum tabanlı sessiz
+    // yeniden-yetkilendirmesine dayanıyoruz. Çoğu durumda otomatik çalışır; bazen
+    // (uzun aradan sonra, gizli sekmede vb.) yeniden izin istenebilir.
+    const DRIVE_CLIENT_ID = '719796230737-p9pt8ou0m9p37gagfnnc5no1f1ekr182.apps.googleusercontent.com';
+    const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+    const DRIVE_DOSYA_ADI = 'sessizligin-sesi-yedek.json';
+    const DRIVE_BAGLI_ANAHTAR = 'sessizlik-drive-bagli';
+    const DRIVE_DOSYA_ID_ANAHTAR = 'sessizlik-drive-dosya-id';
+    const DRIVE_SON_SENKRON_ANAHTAR = 'sessizlik-drive-son-senkron';
+    const DRIVE_SON_YEREL_DEGISIM_ANAHTAR = 'sessizlik-drive-son-yerel-degisim';
+
+    let driveErisimJetonu = null;
+    let driveJetonIstemcisi = null;
+    let driveSenkronZamanlayici = null;
+    let driveKirli = false;
+    let driveIslemSurmekte = false;
+
+    const driveSyncSwitch = document.getElementById('driveSyncSwitch');
+    const driveSyncStateLabel = document.getElementById('driveSyncStateLabel');
+
+    function driveBagliMi(){
+      return localStorage.getItem(DRIVE_BAGLI_ANAHTAR) === '1';
+    }
+
+    function driveDurumGoster(metin){
+      if(driveSyncStateLabel) driveSyncStateLabel.textContent = metin;
+    }
+
+    function driveSwitchGuncelle(acik){
+      if(!driveSyncSwitch) return;
+      driveSyncSwitch.classList.toggle('on', acik);
+      driveSyncSwitch.setAttribute('aria-checked', acik ? 'true' : 'false');
+    }
+
+    function driveZamanEtiketi(iso){
+      if(!iso) return '';
+      try{
+        const t = new Date(iso);
+        return t.toLocaleDateString('tr-TR') + ' ' + t.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+      }catch(e){ return ''; }
+    }
+
+    function driveJetonIstemcisiHazirla(){
+      if(driveJetonIstemcisi) return driveJetonIstemcisi;
+      if(!window.google || !window.google.accounts || !window.google.accounts.oauth2){
+        return null;
+      }
+      driveJetonIstemcisi = google.accounts.oauth2.initTokenClient({
+        client_id: DRIVE_CLIENT_ID,
+        scope: DRIVE_SCOPE,
+        callback: function(yanit){
+          if(yanit && yanit.access_token){
+            driveErisimJetonu = yanit.access_token;
+            localStorage.setItem(DRIVE_BAGLI_ANAHTAR, '1');
+            driveSwitchGuncelle(true);
+            driveIlkBaglantiSenkronu();
+          }else{
+            driveDurumGoster('Bağlanılamadı, tekrar deneyin');
+          }
+        }
+      });
+      return driveJetonIstemcisi;
+    }
+
+    function driveBaglan(sessiz){
+      const istemci = driveJetonIstemcisiHazirla();
+      if(!istemci){
+        driveDurumGoster('Google servisi yüklenemedi, internetinizi kontrol edin');
+        driveSwitchGuncelle(false);
+        return;
+      }
+      istemci.requestAccessToken({ prompt: sessiz ? '' : 'consent' });
+    }
+
+    function driveBaglantiyiKes(){
+      if(driveErisimJetonu && window.google && google.accounts && google.accounts.oauth2){
+        google.accounts.oauth2.revoke(driveErisimJetonu, function(){});
+      }
+      driveErisimJetonu = null;
+      localStorage.setItem(DRIVE_BAGLI_ANAHTAR, '0');
+      localStorage.removeItem(DRIVE_DOSYA_ID_ANAHTAR);
+      driveSwitchGuncelle(false);
+      driveDurumGoster('Bağlı değil');
+    }
+
+    // ---- Drive API çağrıları ----
+    function driveDosyaAra(){
+      return fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,modifiedTime,name)&q=' + encodeURIComponent("name='" + DRIVE_DOSYA_ADI + "'"), {
+        headers: { Authorization: 'Bearer ' + driveErisimJetonu }
+      }).then(function(r){
+        if(!r.ok) throw new Error('Drive arama hatası: ' + r.status);
+        return r.json();
+      }).then(function(data){
+        return (data.files && data.files[0]) || null;
+      });
+    }
+
+    function driveDosyaIndir(fileId){
+      return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+        headers: { Authorization: 'Bearer ' + driveErisimJetonu }
+      }).then(function(r){
+        if(!r.ok) throw new Error('Drive indirme hatası: ' + r.status);
+        return r.json();
+      });
+    }
+
+    function driveDosyaYukle(fileId, paketNesnesi){
+      const metaVeri = { name: DRIVE_DOSYA_ADI, mimeType: 'application/json' };
+      if(!fileId) metaVeri.parents = ['appDataFolder'];
+      const sinir = 'sessizlikSinir' + Date.now();
+      const govde =
+        '--' + sinir + '\r\n' +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metaVeri) + '\r\n' +
+        '--' + sinir + '\r\n' +
+        'Content-Type: application/json\r\n\r\n' +
+        JSON.stringify(paketNesnesi) + '\r\n' +
+        '--' + sinir + '--';
+      const url = fileId
+        ? 'https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=multipart'
+        : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      return fetch(url, {
+        method: fileId ? 'PATCH' : 'POST',
+        headers: {
+          Authorization: 'Bearer ' + driveErisimJetonu,
+          'Content-Type': 'multipart/related; boundary=' + sinir
+        },
+        body: govde
+      }).then(function(r){
+        if(!r.ok) throw new Error('Drive yükleme hatası: ' + r.status);
+        return r.json();
+      });
+    }
+
+    // ---- Yerel değişiklik takibi (localStorage + IndexedDB dosyaları) ----
+    function driveYereIDegisimIsaretle(){
+      localStorage.setItem(DRIVE_SON_YEREL_DEGISIM_ANAHTAR, new Date().toISOString());
+      driveKirli = true;
+      driveOtomatikSenkronuZamanla();
+    }
+
+    function driveOtomatikSenkronuZamanla(){
+      if(!driveBagliMi() || !driveErisimJetonu) return;
+      if(driveSenkronZamanlayici) clearTimeout(driveSenkronZamanlayici);
+      driveSenkronZamanlayici = setTimeout(function(){
+        driveYukariSenkronEt();
+      }, 4000);
+    }
+
+    function driveYukariSenkronEt(){
+      if(driveIslemSurmekte || !driveKirli || !driveErisimJetonu) return;
+      driveIslemSurmekte = true;
+      driveDurumGoster('Senkronize ediliyor…');
+      tumVeriyiYedekle().then(function(paket){
+        const mevcutId = localStorage.getItem(DRIVE_DOSYA_ID_ANAHTAR);
+        return driveDosyaYukle(mevcutId, paket).then(function(sonuc){
+          if(sonuc && sonuc.id) localStorage.setItem(DRIVE_DOSYA_ID_ANAHTAR, sonuc.id);
+          localStorage.setItem(DRIVE_SON_SENKRON_ANAHTAR, new Date().toISOString());
+          driveKirli = false;
+          driveDurumGoster('Bağlı • son senkron: ' + driveZamanEtiketi(new Date().toISOString()));
+        });
+      }).catch(function(e){
+        console.log('Drive yukarı senkron hatası:', e);
+        driveDurumGoster('Senkron hatası, tekrar denenecek');
+        // Jeton süresi dolmuş olabilir, sessizce yenilemeyi dene
+        driveBaglan(true);
+      }).finally(function(){
+        driveIslemSurmekte = false;
+      });
+    }
+
+    // ---- Bağlantı kurulduğunda ilk karşılaştırma / birleştirme ----
+    function driveYereVerilVarMi(){
+      for(let i = 0; i < localStorage.length; i++){
+        const anahtar = localStorage.key(i);
+        if(anahtar && anahtar.indexOf('sessizlik-') === 0 && anahtar.indexOf('sessizlik-drive-') !== 0) return true;
+      }
+      return false;
+    }
+
+    function driveIlkBaglantiSenkronu(){
+      driveDurumGoster('Kontrol ediliyor…');
+      driveDosyaAra().then(function(dosya){
+        if(!dosya){
+          // Drive'da hiç yedek yok: yereldeki veriyi ilk kez yükle
+          driveKirli = true;
+          return driveYukariSenkronEt();
+        }
+        localStorage.setItem(DRIVE_DOSYA_ID_ANAHTAR, dosya.id);
+        const yerelVarMi = driveYereVerilVarMi();
+        if(!yerelVarMi){
+          // Bu cihazda hiç veri yok: doğrudan Drive'daki veriyi indir
+          return driveAsagiSenkronEt(dosya.id);
+        }
+        const uzakZaman = new Date(dosya.modifiedTime).getTime();
+        const yerelSonDegisim = localStorage.getItem(DRIVE_SON_YEREL_DEGISIM_ANAHTAR);
+        const yerelSonSenkron = localStorage.getItem(DRIVE_SON_SENKRON_ANAHTAR);
+        const referansZaman = yerelSonSenkron ? new Date(yerelSonSenkron).getTime() : 0;
+        if(uzakZaman > referansZaman){
+          const indir = confirm('Başka bir cihazda daha güncel bir yedek bulundu. Bu cihazdaki veriler onunla değiştirilsin mi?\n\n(İptal edersen bu cihazdaki veriler Drive\'a yüklenir.)');
+          if(indir){
+            return driveAsagiSenkronEt(dosya.id);
+          }
+        }
+        driveKirli = true;
+        return driveYukariSenkronEt();
+      }).catch(function(e){
+        console.log('Drive ilk senkron hatası:', e);
+        driveDurumGoster('Bağlantı kuruldu ama senkron başarısız oldu');
+      });
+    }
+
+    function driveAsagiSenkronEt(fileId){
+      driveDurumGoster('İndiriliyor…');
+      return driveDosyaIndir(fileId).then(function(paket){
+        if(!paket || !paket.localStorage) throw new Error('Geçersiz uzak veri');
+        const silinecekler = [];
+        for(let i = 0; i < localStorage.length; i++){
+          const anahtar = localStorage.key(i);
+          if(anahtar && anahtar.indexOf('sessizlik-') === 0 && anahtar.indexOf('sessizlik-drive-') !== 0) silinecekler.push(anahtar);
+        }
+        silinecekler.forEach(function(a){ localStorage.removeItem(a); });
+        Object.keys(paket.localStorage).forEach(function(anahtar){
+          localStorage.setItem(anahtar, paket.localStorage[anahtar]);
+        });
+        return tumDosyalariYaz(paket.dosyalar || []).then(function(){
+          localStorage.setItem(DRIVE_SON_SENKRON_ANAHTAR, new Date().toISOString());
+          driveDurumGoster('Senkron tamamlandı, yeniden başlatılıyor…');
+          window.location.reload();
+        });
+      });
+    }
+
+    // localStorage.setItem'ı sarmalayarak "sessizlik-" ile başlayan her yazımı yakala
+    (function(){
+      const orijinalSetItem = localStorage.setItem.bind(localStorage);
+      localStorage.setItem = function(anahtar, deger){
+        orijinalSetItem(anahtar, deger);
+        if(anahtar && anahtar.indexOf('sessizlik-') === 0 && anahtar.indexOf('sessizlik-drive-') !== 0){
+          driveYereIDegisimIsaretle();
+        }
+      };
+      const orijinalRemoveItem = localStorage.removeItem.bind(localStorage);
+      localStorage.removeItem = function(anahtar){
+        orijinalRemoveItem(anahtar);
+        if(anahtar && anahtar.indexOf('sessizlik-') === 0 && anahtar.indexOf('sessizlik-drive-') !== 0){
+          driveYereIDegisimIsaretle();
+        }
+      };
+    })();
+
+    // IndexedDB dosya değişikliklerini de yakala (cevap anahtarı vb. yükleme/silme)
+    (function(){
+      const orijinalDosyaKaydet = dosyaKaydet;
+      dosyaKaydet = function(id, blob){
+        return orijinalDosyaKaydet(id, blob).then(function(sonuc){
+          driveYereIDegisimIsaretle();
+          return sonuc;
+        });
+      };
+      const orijinalDosyaSil = dosyaSil;
+      dosyaSil = function(id){
+        return orijinalDosyaSil(id).then(function(sonuc){
+          driveYereIDegisimIsaretle();
+          return sonuc;
+        });
+      };
+    })();
+
+    if(driveSyncSwitch){
+      driveSyncSwitch.addEventListener('click', function(){
+        if(driveBagliMi()){
+          driveBaglantiyiKes();
+        }else{
+          driveDurumGoster('Google ile bağlanılıyor…');
+          driveBaglan(false);
+        }
+      });
+    }
+
+    // Sayfa yüklendiğinde daha önce bağlıysa sessizce yeniden bağlanmayı dene
+    window.addEventListener('load', function(){
+      if(driveBagliMi()){
+        driveSwitchGuncelle(true);
+        const sonSenkron = localStorage.getItem(DRIVE_SON_SENKRON_ANAHTAR);
+        driveDurumGoster(sonSenkron ? 'Bağlı • son senkron: ' + driveZamanEtiketi(sonSenkron) : 'Bağlı • senkronize ediliyor…');
+        setTimeout(function(){
+          const istemci = driveJetonIstemcisiHazirla();
+          if(istemci) istemci.requestAccessToken({ prompt: '' });
+        }, 400);
+      }
+    });
+
+    // Sekme kapatılmadan/gizlenmeden önce bekleyen değişiklikleri senkronize etmeyi dene
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState === 'hidden' && driveKirli && driveErisimJetonu){
+        driveYukariSenkronEt();
+      }
+    });
 
     // ---- Dosya görüntüleyici: yüklenen PNG/PDF'i yeni sekme yerine uygulama içinde açar ----
     const dosyaGoruntuleOverlay = document.getElementById('dosyaGoruntuleOverlay');
@@ -5108,6 +5425,7 @@
     const settingsRow = document.getElementById('settingsRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
     const renkRow = document.getElementById('renkRow');
+    const driveSyncRow = document.getElementById('driveSyncRow');
     const yedekleRow = document.getElementById('yedekleRow');
     const geriYukleRow = document.getElementById('geriYukleRow');
     const gundelikEyebrow = document.getElementById('gundelikEyebrow');
@@ -5167,6 +5485,7 @@
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
       renkRow.classList.remove('animate');
+      driveSyncRow.classList.remove('animate');
       yedekleRow.classList.remove('animate');
       geriYukleRow.classList.remove('animate');
       gundelikEyebrow.classList.remove('animate');
@@ -5198,6 +5517,7 @@
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
       renkRow.classList.remove('animate');
+      driveSyncRow.classList.remove('animate');
       yedekleRow.classList.remove('animate');
       geriYukleRow.classList.remove('animate');
       void emptyWord.offsetWidth;
@@ -5207,6 +5527,7 @@
       settingsRow.classList.add('animate');
       navbarPositionRow.classList.add('animate');
       renkRow.classList.add('animate');
+      driveSyncRow.classList.add('animate');
       yedekleRow.classList.add('animate');
       geriYukleRow.classList.add('animate');
       });
