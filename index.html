@@ -9027,6 +9027,21 @@
       otomatikSenkronZamanlayici = setTimeout(driveyeYedekle, 2500);
     }
 
+    // Soru havuzuna dosya (görsel/PDF) eklenmesi IndexedDB üzerinden yapılır ve
+    // localStorage.setItem'ı tetiklemeyebilir; bu yüzden dosya kaydını da ayrıca
+    // "kirli" işaretleyip otomatik yedeklemeyi tetikleyecek şekilde sarmalıyoruz.
+    if(window.__sessizlikDosyaKaydet){
+      const orijinalDosyaKaydet = window.__sessizlikDosyaKaydet;
+      window.__sessizlikDosyaKaydet = function(id, blob){
+        return orijinalDosyaKaydet(id, blob).then(function(sonuc){
+          kirliAnahtarlar.add('__dosyalar__');
+          kirliAnahtarlariKaydet();
+          otomatikSenkronuZamanla();
+          return sonuc;
+        });
+      };
+    }
+
     // Blob <-> base64 (data URL) dönüşümleri: Drive'a JSON olarak yazabilmek ve
     // geri yüklerken tekrar dosyaya çevirebilmek için kullanılır.
     function blobDenBase64e(blob){
@@ -9048,6 +9063,12 @@
     function arayuzuGuncelle(durum, ekBilgi){
       const kullanici = kayitliKullanici();
 
+      // Kullanıcı bağlıyken cihazın interneti yoksa, aksi belirtilmedikçe (yedekleniyor/
+      // hata gibi geçici durumlar) her zaman kırmızı "bağlantı yok" durumunu göster.
+      if(durum === undefined && kullanici && !navigator.onLine){
+        durum = 'coku';
+      }
+
       if(durum === 'baglaniyor'){
         durumSiniflariniTemizle();
         googleStateLabel.textContent = 'Bağlanılıyor…';
@@ -9059,10 +9080,16 @@
         googleStateLabel.textContent = 'Yedekleniyor…';
         return;
       }
+      if(durum === 'coku'){
+        durumSiniflariniTemizle();
+        googleRow.classList.add('hata');
+        googleStateLabel.textContent = 'Bağlantı yok · Çevrimdışı';
+        return;
+      }
       if(durum === 'hata'){
         durumSiniflariniTemizle();
         googleRow.classList.add('hata');
-        googleStateLabel.textContent = ekBilgi || 'Bağlantı kurulamadı · Tekrar dokun';
+        googleStateLabel.textContent = ekBilgi || (navigator.onLine ? 'Bağlantı kurulamadı · Tekrar dokun' : 'Bağlantı yok · Çevrimdışı');
         return;
       }
 
@@ -9075,12 +9102,7 @@
 
         if(durum === 'yedeklendi' || (durum === undefined && sonYedekVarMi())){
           googleRow.classList.add('yedeklendi');
-          const ozet = sonYedekOzetiniAl();
-          if(ozet && (ozet.anahtarSayisi || ozet.dosyaSayisi)){
-            googleStateLabel.textContent = isim + ' ile bağlı · Doğrulandı: ' + (ozet.anahtarSayisi || 0) + ' kayıt, ' + (ozet.dosyaSayisi || 0) + ' dosya';
-          } else {
-            googleStateLabel.textContent = isim + ' ile bağlı · Veriler yedeklendi';
-          }
+          googleStateLabel.textContent = isim + ' ile bağlı · Yedeklendi';
         } else {
           googleStateLabel.textContent = isim + ' ile bağlı';
         }
@@ -9275,7 +9297,7 @@
         }).catch(function(err){
           yedeklemeSurmekte = false;
           console.log('Google Drive yedekleme hatası:', err);
-          arayuzuGuncelle('hata', 'Yedekleme başarısız · Tekrar dokun');
+          arayuzuGuncelle('hata', navigator.onLine ? 'Yedekleme başarısız · Tekrar dokun' : 'Bağlantı yok · Çevrimdışı');
         });
     }
 
@@ -9314,6 +9336,18 @@
     }
     document.addEventListener('visibilitychange', function(){
       if(document.visibilityState === 'visible') uzakDegisiklikleriKontrolEt();
+    });
+
+    // ---- Bağlantı durumu: kopunca kırmızı uyarı, geri gelince otomatik devam ----
+    window.addEventListener('offline', function(){
+      if(kayitliKullanici()) arayuzuGuncelle('coku');
+    });
+    window.addEventListener('online', function(){
+      if(!kayitliKullanici()) return;
+      arayuzuGuncelle();
+      // Bağlantı geri geldiğinde, biriken yerel değişiklikleri hemen yükle ve
+      // bu arada buluta başka bir cihazın yazıp yazmadığını kontrol et.
+      if(kirliAnahtarlar.size){ driveyeYedekle(); } else { uzakDegisiklikleriKontrolEt(); }
     });
 
     function drivedenIndir(){
@@ -9391,19 +9425,23 @@
       return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
     }
 
-    function tamSayfaYonlendirmesiIleGirisYap(){
+    function tamSayfaYonlendirmesiIleGirisYap(sessizMi){
       // iPhone'da ana ekrana eklenmiş uygulamalarda popup çalışmadığından
       // sayfanın tamamı Google'ın giriş sayfasına yönlendirilir; giriş sonrası
       // Google, erişim jetonunu adresin # kısmına ekleyerek buraya geri döner.
+      // sessizMi=true ise (uygulama arka planda kendi kendine yeniden bağlanmaya
+      // çalışıyorsa) prompt=none kullanılır: kullanıcının Google oturumu hâlâ
+      // geçerliyse arayüz hiç göstermeden anında bu sayfaya geri döner.
       const durum = rasgeleDurum();
       try{ sessionStorage.setItem(STATE_ANAHTAR, durum); }catch(e){}
+      try{ sessionStorage.setItem(STATE_ANAHTAR + '-sessiz', sessizMi ? '1' : '0'); }catch(e){}
       const parametreler = [
         'client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID),
         'redirect_uri=' + encodeURIComponent(yonlendirmeAdresi()),
         'response_type=token',
         'scope=' + encodeURIComponent(GOOGLE_SCOPE),
         'include_granted_scopes=true',
-        'prompt=consent',
+        'prompt=' + (sessizMi ? 'none' : 'consent'),
         'state=' + encodeURIComponent(durum)
       ].join('&');
       window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + parametreler;
@@ -9413,7 +9451,22 @@
       // Sayfa, Google'ın tam sayfa yönlendirmesinden #access_token=... ile geri
       // döndüyse bunu yakalar ve normal giriş akışıyla aynı şekilde tamamlar.
       const hash = window.location.hash;
-      if(!hash || hash.indexOf('access_token=') === -1) return false;
+      if(!hash) return false;
+
+      let sessizdi = false;
+      try{ sessizdi = sessionStorage.getItem(STATE_ANAHTAR + '-sessiz') === '1'; }catch(e){}
+
+      if(hash.indexOf('access_token=') === -1){
+        if(hash.indexOf('error=') === -1) return false;
+        // Sessiz (prompt=none) yeniden bağlanma denemesi başarısız oldu — ör. Google
+        // oturumu artık geçerli değil. Adres çubuğunu temizle; sessiz bir denemeyse
+        // kullanıcıyı rahatsız etmeden mevcut haliyle bırak, bir sonraki elle
+        // dokunuşta tam giriş akışı (izin ekranıyla) tekrar denenecek.
+        try{ window.history.replaceState(null, '', yonlendirmeAdresi()); }catch(e){}
+        try{ sessionStorage.removeItem(STATE_ANAHTAR); sessionStorage.removeItem(STATE_ANAHTAR + '-sessiz'); }catch(e){}
+        if(!sessizdi) arayuzuGuncelle('hata', 'Google girişi tamamlanamadı · Tekrar dokun');
+        return true;
+      }
 
       const parametreler = new URLSearchParams(hash.replace(/^#/, ''));
       const jeton = parametreler.get('access_token');
@@ -9423,13 +9476,13 @@
 
       // Adres çubuğundaki hassas bilgiyi hemen temizle (geçmişte kalmasın, yenilemede tekrar işlenmesin).
       try{ window.history.replaceState(null, '', yonlendirmeAdresi()); }catch(e){}
-      try{ sessionStorage.removeItem(STATE_ANAHTAR); }catch(e){}
+      try{ sessionStorage.removeItem(STATE_ANAHTAR); sessionStorage.removeItem(STATE_ANAHTAR + '-sessiz'); }catch(e){}
 
       if(!jeton || !gelenDurum || gelenDurum !== beklenenDurum){
-        arayuzuGuncelle('hata');
+        if(!sessizdi) arayuzuGuncelle('hata');
         return true;
       }
-      sonGirisSessizMi = false; // standalone modda yönlendirme akışı her zaman kullanıcının bilinçli girişidir
+      sonGirisSessizMi = sessizdi;
       girisTamamlandi({ access_token: jeton });
       return true;
     }
@@ -9437,9 +9490,10 @@
     function girisYap(sessiz){
       sonGirisSessizMi = !!sessiz;
       if(standaloneMi()){
-        if(sessiz) return; // ana ekran modunda sessiz/otomatik yeniden bağlanma yapılmaz
-        arayuzuGuncelle('baglaniyor');
-        tamSayfaYonlendirmesiIleGirisYap();
+        // Ana ekran modunda popup akışı çalışmaz; hem elle giriş hem de arka
+        // planda kendi kendine yenilenme (sessiz) tam sayfa yönlendirmesiyle yapılır.
+        if(!sessiz) arayuzuGuncelle('baglaniyor');
+        tamSayfaYonlendirmesiIleGirisYap(sessiz);
         return;
       }
       const istemci = jetonIstemcisiniHazirla();
@@ -9484,11 +9538,13 @@
     // Önce: Google'dan tam sayfa yönlendirmesiyle dönüş var mı diye bak (iPhone/ana ekran akışı).
     const yonlendirmedenDondu = yonlendirmedenDonusuIsle();
 
-    // Sayfa açıldığında daha önce giriş yapılmışsa arayüzü buna göre gösterir;
-    // normal tarayıcıda erişim jetonu sayfa yenilenince kaybolduğu için sessizce
-    // yeniden istenir (ana ekran/standalone modda bu otomatik adım atlanır).
+    // Sayfa açıldığında daha önce giriş yapılmışsa arayüzü buna göre gösterir; erişim
+    // jetonu sayfa yenilenince kaybolduğu için sessizce yeniden istenir — hem normal
+    // tarayıcı sekmesinde (popup) hem de ana ekrana eklenmiş standalone modda (tam
+    // sayfa prompt=none yönlendirmesiyle). Bu, arka plan otomatik yedeklemesinin ve
+    // diğer cihazlardaki değişikliklerin bu cihaza inmesinin ön koşuludur.
     arayuzuGuncelle();
-    if(!yonlendirmedenDondu && kayitliKullanici() && !standaloneMi()){
+    if(!yonlendirmedenDondu && kayitliKullanici()){
       window.setTimeout(function(){ girisYap(true); }, 600);
     }
   })();
