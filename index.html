@@ -74,6 +74,8 @@
     --dogru-rgb:75,127,82;
     --yanlis:#B5504A;
     --yanlis-rgb:181,80,74;
+    --sari:#B08A3E;
+    --sari-rgb:176,138,62;
   }
 
   html[data-theme="dark"]{
@@ -90,6 +92,8 @@
     --dogru-rgb:127,191,135;
     --yanlis:#E08478;
     --yanlis-rgb:224,132,120;
+    --sari:#D9B76B;
+    --sari-rgb:217,183,107;
   }
 
   /* ---- Renk (vurgu rengi) seçenekleri: Mavi (varsayılan), Mor, Kırmızı, Yeşil ---- */
@@ -685,9 +689,31 @@
   /* ---- Google ile giriş / yedekleme satırı ---- */
   .settings-row-google{
     cursor:pointer;
+    transition:background 0.35s ease, border-color 0.35s ease;
   }
   .settings-row-google:active{
     background:rgba(var(--accent-rgb),0.1);
+  }
+  .settings-row-google.yedekleniyor{
+    background:rgba(var(--sari-rgb),0.1);
+    border-color:rgba(var(--sari-rgb),0.5);
+  }
+  .settings-row-google.yedekleniyor .settings-row-sub{
+    color:var(--sari);
+  }
+  .settings-row-google.yedeklendi{
+    background:rgba(var(--dogru-rgb),0.1);
+    border-color:rgba(var(--dogru-rgb),0.5);
+  }
+  .settings-row-google.yedeklendi .settings-row-sub{
+    color:var(--dogru);
+  }
+  .settings-row-google.hata{
+    background:rgba(var(--yanlis-rgb),0.1);
+    border-color:rgba(var(--yanlis-rgb),0.5);
+  }
+  .settings-row-google.hata .settings-row-sub{
+    color:var(--yanlis);
   }
   .google-row-aksiyon{
     display:flex;
@@ -713,6 +739,15 @@
   }
   .settings-row-google.bagli .google-avatar{
     display:flex;
+  }
+  .settings-row-google.yedekleniyor .google-avatar{
+    box-shadow:0 0 0 2px var(--sari);
+  }
+  .settings-row-google.yedeklendi .google-avatar{
+    box-shadow:0 0 0 2px var(--dogru);
+  }
+  .settings-row-google.hata .google-avatar{
+    box-shadow:0 0 0 2px var(--yanlis);
   }
   .settings-row-google.bagli .google-signin-btn{
     display:none;
@@ -8829,6 +8864,7 @@
     const DRIVE_DOSYA_ADI = 'sessizlik-yedek.json';
     const KULLANICI_ANAHTAR = 'sessizlik-google-kullanici';
     const STATE_ANAHTAR = 'sessizlik-google-state';
+    const SON_YEDEK_ANAHTAR = 'sessizlik-google-son-yedek';
 
     const googleRow = document.getElementById('googleRow');
     const googleStateLabel = document.getElementById('googleStateLabel');
@@ -8865,28 +8901,58 @@
       try{ localStorage.setItem(KULLANICI_ANAHTAR, JSON.stringify(kullanici)); }catch(e){}
     }
     function kullaniciSil(){
-      try{ localStorage.removeItem(KULLANICI_ANAHTAR); }catch(e){}
+      try{
+        localStorage.removeItem(KULLANICI_ANAHTAR);
+        localStorage.removeItem(SON_YEDEK_ANAHTAR);
+      }catch(e){}
+    }
+
+    function sonYedekZamaniniKaydet(){
+      try{ localStorage.setItem(SON_YEDEK_ANAHTAR, String(Date.now())); }catch(e){}
+    }
+    function sonYedekVarMi(){
+      try{ return !!localStorage.getItem(SON_YEDEK_ANAHTAR); }catch(e){ return false; }
+    }
+
+    function durumSiniflariniTemizle(){
+      googleRow.classList.remove('yedekleniyor', 'yedeklendi', 'hata');
     }
 
     function arayuzuGuncelle(durum, ekBilgi){
       const kullanici = kayitliKullanici();
+
       if(durum === 'baglaniyor'){
+        durumSiniflariniTemizle();
         googleStateLabel.textContent = 'Bağlanılıyor…';
         return;
       }
       if(durum === 'yedekleniyor'){
+        durumSiniflariniTemizle();
+        googleRow.classList.add('yedekleniyor');
         googleStateLabel.textContent = 'Yedekleniyor…';
         return;
       }
       if(durum === 'hata'){
+        durumSiniflariniTemizle();
+        googleRow.classList.add('hata');
         googleStateLabel.textContent = ekBilgi || 'Bağlantı kurulamadı · Tekrar dokun';
         return;
       }
+
+      durumSiniflariniTemizle();
+
       if(kullanici){
         googleRow.classList.add('bagli');
         googleRow.setAttribute('aria-label', 'Google ile bağlı, yeniden yedeklemek için dokun');
         const isim = kullanici.name || kullanici.email || 'Google hesabı';
-        googleStateLabel.textContent = isim + ' ile bağlı · Veriler yedekleniyor';
+
+        if(durum === 'yedeklendi' || (durum === undefined && sonYedekVarMi())){
+          googleRow.classList.add('yedeklendi');
+          googleStateLabel.textContent = isim + ' ile bağlı · Veriler yedeklendi';
+        } else {
+          googleStateLabel.textContent = isim + ' ile bağlı';
+        }
+
         if(googleAvatar){
           if(kullanici.picture){
             googleAvatar.style.backgroundImage = "url('" + kullanici.picture + "')";
@@ -8962,7 +9028,8 @@
       }).then(function(sonuc){
         if(sonuc && sonuc.id){ driveDosyaId = sonuc.id; }
         yedeklemeSurmekte = false;
-        arayuzuGuncelle();
+        sonYedekZamaniniKaydet();
+        arayuzuGuncelle('yedeklendi');
       }).catch(function(err){
         yedeklemeSurmekte = false;
         console.log('Google Drive yedekleme hatası:', err);
