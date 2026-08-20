@@ -16,6 +16,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 
+<!-- Google Identity Services: Google ile giriş + Drive yedekleme için -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <script>
   // Koyu mod tercihini stiller çizilmeden önce uygula (yanıp sönmeyi engeller)
   // Not: meta[name="theme-color"] da burada, aynı anda güncelleniyor; aksi
@@ -3756,9 +3759,235 @@
     .dsayac-serit{ transition:none !important; }
     .view-gecis-cikis, .analiz-icerik-cikis{ transition:none !important; opacity:1 !important; transform:none !important; }
   }
+
+  /* ================= GOOGLE İLE GİRİŞ — KARŞILAMA KAPISI ================= */
+  .hidden{ display:none !important; }
+  .auth-gate{
+    position:fixed;
+    inset:0;
+    z-index:900;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg);
+    padding:8vh 6vw;
+    opacity:1;
+    transition:opacity 0.5s cubic-bezier(.22,1,.36,1), visibility 0.5s;
+  }
+  .auth-gate.hide{
+    opacity:0;
+    pointer-events:none;
+    visibility:hidden;
+  }
+  .auth-gate-inner{
+    max-width:360px;
+    width:100%;
+    text-align:center;
+  }
+  .auth-gate-word{
+    display:inline-block;
+    font-size:clamp(1.7rem, 5vw, 2.3rem);
+    font-style:italic;
+    letter-spacing:0.01em;
+    color:var(--ink);
+    opacity:0;
+    animation: rise 0.9s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .auth-gate-rule{
+    width:0;
+    height:1px;
+    background:var(--line);
+    margin:1.1rem auto 1.3rem;
+    animation: growLine 1s cubic-bezier(.65,0,.35,1) forwards;
+    animation-delay:0.3s;
+  }
+  .auth-gate-sub{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.82rem;
+    line-height:1.65;
+    color:var(--ink-soft);
+    opacity:0;
+    animation: rise 0.9s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.45s;
+    margin-bottom:2rem;
+  }
+  .google-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.6rem;
+    width:100%;
+    background:var(--bg);
+    color:var(--ink);
+    border:1px solid var(--line);
+    border-radius:0.9rem;
+    padding:0.85rem 1.2rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.85rem;
+    font-weight:600;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    box-shadow:0 2px 10px rgba(var(--shadow-rgb),0.05);
+    opacity:0;
+    animation: rise 0.9s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.6s;
+    transition:transform 0.2s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  }
+  .google-btn:hover{ border-color:var(--accent); box-shadow:0 6px 18px rgba(var(--shadow-rgb),0.08); }
+  .google-btn:active{ transform:scale(0.98); }
+  .google-btn svg{ width:18px; height:18px; flex-shrink:0; }
+  .google-btn-account{ justify-content:flex-start; padding:0.6rem 1rem 0.6rem 0.6rem; gap:0.7rem; margin-bottom:0.7rem; }
+  .gate-quick-avatar{ width:2.3rem; height:2.3rem; border-radius:50%; object-fit:cover; background:rgba(var(--ink-rgb),0.08); flex-shrink:0; }
+  .gate-quick-text{ display:flex; flex-direction:column; align-items:flex-start; gap:0.1rem; line-height:1.3; text-align:left; }
+  .gate-quick-name{ font-size:0.86rem; font-weight:700; }
+  .gate-quick-email{ font-size:0.72rem; font-weight:500; color:var(--ink-soft); }
+  .auth-gate-alt{
+    margin-bottom:1.1rem;
+    opacity:0;
+    animation: rise 0.9s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.7s;
+  }
+  .auth-gate-alt-link{ font-size:0.75rem; color:var(--ink-soft); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .auth-gate-alt-link:hover{ color:var(--ink); }
+  .auth-gate-status{ margin-top:1rem; font-family:"Helvetica Neue",Arial,sans-serif; font-size:0.72rem; color:var(--ink-soft); min-height:1rem; }
+  .auth-gate-skip{
+    margin-top:1.6rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    opacity:0;
+    animation: rise 0.9s ease forwards;
+    animation-delay:0.85s;
+  }
+  .auth-gate-skip:hover{ color:var(--ink); }
+
+  /* ================= AYARLAR — HESAP SATIRI ================= */
+  .account-settings-row{ align-items:center; }
+  #hesapRow.animate{ animation-delay:1.3s; }
+  #hesapSignedInRow.animate{ animation-delay:1.3s; }
+  .hesap-avatar{
+    width:2.6rem; height:2.6rem; border-radius:50%; object-fit:cover;
+    background:rgba(var(--ink-rgb),0.08); flex-shrink:0; margin-right:0.9rem;
+  }
+  .hesap-connect-btn, .hesap-cikis-btn{
+    flex-shrink:0;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    padding:0.55rem 1.05rem;
+    border-radius:9999px;
+    cursor:pointer;
+    transition:transform 0.2s ease, background 0.25s ease, border-color 0.25s ease;
+  }
+  .hesap-connect-btn{
+    border:1px solid var(--accent);
+    background:var(--accent);
+    color:var(--bg);
+  }
+  .hesap-connect-btn:hover{ transform:translateY(-1px); }
+  .hesap-connect-btn:active{ transform:translateY(0) scale(0.97); }
+  .hesap-cikis-btn{
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+  }
+  .hesap-cikis-btn:hover{ border-color:rgba(var(--ink-rgb),0.3); color:var(--ink); }
+  .hesap-sync-status{
+    display:block;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.01em;
+    color:var(--ink-soft);
+    margin-top:0.25rem;
+  }
+  .hesap-sync-status.is-reconnect{ color:var(--yanlis); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+
+  /* ================= SENKRON BİLDİRİMİ (TOAST) ================= */
+  .sync-toast{
+    position:fixed;
+    left:50%;
+    bottom:calc(1.6rem + env(safe-area-inset-bottom, 0px));
+    transform:translateX(-50%) translateY(120%);
+    z-index:80;
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    background:rgba(var(--bg-rgb),0.92);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--line);
+    border-radius:9999px;
+    padding:0.6rem 0.7rem 0.6rem 1.1rem;
+    box-shadow:0 8px 24px rgba(var(--shadow-rgb),0.14);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    color:var(--ink);
+    max-width:88vw;
+    transition:transform 0.4s cubic-bezier(.22,1,.36,1);
+  }
+  .sync-toast.show{ transform:translateX(-50%) translateY(0); }
+  .sync-toast-refresh{
+    flex-shrink:0;
+    border:none;
+    background:var(--accent);
+    color:var(--bg);
+    font-family:inherit;
+    font-size:0.72rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    padding:0.4rem 0.85rem;
+    border-radius:9999px;
+    cursor:pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .auth-gate-word, .auth-gate-rule, .auth-gate-sub, .google-btn, .auth-gate-alt, .auth-gate-skip{
+      animation:none !important; opacity:1 !important; transform:none !important;
+    }
+    .auth-gate-rule{ width:64px; }
+    .sync-toast{ transition:none !important; }
+  }
 </style>
 </head>
 <body>
+
+  <!-- ================= GOOGLE İLE GİRİŞ KAPISI ================= -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-gate-inner">
+      <span class="auth-gate-word">Sessizliğin Sesi</span>
+      <div class="auth-gate-rule"></div>
+      <p class="auth-gate-sub" id="authGateSub">Verilerini Google hesabınla yedekle; başka bir cihazda aynı hesapla açtığında kaldığın yerden devam et.</p>
+
+      <!-- Bu cihazda daha önce giriş yapılmışsa: tek dokunuşla hesapla devam et -->
+      <button type="button" class="google-btn google-btn-account hidden" id="gateQuickSignInBtn">
+        <img class="gate-quick-avatar" id="gateQuickAvatar" src="" alt="">
+        <span class="gate-quick-text">
+          <span class="gate-quick-name" id="gateQuickName"></span>
+          <span class="gate-quick-email" id="gateQuickEmail"></span>
+        </span>
+      </button>
+      <div class="auth-gate-alt hidden" id="gateAltRow"><span class="auth-gate-alt-link" id="gateUseOtherBtn">Farklı hesap kullan</span></div>
+
+      <button type="button" class="google-btn" id="gateSignInBtn">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.9 14.1-5.2l-6.5-5.5C29.6 34.9 26.9 36 24 36c-5.2 0-9.6-3.4-11.2-8.1l-6.6 5.1C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.5 5.5C39.9 37 44 31.1 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        Google ile Giriş Yap
+      </button>
+
+      <div class="auth-gate-status" id="authGateStatus"></div>
+      <div class="auth-gate-skip" id="gateSkipBtn">Şimdilik atla, bu cihazda yerel olarak devam et</div>
+    </div>
+  </div>
+
+  <!-- ================= SENKRON BİLDİRİM KUTUSU ================= -->
+  <div class="sync-toast" id="syncToast">
+    <span id="syncToastText">Diğer cihazdaki güncellemeler hazır.</span>
+    <button type="button" class="sync-toast-refresh" id="syncToastRefreshBtn">Yenile</button>
+  </div>
 
   <!-- ================= NAVBAR ================= -->
   <div class="nav-wrap" id="navWrap">
@@ -3872,6 +4101,22 @@
           <button type="button" class="renk-swatch" data-renk="kirmizi" aria-label="Kırmızı"></button>
           <button type="button" class="renk-swatch" data-renk="yesil" aria-label="Yeşil"></button>
         </div>
+      </div>
+      <div class="settings-row account-settings-row" id="hesapRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Hesap</span>
+          <span class="settings-row-sub">Google ile bağlan, verilerini cihazlar arasında yedekle</span>
+        </div>
+        <button type="button" class="hesap-connect-btn" id="settingsGoogleSignInBtn">Bağlan</button>
+      </div>
+      <div class="settings-row account-settings-row hidden" id="hesapSignedInRow">
+        <img class="hesap-avatar" id="hesapAvatar" src="" alt="">
+        <div class="settings-row-text" style="flex:1; min-width:0;">
+          <span class="settings-row-title" id="hesapAd"></span>
+          <span class="settings-row-sub" id="hesapEmail"></span>
+          <span class="hesap-sync-status" id="hesapSyncStatus"></span>
+        </div>
+        <button type="button" class="hesap-cikis-btn" id="settingsSignOutBtn">Çıkış</button>
       </div>
     </div>
   </div>
@@ -4444,6 +4689,529 @@
   </div>
 
 <script>
+/* ============================================================================
+   GOOGLE İLE GİRİŞ + DRIVE YEDEKLEME
+   ----------------------------------------------------------------------------
+   Bu blok "Sessizliğin Sesi" verilerini (denemeler, sıfır hata istatistiği,
+   soru havuzu, geri sayım/sayaçlar ve görünüm tercihleri) kullanıcının kendi
+   Google Drive "uygulama verisi" (appDataFolder) alanına yedekler; böylece
+   aynı Google hesabıyla başka bir cihazda açıldığında kaldığı yerden devam
+   edilebilir. Not: cevap anahtarı/video gibi yüklenmiş dosyalar bu cihazda
+   IndexedDB'de tutulduğu için bu yedeğe dahil değildir — yalnızca metin
+   tabanlı veriler (localStorage'daki "sessizlik-" ile başlayan anahtarlar)
+   senkronize edilir.
+
+   KURULUM (tek seferlik, geliştirici tarafından yapılmalı):
+   1) https://console.cloud.google.com adresinde bir proje oluştur.
+   2) "APIs & Services > Library" içinden "Google Drive API"yi etkinleştir.
+   3) "APIs & Services > Credentials" içinden "OAuth client ID" (Web application) oluştur.
+   4) "Authorized JavaScript origins" alanına bu sayfayı yayınlayacağın adresi ekle
+      (ör. https://kullaniciadi.github.io). Dosyayı doğrudan çift tıklayıp file://
+      olarak açarsan Google girişi çalışmaz — bir adrese yüklemen gerekir.
+   5) Aşağıdaki GOOGLE_CLIENT_ID değerini oluşturduğun client ID ile değiştir.
+   6) iOS'ta "Ana Ekrana Ekle" ile kurulan uygulamalarda kullanılan tam-sayfa
+      yönlendirme akışı için, aynı OAuth client'ın "Authorized redirect URIs"
+      listesine bu sayfanın adresini (GOOGLE_REDIRECT_URI ile birebir aynı)
+      ekle, yoksa Google "redirect_uri_mismatch" hatası verir.
+   ============================================================================ */
+(function(){
+  const GOOGLE_CLIENT_ID = '719796230737-p9pt8ou0m9p37gagfnnc5no1f1ekr182.apps.googleusercontent.com';
+  const GOOGLE_LOGIN_SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+  const GOOGLE_REDIRECT_URI = window.location.origin + window.location.pathname;
+  const DRIVE_BACKUP_FILENAME = 'sessizligin-sesi-yedek.json';
+  const VERI_ON_EKI = 'sessizlik-'; // senkronize edilecek localStorage anahtarlarının ortak öneki
+
+  function clientIdConfigured(){
+    return GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith('BURAYA_');
+  }
+
+  /* ---------------- Yerel depolama: "kirli" (henüz buluta gönderilmemiş) alan takibi ----------------
+     Kullanıcı çevrimdışıyken ya da giriş yapmadan önce bu cihazda veri
+     değiştirmişse, bu değişiklik buluttan gelecek eski veriyle sessizce
+     ezilmesin diye "kirli" olarak işaretlenir ve buluta gönderilene kadar
+     bulut verisiyle üzerine yazılmaz. */
+  let sgDirty = new Set();
+  try{ sgDirty = new Set(JSON.parse(localStorage.getItem('sg-dirty') || '[]')); }catch(e){}
+  function sgKirliKaydet(){
+    try{ localStorage.setItem('sg-dirty', JSON.stringify(Array.from(sgDirty))); }catch(e){}
+  }
+
+  // localStorage.setItem'i sarmalayarak uygulamanın herhangi bir yerinde
+  // "sessizlik-" önekli bir anahtara yazılan her değişikliği yakalıyoruz.
+  // Böylece mevcut denemeler/havuz/sayaç kodlarının tek satırı bile
+  // değiştirilmeden otomatik olarak senkron kapsamına girer.
+  const __nativeSetItem = localStorage.setItem.bind(localStorage);
+  const __nativeRemoveItem = localStorage.removeItem.bind(localStorage);
+  let __sgUyguluyor = false; // bulut verisini yerel depoya yazarken kendi yazdığımızı "kirli" saymamak için
+  localStorage.setItem = function(key, value){
+    __nativeSetItem(key, value);
+    if(!__sgUyguluyor && typeof key === 'string' && key.indexOf(VERI_ON_EKI) === 0){
+      sgDirty.add(key);
+      sgKirliKaydet();
+      sgScheduleCloudSync();
+    }
+  };
+
+  function sgVerileriTopla(){
+    const obj = {};
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf(VERI_ON_EKI) === 0) obj[k] = localStorage.getItem(k);
+    }
+    return obj;
+  }
+  // Bulut verisini yerel depoya uygular; "kirli" (henüz gönderilmemiş yerel
+  // değişikliği olan) anahtarların üzerine yazmaz. Değişiklik olduysa true döner.
+  function sgVerileriUygula(cloudObj, respectDirty){
+    let degisti = false;
+    __sgUyguluyor = true;
+    try{
+      Object.keys(cloudObj || {}).forEach(function(k){
+        if(k.indexOf(VERI_ON_EKI) !== 0) return;
+        if(respectDirty && sgDirty.has(k)) return;
+        if(localStorage.getItem(k) !== cloudObj[k]){
+          __nativeSetItem(k, cloudObj[k]);
+          degisti = true;
+        }
+      });
+    } finally { __sgUyguluyor = false; }
+    return degisti;
+  }
+
+  function sgGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+  function sgSet(key, val){ try{ __nativeSetItem(key, val); }catch(e){} }
+  function sgRemove(key){ try{ __nativeRemoveItem(key); }catch(e){} }
+
+  /* ---------------- Google ile giriş ---------------- */
+  let gAccessToken = null;
+  let gTokenClient = null;
+  let gDriveFileId = null;
+  let gProfile = null;
+  let gCloudSyncTimer = null;
+  let gLastSyncedModifiedTime = sgGet('sg-lastSyncedModifiedTime') || null;
+  let pendingCloudSync = false;
+
+  function setLastSyncedModifiedTime(val){
+    gLastSyncedModifiedTime = val || gLastSyncedModifiedTime;
+    if(gLastSyncedModifiedTime) sgSet('sg-lastSyncedModifiedTime', gLastSyncedModifiedTime);
+  }
+  function setGateStatus(msg){
+    const el = document.getElementById('authGateStatus');
+    if(el) el.textContent = msg || '';
+  }
+  function showGate(){ const g = document.getElementById('authGate'); if(g) g.classList.remove('hide'); }
+  function hideGate(){ const g = document.getElementById('authGate'); if(g) g.classList.add('hide'); }
+
+  function getRememberedProfile(){
+    if(sgGet('sg-signedIn') !== '1') return null;
+    try{
+      const raw = sgGet('sg-profile');
+      if(!raw) return null;
+      const p = JSON.parse(raw);
+      if(!p || !p.email) return null;
+      return p;
+    }catch(e){ return null; }
+  }
+
+  function renderGateAccountState(){
+    const profile = getRememberedProfile();
+    const quickBtn = document.getElementById('gateQuickSignInBtn');
+    const altRow = document.getElementById('gateAltRow');
+    const fullBtn = document.getElementById('gateSignInBtn');
+    const sub = document.getElementById('authGateSub');
+    if(profile && quickBtn){
+      document.getElementById('gateQuickAvatar').src = profile.picture || '';
+      document.getElementById('gateQuickName').textContent = profile.name || profile.email;
+      document.getElementById('gateQuickEmail').textContent = profile.email;
+      quickBtn.classList.remove('hidden');
+      if(altRow) altRow.classList.remove('hidden');
+      if(fullBtn) fullBtn.classList.add('hidden');
+      if(sub) sub.textContent = 'Devam etmek için hesabına dokun.';
+    } else {
+      if(quickBtn) quickBtn.classList.add('hidden');
+      if(altRow) altRow.classList.add('hidden');
+      if(fullBtn) fullBtn.classList.remove('hidden');
+    }
+  }
+
+  function isIOSStandalone(){
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches ||
+                        window.matchMedia('(display-mode: fullscreen)').matches ||
+                        window.navigator.standalone === true;
+    return isIOS && standalone;
+  }
+
+  /* ---- iOS standalone: popup yerine tam sayfa yönlendirme akışı ---- */
+  function buildGoogleRedirectAuthUrl(promptMode, hint){
+    const nonce = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try{ sessionStorage.setItem('sg-oauth-nonce', nonce); }catch(e){}
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      response_type: 'token',
+      include_granted_scopes: 'true',
+      scope: GOOGLE_LOGIN_SCOPE,
+      state: 'login:' + nonce
+    });
+    if(promptMode) params.set('prompt', promptMode);
+    if(hint) params.set('login_hint', hint);
+    return 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+  }
+  function startGoogleRedirectAuth(promptMode, hint){
+    setGateStatus('Google hesabına yönlendiriliyorsun…');
+    window.location.href = buildGoogleRedirectAuthUrl(promptMode, hint);
+  }
+  function consumeGoogleRedirectResult(){
+    if(!window.location.hash || window.location.hash.indexOf('access_token=') === -1) return;
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = hashParams.get('access_token');
+    const state = hashParams.get('state') || '';
+    const error = hashParams.get('error');
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    const parts = state.split(':');
+    const nonce = parts[1];
+    let expectedNonce = null;
+    try{ expectedNonce = sessionStorage.getItem('sg-oauth-nonce'); }catch(e){}
+    try{ sessionStorage.removeItem('sg-oauth-nonce'); }catch(e){}
+    if(error){ setGateStatus('Google girişi tamamlanamadı (' + error + ').'); return; }
+    if(!nonce || nonce !== expectedNonce){ console.warn('OAuth state doğrulaması başarısız.'); return; }
+    if(!accessToken) return;
+    handleTokenResponse({ access_token: accessToken });
+  }
+
+  function requestSignIn(promptMode, hint){
+    if(!clientIdConfigured()){
+      setGateStatus('Google girişi henüz ayarlanmadı — geliştirici GOOGLE_CLIENT_ID değerini tanımlamalı.');
+      return;
+    }
+    if(isIOSStandalone()){
+      startGoogleRedirectAuth(promptMode, hint);
+      return;
+    }
+    if(!gTokenClient) return;
+    setGateStatus('Google hesabına bağlanılıyor…');
+    const overrideConfig = { prompt: promptMode || '' };
+    if(hint) overrideConfig.hint = hint;
+    gTokenClient.requestAccessToken(overrideConfig);
+  }
+
+  async function handleTokenResponse(resp){
+    if(!resp || resp.error){
+      setGateStatus('');
+      markGoogleDisconnected();
+      const quickBtn = document.getElementById('gateQuickSignInBtn');
+      const altRow = document.getElementById('gateAltRow');
+      const fullBtn = document.getElementById('gateSignInBtn');
+      if(quickBtn && !quickBtn.classList.contains('hidden')){
+        quickBtn.classList.add('hidden');
+        if(altRow) altRow.classList.add('hidden');
+        if(fullBtn) fullBtn.classList.remove('hidden');
+      }
+      return;
+    }
+    gAccessToken = resp.access_token;
+    sgSet('sg-signedIn', '1');
+    setGateStatus('Profil bilgisi alınıyor…');
+    try{ await fetchProfile(); }catch(e){ /* profil alınamasa da devam et */ }
+    setGateStatus('Verilerin senkronize ediliyor…');
+    let degisti = false;
+    try{ degisti = await loadCloudBackup(); }
+    catch(e){ console.warn('Bulut yedeği yüklenemedi', e); }
+    updateAccountUI();
+    startCloudPolling();
+    if(degisti){
+      // Uygulama bu sayfanın ilk yüklenişinde verileri belleğe zaten okumuştu;
+      // buluttan gelen daha güncel veriyi doğru şekilde göstermek için sayfayı
+      // bir kez yeniliyoruz (kullanıcı verisi kaybolmaz, sadece ekran tazelenir).
+      setGateStatus('Verilerin bulundu, açılıyor…');
+      setTimeout(function(){ window.location.reload(); }, 300);
+      return;
+    }
+    hideGate();
+    scheduleCloudSync();
+  }
+
+  async function fetchProfile(){
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers:{ Authorization:'Bearer '+gAccessToken }
+    });
+    if(!res.ok) throw new Error('userinfo failed');
+    gProfile = await res.json();
+    sgSet('sg-profile', JSON.stringify(gProfile));
+  }
+
+  /* ---------------- Drive appDataFolder yedekleme ---------------- */
+  async function loadCloudBackup(){
+    const q = encodeURIComponent(`name='${DRIVE_BACKUP_FILENAME}'`);
+    const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&fields=files(id,name,modifiedTime)`, {
+      headers:{ Authorization:'Bearer '+gAccessToken }
+    });
+    if(!listRes.ok) throw new Error('drive list failed');
+    const listData = await listRes.json();
+    const file = (listData.files||[])[0];
+    if(!file){ gDriveFileId = null; return false; } // buluta henüz hiç yedek atılmamış
+    gDriveFileId = file.id;
+    setLastSyncedModifiedTime(file.modifiedTime);
+    const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
+      headers:{ Authorization:'Bearer '+gAccessToken }
+    });
+    if(!fileRes.ok) throw new Error('drive download failed');
+    const cloudData = await fileRes.json();
+    return sgVerileriUygula(cloudData, true);
+  }
+
+  let gCloudPollTimer = null;
+  function startCloudPolling(){
+    stopCloudPolling();
+    if(!gAccessToken) return;
+    gCloudPollTimer = setInterval(checkForRemoteChanges, 8000);
+  }
+  function stopCloudPolling(){
+    clearInterval(gCloudPollTimer);
+    gCloudPollTimer = null;
+  }
+  async function checkForRemoteChanges(){
+    if(!gAccessToken || !navigator.onLine) return;
+    if(pendingCloudSync) return; // önce kendi gönderemediğimiz değişikliği yollayalım
+    if(!gDriveFileId) return;
+    try{
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${gDriveFileId}?fields=modifiedTime`, {
+        headers:{ Authorization:'Bearer '+gAccessToken }
+      });
+      if(!res.ok) return;
+      const meta = await res.json();
+      if(!meta.modifiedTime || meta.modifiedTime === gLastSyncedModifiedTime) return;
+      await pullRemoteChanges(meta.modifiedTime);
+    }catch(e){ console.warn('Drive değişiklik kontrolü başarısız', e); }
+  }
+  async function pullRemoteChanges(knownModifiedTime){
+    try{
+      const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${gDriveFileId}?alt=media`, {
+        headers:{ Authorization:'Bearer '+gAccessToken }
+      });
+      if(!fileRes.ok) throw new Error('drive download failed');
+      const cloudData = await fileRes.json();
+      const degisti = sgVerileriUygula(cloudData, true);
+      setLastSyncedModifiedTime(knownModifiedTime);
+      if(degisti) sgShowSyncToast();
+    }catch(e){ console.warn('Uzak değişiklikler indirilemedi', e); }
+  }
+
+  function sgShowSyncToast(){
+    const toast = document.getElementById('syncToast');
+    if(toast) toast.classList.add('show');
+  }
+
+  function sgScheduleCloudSync(){
+    if(!gAccessToken) return;
+    if(!navigator.onLine){
+      pendingCloudSync = true;
+      const status = document.getElementById('hesapSyncStatus');
+      if(status) status.textContent = 'Çevrimdışı — bağlantı gelince yedeklenecek';
+      return;
+    }
+    clearTimeout(gCloudSyncTimer);
+    gCloudSyncTimer = setTimeout(uploadBackup, 2500);
+  }
+  function scheduleCloudSync(){ sgScheduleCloudSync(); }
+
+  async function uploadBackup(){
+    if(!gAccessToken) return;
+    if(!navigator.onLine){ pendingCloudSync = true; return; }
+    const status = document.getElementById('hesapSyncStatus');
+    if(status) status.textContent = 'Yedekleniyor…';
+    try{
+      // Yazmadan önce buluttaki dosya bizden habersiz değiştiyse (başka bir
+      // cihaz senkron etmişse) önce onu indirip, bu cihazda henüz
+      // değiştirilmemiş ("kirli" olmayan) alanlara uyguluyoruz.
+      if(gDriveFileId){
+        try{
+          const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${gDriveFileId}?fields=modifiedTime`, {
+            headers:{ Authorization:'Bearer '+gAccessToken }
+          });
+          if(metaRes.ok){
+            const meta = await metaRes.json();
+            if(meta.modifiedTime && meta.modifiedTime !== gLastSyncedModifiedTime){
+              const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${gDriveFileId}?alt=media`, {
+                headers:{ Authorization:'Bearer '+gAccessToken }
+              });
+              if(fileRes.ok){
+                const cloudData = await fileRes.json();
+                const degisti = sgVerileriUygula(cloudData, true);
+                setLastSyncedModifiedTime(meta.modifiedTime);
+                if(degisti) sgShowSyncToast();
+              }
+            }
+          }
+        }catch(e){ console.warn('Yükleme öncesi bulut kontrolü başarısız, yine de devam ediliyor', e); }
+      }
+      const json = JSON.stringify(sgVerileriTopla());
+      if(gDriveFileId){
+        const res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${gDriveFileId}?uploadType=media&fields=modifiedTime`, {
+          method:'PATCH',
+          headers:{ Authorization:'Bearer '+gAccessToken, 'Content-Type':'application/json' },
+          body: json
+        });
+        if(!res.ok) throw new Error('upload failed');
+        const updated = await res.json();
+        setLastSyncedModifiedTime(updated.modifiedTime);
+      } else {
+        const metadata = { name: DRIVE_BACKUP_FILENAME, parents:['appDataFolder'] };
+        const boundary = 'sessizlik_backup_boundary';
+        const body =
+          `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`+
+          `--${boundary}\r\nContent-Type: application/json\r\n\r\n${json}\r\n--${boundary}--`;
+        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', {
+          method:'POST',
+          headers:{ Authorization:'Bearer '+gAccessToken, 'Content-Type':`multipart/related; boundary=${boundary}` },
+          body
+        });
+        if(!res.ok) throw new Error('create failed');
+        const created = await res.json();
+        gDriveFileId = created.id;
+        setLastSyncedModifiedTime(created.modifiedTime);
+      }
+      if(status) status.textContent = 'Son yedekleme: az önce';
+      pendingCloudSync = false;
+      sgDirty.clear();
+      sgKirliKaydet();
+    }catch(e){
+      console.warn('Drive yedekleme hatası', e);
+      pendingCloudSync = true;
+      if(status) status.textContent = navigator.onLine
+        ? 'Yedekleme başarısız — bağlantını kontrol et'
+        : 'Çevrimdışı — bağlantı gelince yedeklenecek';
+    }
+  }
+
+  /* ---------------- Ayarlar > Hesap satırı ---------------- */
+  function updateAccountUI(){
+    const signedOutRow = document.getElementById('hesapRow');
+    const signedInRow = document.getElementById('hesapSignedInRow');
+    const statusEl = document.getElementById('hesapSyncStatus');
+    if(!signedOutRow || !signedInRow) return;
+    const profile = gProfile || getRememberedProfile();
+    if(profile){
+      signedOutRow.classList.add('hidden');
+      signedInRow.classList.remove('hidden');
+      document.getElementById('hesapAvatar').src = profile.picture || '';
+      document.getElementById('hesapAd').textContent = profile.name || '';
+      document.getElementById('hesapEmail').textContent = profile.email || '';
+      if(statusEl){
+        if(gAccessToken){
+          statusEl.textContent = 'Google Drive ile senkronize';
+          statusEl.classList.remove('is-reconnect');
+          statusEl.onclick = null;
+        } else {
+          statusEl.textContent = 'Bağlantı kesildi — yeniden bağlanmak için dokun';
+          statusEl.classList.add('is-reconnect');
+          statusEl.onclick = function(){ requestSignIn(''); };
+        }
+      }
+    } else {
+      signedOutRow.classList.remove('hidden');
+      signedInRow.classList.add('hidden');
+    }
+  }
+  window.updateAccountUI = updateAccountUI; // Ayarlar görünümü her açıldığında tazelenebilsin diye
+
+  function markGoogleDisconnected(){
+    gAccessToken = null;
+    stopCloudPolling();
+    updateAccountUI();
+  }
+
+  function signOut(){
+    stopCloudPolling();
+    const token = gAccessToken;
+    gAccessToken = null; gProfile = null; gDriveFileId = null;
+    sgSet('sg-signedIn', '0');
+    sgRemove('sg-profile');
+    if(token && window.google && google.accounts && google.accounts.oauth2){
+      try{ google.accounts.oauth2.revoke(token, function(){}); }catch(e){}
+    }
+    updateAccountUI();
+  }
+
+  /* ---------------- Google Identity Services kurulumu ---------------- */
+  let gsiRetryCount = 0;
+  function initGoogleAuth(){
+    if(gsiRetryCount === 0){
+      renderGateAccountState();
+      const signInBtn = document.getElementById('gateSignInBtn');
+      const quickBtn = document.getElementById('gateQuickSignInBtn');
+      const useOtherBtn = document.getElementById('gateUseOtherBtn');
+      const skipBtn = document.getElementById('gateSkipBtn');
+      if(signInBtn) signInBtn.addEventListener('click', function(){ requestSignIn('consent'); });
+      if(quickBtn) quickBtn.addEventListener('click', function(){
+        const profile = getRememberedProfile();
+        requestSignIn('', profile ? profile.email : undefined);
+      });
+      if(useOtherBtn) useOtherBtn.addEventListener('click', function(){
+        document.getElementById('gateQuickSignInBtn').classList.add('hidden');
+        document.getElementById('gateAltRow').classList.add('hidden');
+        document.getElementById('gateSignInBtn').classList.remove('hidden');
+        const sub = document.getElementById('authGateSub');
+        if(sub) sub.textContent = 'Verilerini Google hesabınla yedekle; başka bir cihazda aynı hesapla açtığında kaldığın yerden devam et.';
+        requestSignIn('select_account');
+      });
+      if(skipBtn) skipBtn.addEventListener('click', function(){ hideGate(); });
+      const settingsSignInBtn = document.getElementById('settingsGoogleSignInBtn');
+      if(settingsSignInBtn) settingsSignInBtn.addEventListener('click', function(){
+        const profile = getRememberedProfile();
+        requestSignIn(profile ? '' : 'consent', profile ? profile.email : undefined);
+      });
+      const settingsSignOutBtn = document.getElementById('settingsSignOutBtn');
+      if(settingsSignOutBtn) settingsSignOutBtn.addEventListener('click', signOut);
+      const syncToastRefreshBtn = document.getElementById('syncToastRefreshBtn');
+      if(syncToastRefreshBtn) syncToastRefreshBtn.addEventListener('click', function(){ window.location.reload(); });
+      updateAccountUI();
+    }
+    if(!clientIdConfigured()){
+      setGateStatus('Google girişi henüz ayarlanmadı — geliştirici GOOGLE_CLIENT_ID değerini tanımlamalı.');
+      return;
+    }
+    if(typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2){
+      // gsi/client betiği async/defer ile yükleniyor, henüz hazır olmayabilir.
+      if(gsiRetryCount < 20){
+        gsiRetryCount++;
+        setGateStatus('Google servisleri yükleniyor…');
+        setTimeout(initGoogleAuth, 300);
+        return;
+      }
+      setGateStatus('Google servisleri yüklenemedi. İnternet bağlantını kontrol et.');
+      return;
+    }
+    try{
+      gTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: GOOGLE_LOGIN_SCOPE,
+        callback: handleTokenResponse,
+        use_fedcm_for_prompt: true
+      });
+      setGateStatus('');
+    }catch(e){
+      console.warn('Google Identity Services yüklenemedi', e);
+      setGateStatus('Google servisleri yüklenemedi. İnternet bağlantını kontrol et.');
+    }
+  }
+
+  // Sekmeye/uygulamaya geri dönüldüğünde beklemeden hemen kontrol et.
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') checkForRemoteChanges();
+  });
+  window.addEventListener('online', function(){
+    if(pendingCloudSync) uploadBackup();
+  });
+
+  consumeGoogleRedirectResult();
+  initGoogleAuth();
+})();
+</script>
+
+<script>
   // Başlığı kelime kelime, gecikmeli olarak sahneye koy
   const text = "Sessizlik de bir dildir.";
   const h1 = document.getElementById('headline');
@@ -4932,6 +5700,8 @@
     const settingsRow = document.getElementById('settingsRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
     const renkRow = document.getElementById('renkRow');
+    const hesapRow = document.getElementById('hesapRow');
+    const hesapSignedInRow = document.getElementById('hesapSignedInRow');
     const gundelikEyebrow = document.getElementById('gundelikEyebrow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
@@ -5018,6 +5788,8 @@
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
       renkRow.classList.remove('animate');
+      hesapRow.classList.remove('animate');
+      hesapSignedInRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
       emptyRule.classList.add('animate');
@@ -5025,6 +5797,11 @@
       settingsRow.classList.add('animate');
       navbarPositionRow.classList.add('animate');
       renkRow.classList.add('animate');
+      hesapRow.classList.add('animate');
+      hesapSignedInRow.classList.add('animate');
+      // Ayarlar ekranı her açıldığında hesap satırının güncel olduğundan emin ol
+      // (ör. arka planda oturum sessizce yenilenmiş/kesilmiş olabilir).
+      if(typeof updateAccountUI === 'function') updateAccountUI();
       });
     }
 
