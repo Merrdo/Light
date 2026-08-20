@@ -4960,6 +4960,24 @@
 
     // Sayfa geçişini yumuşatır: önce görünen görünümü kısa bir "solma" ile kapatır,
     // solma bittiğinde asıl içerik değişimini (hideAllViews + yeni görünümü açma) çalıştırır.
+    //
+    // NOT: Kullanıcı bir dock/nav butonuna art arda hızlı basarsa (ör. Gündelik'e
+    // basıp tepki görmeden hemen tekrar basması, ya da iki görünüm arasında hızlı
+    // gidip gelmesi) bu fonksiyon üst üste birden fazla kez çağrılabiliyordu.
+    // Her çağrı kendi 170ms'lik setTimeout'unu kuruyordu; önceki bekleyen çağrı
+    // iptal edilmediği için, daha sonra kurulan bir timeout bazen daha ÖNCE kurulan
+    // (ve hâlâ bekleyen) bir timeout'tan sonra devreye giriyor, bu da eski bir
+    // "showXView" çağrısının, az önce ekrana gelmiş yeni görünümün üzerine tekrar
+    // hideAllViews() + animasyon-sıfırlama çalıştırmasına yol açıyordu. Bu çakışma
+    // özellikle .animate sınıfıyla açılan (opacity:0 -> 1) eyebrow/title/sub gibi
+    // elemanların animasyonunu yarıda kesip yeniden opacity:0'a döndürebiliyor;
+    // eğer bu ikinci çalışma tam o sırada gelirse eleman "animate" sınıfını asla
+    // düzgün bitiremeden opacity:0'da takılı kalabiliyordu (buton görünmez ama
+    // DOM'da/tıklanabilir kalmaya devam ediyor, çünkü opacity:0 pointer-events'i
+    // etkilemiyor). Aşağıdaki token/iptal mekanizması, her zaman yalnızca EN SON
+    // çağrının içerik fonksiyonunu çalıştırmasını garanti ederek bu yarışı ortadan
+    // kaldırıyor.
+    let gecisBekleyenId = null;
     function gecisIleDegistir(icerikFn){
       const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
       const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
@@ -4968,6 +4986,13 @@
 
       const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+      // Daha önce kurulmuş ama henüz çalışmamış bir geçiş varsa iptal et; sadece
+      // en güncel çağrı içeriği değiştirsin.
+      if(gecisBekleyenId){
+        window.clearTimeout(gecisBekleyenId);
+        gecisBekleyenId = null;
+      }
+
       if(cikanlar.length === 0 || azaltilmisHareket){
         icerikFn();
         return;
@@ -4975,7 +5000,8 @@
 
       cikanlar.forEach(function(v){ v.classList.add('view-gecis-cikis'); });
 
-      window.setTimeout(function(){
+      gecisBekleyenId = window.setTimeout(function(){
+        gecisBekleyenId = null;
         icerikFn();
       }, 170);
     }
