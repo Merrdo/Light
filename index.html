@@ -3867,9 +3867,48 @@
     .dsayac-serit{ transition:none !important; }
     .view-gecis-cikis, .analiz-icerik-cikis{ transition:none !important; opacity:1 !important; transform:none !important; }
   }
+
+  /* ================= GİRİŞ / SENKRON KAPISI =================
+     Sayfa açıldığında daha önce giriş yapılmış bir kullanıcı varsa, sessiz
+     yeniden bağlanma + olası bulut birleştirmesi bitene kadar ekranı kısa
+     süreliğine kapatır. Böylece başka bir cihazda yapılan bir değişiklik
+     localStorage'a sessizce yazılıp da ekranda hiç görünmeden kalmaz. */
+  #senkronKapisi{
+    position:fixed; inset:0; z-index:9999;
+    background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:1.1rem;
+    transition:opacity 0.4s ease, visibility 0.4s ease;
+  }
+  #senkronKapisi.gizli{
+    opacity:0; visibility:hidden; pointer-events:none;
+  }
+  #senkronKapisi .kapi-logo{
+    width:2.4rem; height:2.4rem; color:var(--accent);
+    animation: kapiNabiz 1.6s ease-in-out infinite;
+  }
+  @keyframes kapiNabiz{
+    0%,100%{ opacity:0.55; transform:scale(0.94); }
+    50%{ opacity:1; transform:scale(1); }
+  }
+  #senkronKapisi .kapi-metin{
+    font-family:"Iowan Old Style","Palatino Linotype","Georgia",serif;
+    font-size:0.95rem;
+    color:var(--ink-soft);
+    letter-spacing:0.01em;
+    min-height:1.3em;
+  }
 </style>
 </head>
 <body>
+
+  <!-- ================= GİRİŞ / SENKRON KAPISI ================= -->
+  <div id="senkronKapisi" class="gizli" aria-hidden="true">
+    <svg class="kapi-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+    </svg>
+    <div class="kapi-metin" id="senkronKapisiMetin">Senkronize ediliyor…</div>
+  </div>
 
   <!-- ================= NAVBAR ================= -->
   <div class="nav-wrap" id="navWrap">
@@ -9056,6 +9095,25 @@
       return fetch(dataUrl).then(function(res){ return res.blob(); });
     }
 
+    function kapiyiGoster(metin){
+      const kapi = document.getElementById('senkronKapisi');
+      const metinEl = document.getElementById('senkronKapisiMetin');
+      if(!kapi) return;
+      if(metin && metinEl) metinEl.textContent = metin;
+      kapi.classList.remove('gizli');
+      kapi.setAttribute('aria-hidden', 'false');
+    }
+    function kapiMetniGuncelle(metin){
+      const metinEl = document.getElementById('senkronKapisiMetin');
+      if(metinEl && metin) metinEl.textContent = metin;
+    }
+    function kapiyiGizle(){
+      const kapi = document.getElementById('senkronKapisi');
+      if(!kapi) return;
+      kapi.classList.add('gizli');
+      kapi.setAttribute('aria-hidden', 'true');
+    }
+
     function durumSiniflariniTemizle(){
       googleRow.classList.remove('yedekleniyor', 'yedeklendi', 'hata');
     }
@@ -9367,11 +9425,22 @@
     }
 
     function girisTamamlandi(jetonYaniti){
+      // Kapı, sadece açılıştaki sessiz otomatik yeniden bağlanma öncesinde
+      // (aşağıdaki IIFE'nin sonunda) açılmış olabilir. Burada onu, bu girişin
+      // kapı-korumalı olup olmadığını hatırlamak için okuyoruz — birleştirme
+      // bitince buna göre kapatacağız/tazeleyeceğiz.
+      const kapiAcikMi = (function(){
+        const kapi = document.getElementById('senkronKapisi');
+        return !!(kapi && !kapi.classList.contains('gizli'));
+      })();
+
       if(!jetonYaniti || jetonYaniti.error){
         arayuzuGuncelle('hata');
+        kapiyiGizle();
         return;
       }
       erisimJetonu = jetonYaniti.access_token;
+      kapiMetniGuncelle('Hesap bilgisi alınıyor…');
       kullaniciBilgisiAl().then(function(bilgi){
         const kullanici = { name: bilgi.name || '', email: bilgi.email || '', picture: bilgi.picture || '' };
         kullaniciKaydet(kullanici);
@@ -9381,12 +9450,13 @@
       }).then(function(id){
         if(!id){
           // Drive'da bu hesaba ait henüz yedek yok: bu cihazın verisini ilk kez yükle.
-          return driveyeYedekle();
+          return driveyeYedekle().then(function(){ kapiyiGizle(); });
         }
         // Drive'da bir yedek var: kullanıcıya SORMADAN, cihazdaki her anahtar tek tek
         // karşılaştırılıp otomatik birleştirilir — bu cihazda henüz buluta gönderilmemiş
         // (kirli) bir değişiklik varsa o korunur, yoksa buluttaki alınır. Böylece "Tamam/
         // İptal" seçimi yapmaya hiç gerek kalmaz.
+        kapiMetniGuncelle('Veriler eşitleniyor…');
         return drivedenIndir().then(function(paket){
           return paketiCihazaBirlestir(paket).then(function(degisti){
             const uzakZaman = sonBilinenDegisimZamani();
@@ -9396,18 +9466,27 @@
             // Bu cihazda hâlâ buluta gönderilmemiş (kirli) veri varsa onu da yükle,
             // böylece iki taraf da güncel kalır.
             if(kirliAnahtarlar.size){
-              return driveyeYedekle();
+              return driveyeYedekle().then(function(){ kapiyiGizle(); });
+            }
+            if(degisti && kapiAcikMi){
+              // Kapı açıkken (sessiz yeniden bağlanma sırasında) bulut verisi
+              // değiştiyse: ekran henüz kullanıcıya hiç gösterilmedi, o yüzden
+              // rahatsız etmeden doğrudan güncel veriyle yenileyip kapıyı kapatıyoruz.
+              window.location.reload();
+              return;
             }
             if(degisti && !sonGirisSessizMi){
-              // Sessiz/otomatik yeniden bağlanmada değil, kullanıcının BİLEREK
-              // dokunduğu bir girişte, indirilen yeni veri ekrana yansısın diye tazele.
+              // Sessiz olmayan (kullanıcının BİLEREK dokunduğu) bir girişte,
+              // indirilen yeni veri ekrana yansısın diye tazele.
               window.setTimeout(function(){ window.location.reload(); }, 300);
             }
+            kapiyiGizle();
           });
         });
       }).catch(function(err){
         console.log('Google kullanıcı bilgisi alınamadı:', err);
         arayuzuGuncelle('hata');
+        kapiyiGizle();
       });
     }
 
@@ -9499,6 +9578,7 @@
       const istemci = jetonIstemcisiniHazirla();
       if(!istemci){
         arayuzuGuncelle('hata', 'Google servisine ulaşılamadı · Tekrar dokun');
+        kapiyiGizle();
         return;
       }
       arayuzuGuncelle('baglaniyor');
@@ -9535,6 +9615,18 @@
     });
     if(googleSignOutBtn){ googleSignOutBtn.addEventListener('click', cikisYap); }
 
+    // Daha önce giriş yapılmış bir kullanıcı varsa (ya da bu, Google'dan tam sayfa
+    // yönlendirmesiyle dönüş anıysa), sessiz yeniden bağlanma + olası bulut
+    // birleştirmesi bitene kadar ekranı kısa süreliğine kapatıyoruz — aksi halde
+    // başka bir cihazdan gelen bir değişiklik localStorage'a sessizce yazılıp da
+    // ekranda hiç görünmeden kalabilir. Güvenlik freni: bir şeyler ters giderse
+    // kapı sonsuza dek açık kalmasın diye bir üst sınır koyuyoruz.
+    const kapiGerekebilir = !!kayitliKullanici() || window.location.hash.indexOf('access_token=') !== -1;
+    if(kapiGerekebilir){
+      kapiyiGoster('Senkronize ediliyor…');
+      window.setTimeout(kapiyiGizle, 8000);
+    }
+
     // Önce: Google'dan tam sayfa yönlendirmesiyle dönüş var mı diye bak (iPhone/ana ekran akışı).
     const yonlendirmedenDondu = yonlendirmedenDonusuIsle();
 
@@ -9546,6 +9638,15 @@
     arayuzuGuncelle();
     if(!yonlendirmedenDondu && kayitliKullanici()){
       window.setTimeout(function(){ girisYap(true); }, 600);
+    } else if(!yonlendirmedenDondu && kapiGerekebilir){
+      // Kapı açıldı ama ne kayıtlı kullanıcı var ne de gerçek bir yönlendirme
+      // dönüşü oldu (ör. hash başka bir şeydendi) — kapatalım, bekleyen bir
+      // giriş akışı yok.
+      kapiyiGizle();
+    } else if(yonlendirmedenDondu && !kayitliKullanici()){
+      // Yönlendirme işlendi ama (hata vb. nedenle) girisTamamlandi hiç
+      // çağrılmadıysa/kullanıcı kaydolmadıysa kapı açık kalmasın.
+      kapiyiGizle();
     }
   })();
 
