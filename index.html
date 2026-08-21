@@ -54,6 +54,26 @@
       document.documentElement.setAttribute('data-navbar', 'bottom');
     }
   })();
+
+  // Işık efektleri (huzmeler) aç/kapa tercihini stiller çizilmeden önce uygula
+  (function(){
+    try{
+      var isikKayitli = localStorage.getItem('sessizlik-isik');
+      document.documentElement.setAttribute('data-isik', isikKayitli === 'off' ? 'off' : 'on');
+    }catch(e){
+      document.documentElement.setAttribute('data-isik', 'on');
+    }
+  })();
+
+  // Arka plan animasyonu (Işık Huzmesi / Yıldız Gecesi) tercihini stiller çizilmeden önce uygula
+  (function(){
+    try{
+      var bganimKayitli = localStorage.getItem('sessizlik-bganim');
+      document.documentElement.setAttribute('data-bganim', bganimKayitli === 'yildiz' ? 'yildiz' : 'isik');
+    }catch(e){
+      document.documentElement.setAttribute('data-bganim', 'isik');
+    }
+  })();
 </script>
 
 <style>
@@ -103,12 +123,12 @@
     --accent-rgb:187,163,217;
   }
   html[data-accent="kirmizi"]{
-    --accent:#B36B63;
-    --accent-rgb:179,107,99;
+    --accent:#C7362A;
+    --accent-rgb:199,54,42;
   }
   html[data-accent="kirmizi"][data-theme="dark"]{
-    --accent:#E0A199;
-    --accent-rgb:224,161,153;
+    --accent:#FF6B58;
+    --accent-rgb:255,107,88;
   }
   html[data-accent="yesil"]{
     --accent:#6E9B74;
@@ -194,7 +214,7 @@
     align-items:center;
     height:3rem;
     border:1px solid var(--line);
-    background:rgba(var(--bg-rgb),0.82);
+    background:rgba(var(--bg-rgb),0.9);
     backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);
     border-radius:9999px;
@@ -338,8 +358,8 @@
     height:170%;
     background:linear-gradient(180deg,
       rgba(var(--accent-rgb),0) 0%,
-      rgba(var(--accent-rgb),0.26) 34%,
-      rgba(var(--accent-rgb),0.10) 62%,
+      rgba(var(--accent-rgb),0.16) 34%,
+      rgba(var(--accent-rgb),0.06) 62%,
       rgba(var(--accent-rgb),0) 100%);
     filter:blur(20px);
     opacity:0;
@@ -347,6 +367,7 @@
     transform-origin: top center;
     animation: rayGlow 11s ease-in-out infinite;
     will-change: opacity, filter, transform;
+    transition: opacity 0.5s ease;
   }
   .ray::before{
     content:'';
@@ -356,8 +377,8 @@
     right:40%;
     background:linear-gradient(180deg,
       rgba(var(--accent-rgb),0) 0%,
-      rgba(var(--accent-rgb),0.55) 40%,
-      rgba(var(--accent-rgb),0.18) 68%,
+      rgba(var(--accent-rgb),0.36) 40%,
+      rgba(var(--accent-rgb),0.11) 68%,
       rgba(var(--accent-rgb),0) 100%);
     filter:blur(2px);
   }
@@ -367,10 +388,104 @@
 
   @keyframes rayGlow{
     0%   { opacity:0;    filter:blur(20px); transform: rotate(var(--angle)); }
-    22%  { opacity:0.78; filter:blur(13px); transform: rotate(calc(var(--angle) - 1.2deg)); }
-    50%  { opacity:0.38; filter:blur(22px); transform: rotate(calc(var(--angle) + 1deg)); }
-    78%  { opacity:0.78; filter:blur(13px); transform: rotate(calc(var(--angle) - 0.6deg)); }
+    22%  { opacity:0.5;  filter:blur(13px); transform: rotate(calc(var(--angle) - 1.2deg)); }
+    50%  { opacity:0.24; filter:blur(22px); transform: rotate(calc(var(--angle) + 1deg)); }
+    78%  { opacity:0.5;  filter:blur(13px); transform: rotate(calc(var(--angle) - 0.6deg)); }
     100% { opacity:0;    filter:blur(20px); transform: rotate(var(--angle)); }
+  }
+
+  /* ---- Işık Efektleri anahtarı: sadece huzmeleri (nokta zerrelerini değil) kapatır ---- */
+  html[data-isik="off"] .ray{
+    opacity:0 !important;
+    animation-play-state:paused;
+  }
+
+  /* ---- Arka Plan Animasyonu seçimi: "Işık Huzmesi" ile "Yıldız Gecesi" birbirini dışlar ---- */
+  html[data-bganim="yildiz"] .ray,
+  html[data-bganim="yildiz"] .dust{ display:none; }
+  html[data-bganim="isik"] .star,
+  html[data-bganim="isik"] .shooting-star,
+  html:not([data-bganim]) .star,
+  html:not([data-bganim]) .shooting-star{ display:none; }
+
+  /* ---- Yıldız Gecesi: yanıp sönen sabit yıldızlar ---- */
+  .star{
+    position:absolute;
+    --starclr: var(--accent-rgb);
+    width:2px;
+    height:2px;
+    border-radius:50%;
+    background:rgba(var(--starclr),0.95);
+    box-shadow:0 0 2px rgba(var(--starclr),0.9), 0 0 7px 1px rgba(var(--starclr),0.35);
+    opacity:0.12;
+    animation: starTwinkle ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+  .star:nth-child(11){ left:6%;  top:9%;  animation-duration:3.6s; animation-delay:0s;    }
+  .star:nth-child(12){ left:14%; top:22%; animation-duration:4.4s; animation-delay:0.7s;  width:1.4px; height:1.4px; --starclr:var(--ink-rgb); }
+  .star:nth-child(13){ left:23%; top:6%;  animation-duration:3.1s; animation-delay:1.6s;  }
+  .star:nth-child(14){ left:30%; top:33%; animation-duration:5.2s; animation-delay:0.2s;  width:3.2px; height:3.2px; }
+  .star:nth-child(15){ left:38%; top:12%; animation-duration:3.9s; animation-delay:2.3s;  width:1.4px; height:1.4px; --starclr:var(--ink-rgb); }
+  .star:nth-child(16){ left:44%; top:26%; animation-duration:4.7s; animation-delay:1s;    }
+  .star:nth-child(17){ left:51%; top:5%;  animation-duration:3.3s; animation-delay:2.9s;  width:2.6px; height:2.6px; }
+  .star:nth-child(18){ left:58%; top:18%; animation-duration:4.1s; animation-delay:0.4s;  width:1.4px; height:1.4px; --starclr:var(--ink-rgb); }
+  .star:nth-child(19){ left:65%; top:31%; animation-duration:3.7s; animation-delay:1.9s;  }
+  .star:nth-child(20){ left:72%; top:8%;  animation-duration:5s;   animation-delay:0.9s;  width:3.2px; height:3.2px; }
+  .star:nth-child(21){ left:79%; top:24%; animation-duration:3.4s; animation-delay:2.6s;  width:1.4px; height:1.4px; --starclr:var(--ink-rgb); }
+  .star:nth-child(22){ left:86%; top:12%; animation-duration:4.5s; animation-delay:0.5s;  }
+  .star:nth-child(23){ left:92%; top:28%; animation-duration:3.8s; animation-delay:1.3s;  width:2.6px; height:2.6px; }
+  .star:nth-child(24){ left:10%; top:46%; animation-duration:4.3s; animation-delay:2.1s;  }
+  .star:nth-child(25){ left:22%; top:58%; animation-duration:3.5s; animation-delay:0.8s;  width:1.4px; height:1.4px; --starclr:var(--ink-rgb); }
+  .star:nth-child(26){ left:36%; top:50%; animation-duration:4.9s; animation-delay:1.7s;  width:3.2px; height:3.2px; }
+  .star:nth-child(27){ left:52%; top:60%; animation-duration:3.2s; animation-delay:2.5s;  }
+  .star:nth-child(28){ left:68%; top:52%; animation-duration:4.6s; animation-delay:0.3s;  width:1.4px; height:1.4px; --starclr:var(--ink-rgb); }
+
+  @keyframes starTwinkle{
+    0%,100%{ opacity:0.12; transform:scale(0.75); }
+    50%    { opacity:0.95; transform:scale(1.3); }
+  }
+
+  /* ---- Yıldız Gecesi: sağ üstten sol alta doğru kayan gök taşları ---- */
+  .shooting-star{
+    position:absolute;
+    top:var(--sy);
+    left:var(--sx);
+    width:var(--slen, 140px);
+    height:1.5px;
+    border-radius:2px;
+    background:linear-gradient(90deg,
+      rgba(var(--accent-rgb),0) 0%,
+      rgba(var(--accent-rgb),0.7) 75%,
+      rgba(var(--accent-rgb),0.95) 100%);
+    box-shadow:0 0 5px 1px rgba(var(--accent-rgb),0.3);
+    opacity:0;
+    rotate: var(--sangle);
+    translate: 0 0;
+    animation: meteorFly linear infinite;
+    will-change: opacity, translate;
+  }
+  .shooting-star::after{
+    content:'';
+    position:absolute;
+    top:50%;
+    right:-1.5px;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:rgba(var(--accent-rgb),1);
+    box-shadow:0 0 8px 2.5px rgba(var(--accent-rgb),0.85);
+    transform:translateY(-50%);
+  }
+  .shooting-star:nth-child(29){ --sx:76%; --sy:-4%;  --sangle:150deg; --slen:150px; --dx:-364px; --dy:210px; animation-duration:8s;  animation-delay:1.5s; }
+  .shooting-star:nth-child(30){ --sx:92%; --sy:9%;   --sangle:160deg; --slen:130px; --dx:-395px; --dy:144px; animation-duration:11s; animation-delay:5s;   }
+  .shooting-star:nth-child(31){ --sx:58%; --sy:-6%;  --sangle:142deg; --slen:165px; --dx:-331px; --dy:259px; animation-duration:13s; animation-delay:8.5s; }
+
+  @keyframes meteorFly{
+    0%   { opacity:0; translate: 0 0; }
+    3%   { opacity:1; }
+    9%   { opacity:1; }
+    24%  { opacity:0; translate: var(--dx) var(--dy); }
+    100% { opacity:0; translate: var(--dx) var(--dy); }
   }
 
   /* huzmelerin içinde süzülen, parıldayan toz zerreleri */
@@ -401,8 +516,10 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .ray{ animation:none; opacity:0.32; transform:rotate(var(--angle)); }
+    .ray{ animation:none; opacity:0.2; transform:rotate(var(--angle)); }
     .dust{ animation:none; opacity:0.25; }
+    .star{ animation:none; opacity:0.5; }
+    .shooting-star{ animation:none; opacity:0; }
   }
 
   /* ---- content ---- */
@@ -605,6 +722,42 @@
   #renkRow.animate{
     animation-delay:1.15s;
   }
+  #isikEfektiRow.animate{
+    animation-delay:1.3s;
+  }
+  #bganimRow.animate{
+    animation-delay:1.45s;
+  }
+  .settings-row.wrap-row{
+    flex-wrap:wrap;
+    row-gap:0.9rem;
+  }
+  #yedekRow.animate{
+    animation-delay:1.6s;
+  }
+  .yedek-ac-btn{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.45rem;
+    padding:0.65rem 1.1rem;
+    border-radius:9999px;
+    border:1px solid rgba(var(--accent-rgb),0.5);
+    background:linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb),0.78));
+    color:var(--bg);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    font-weight:600;
+    letter-spacing:0.03em;
+    cursor:pointer;
+    box-shadow:0 10px 24px -6px rgba(var(--accent-rgb),0.5);
+    transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s ease, filter 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .yedek-ac-btn:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+  }
+  .yedek-ac-btn:active{ transform:scale(0.96); }
+  .yedek-ac-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
   .settings-row-text{
     display:flex;
     flex-direction:column;
@@ -643,7 +796,7 @@
   }
   .renk-swatch[data-renk="mavi"]{ background:#9FB8D1; }
   .renk-swatch[data-renk="mor"]{ background:#BBA3D9; }
-  .renk-swatch[data-renk="kirmizi"]{ background:#E0A199; }
+  .renk-swatch[data-renk="kirmizi"]{ background:#FF6B58; }
   .renk-swatch[data-renk="yesil"]{ background:#A0D1AC; }
   .renk-swatch:hover{ transform:scale(1.08); }
   .renk-swatch:active{ transform:scale(0.9); }
@@ -681,6 +834,34 @@
   }
   .theme-switch.on .theme-switch-knob{
     transform:translateX(1.3rem);
+  }
+
+  .bganim-group{
+    display:flex;
+    gap:0.5rem;
+    flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .bganim-btn{
+    padding:0.45rem 0.95rem;
+    border:1px solid var(--line);
+    border-radius:100px;
+    background:rgba(var(--bg-rgb),0.5);
+    color:var(--ink-soft);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.04em;
+    cursor:pointer;
+    transition:border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+  .bganim-btn:hover{
+    border-color:var(--accent);
+    color:var(--ink);
+  }
+  .bganim-btn.secili{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.16);
+    color:var(--ink);
   }
 
   /* ================= GÜNDELİK GÖRÜNÜMÜ - DOCK NAVBAR ================= */
@@ -749,7 +930,7 @@
     padding:0.7rem;
     border-radius:1.6rem;
     border:1px solid var(--line);
-    background:rgba(var(--bg-rgb),0.9);
+    background:rgba(var(--bg-rgb),0.94);
     backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);
     box-shadow:0 12px 32px rgba(var(--shadow-rgb),0.1);
@@ -877,6 +1058,194 @@
   }
   .gundelik-soru-havuzu-btn:active{ transform:scale(0.96); }
 
+  .gundelik-buton-satir{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.7rem;
+    flex-wrap:wrap;
+    margin-top:1.6rem;
+  }
+  .gundelik-buton-satir .gundelik-soru-havuzu-btn{ margin-top:0; }
+
+  /* ---- Soru Sayısı (Gündelik): gün bazlı, ders bazlı çözülen soru sayısı listesi ---- */
+  .soru-sayisi-tarih-nav{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:1rem;
+    margin-top:0.4rem;
+  }
+  .soru-sayisi-tarih-btn{
+    flex-shrink:0;
+    width:2.2rem;
+    height:2.2rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .soru-sayisi-tarih-btn svg{ width:0.9rem; height:0.9rem; }
+  .soru-sayisi-tarih-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .soru-sayisi-tarih-btn:active{ transform:scale(0.92); }
+  .soru-sayisi-tarih-metin{
+    min-width:11rem;
+    text-align:center;
+    font-size:0.88rem;
+    color:var(--ink);
+    letter-spacing:0.01em;
+  }
+
+  .soru-sayisi-satir{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.6rem;
+    border:1px solid var(--line);
+    border-radius:0.8rem;
+    background:rgba(var(--bg-rgb),0.5);
+    padding:0.6rem 0.7rem 0.6rem 0.9rem;
+  }
+  .soru-sayisi-satir-ad{ flex:1; min-width:0; font-size:0.9rem; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .soru-sayisi-satir-input{
+    flex-shrink:0;
+    width:3.6rem;
+    text-align:center;
+    font-family:inherit;
+    font-size:0.92rem;
+    color:var(--ink);
+    background:rgba(var(--ink-rgb),0.04);
+    border:1px solid var(--line);
+    border-radius:0.5rem;
+    padding:0.4rem 0.3rem;
+    outline:none;
+    -moz-appearance:textfield;
+    transition: border-color 0.2s ease;
+  }
+  .soru-sayisi-satir-input::-webkit-outer-spin-button,
+  .soru-sayisi-satir-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .soru-sayisi-satir-input:focus{ border-color:var(--accent); }
+
+  .soru-sayisi-toplam{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.7rem;
+    margin-top:1.7rem;
+    padding:1.15rem 1.3rem;
+    border-radius:1.15rem;
+    border:1px solid rgba(var(--accent-rgb),0.45);
+    background:
+      radial-gradient(120% 160% at 100% 0%, rgba(var(--accent-rgb),0.24), transparent 60%),
+      linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.03));
+    box-shadow:0 14px 32px -8px rgba(var(--accent-rgb),0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow:hidden;
+    opacity:0;
+    transform:translateY(10px);
+    animation: soruSayisiToplamGir 0.6s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.1s;
+  }
+  @keyframes soruSayisiToplamGir{
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .soru-sayisi-toplam-sol{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:0.55rem;
+  }
+  .soru-sayisi-toplam-ikon{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:2.1rem;
+    height:2.1rem;
+    border-radius:50%;
+    color:var(--accent);
+    background:rgba(var(--accent-rgb),0.16);
+    box-shadow:0 0 0 1px rgba(var(--accent-rgb),0.25);
+  }
+  .soru-sayisi-toplam-ikon svg{ width:1.05rem; height:1.05rem; }
+  .soru-sayisi-toplam-etiket{
+    position:relative;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.7rem;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .soru-sayisi-toplam-sayi-wrap{
+    position:relative;
+    display:flex;
+    align-items:baseline;
+    gap:0.32rem;
+  }
+  .soru-sayisi-toplam-sayi{
+    display:inline-block;
+    font-size:2.15rem;
+    font-weight:400;
+    line-height:1;
+    color:var(--accent);
+    text-shadow:0 2px 20px rgba(var(--accent-rgb),0.4);
+  }
+  .soru-sayisi-toplam-sayi.bip{
+    animation: soruSayisiBip 0.42s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes soruSayisiBip{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(1.22); }
+    100%{ transform:scale(1); }
+  }
+  .soru-sayisi-toplam-birim{
+    position:relative;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.74rem;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+  }
+
+  /* ---- Soru Sayısı: takvimden açılan özet pop-up ---- */
+  .soru-sayisi-ozet-box{ text-align:center; }
+  .soru-sayisi-ozet-govde{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.2rem;
+    margin:1.3rem 0 0.4rem;
+    padding:1.5rem 1rem;
+    border-radius:1.1rem;
+    border:1px solid rgba(var(--accent-rgb),0.45);
+    background:
+      radial-gradient(120% 160% at 50% 0%, rgba(var(--accent-rgb),0.26), transparent 65%),
+      linear-gradient(135deg, rgba(var(--accent-rgb),0.14), rgba(var(--accent-rgb),0.03));
+    box-shadow:0 14px 32px -8px rgba(var(--accent-rgb),0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow:hidden;
+  }
+  .soru-sayisi-ozet-sayi{
+    font-size:3rem;
+    font-weight:400;
+    line-height:1;
+    color:var(--accent);
+    text-shadow:0 2px 24px rgba(var(--accent-rgb),0.42);
+  }
+  .soru-sayisi-ozet-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:0.3rem;
+  }
+
   /* ================= GÜNDELİK: RUTİNLER + YAPILACAKLAR LİSTESİ ================= */
   .gundelik-govde{
     width:100%;
@@ -995,6 +1364,41 @@
   }
   .gundelik-madde-sil:active{ transform:scale(0.9); }
   .gundelik-madde-sil svg{ width:0.95rem; height:0.95rem; }
+
+  .gundelik-madde-duzenle{
+    flex-shrink:0;
+    width:1.9rem;
+    height:1.9rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-radius:50%;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-madde-duzenle:hover{ color:var(--accent); background:rgba(var(--accent-rgb),0.12); }
+  }
+  .gundelik-madde-duzenle:active{ transform:scale(0.9); }
+  .gundelik-madde-duzenle svg{ width:0.9rem; height:0.9rem; }
+  .gundelik-madde.duzenleniyor .gundelik-madde-duzenle{ color:var(--accent); background:rgba(var(--accent-rgb),0.14); }
+
+  .gundelik-madde-metin-input{
+    flex:1;
+    min-width:0;
+    font-family:inherit;
+    font-size:0.94rem;
+    line-height:1.4;
+    color:var(--ink);
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--accent);
+    padding:0 0 0.1rem;
+    outline:none;
+  }
 
   .gundelik-ekle-btn{
     display:flex;
@@ -1359,7 +1763,7 @@
     font-family:inherit;
     font-size:0.88rem;
     color:var(--ink);
-    background:rgba(var(--bg-rgb),0.6);
+    background:rgba(var(--bg-rgb),0.9);
     border:1px solid var(--line);
     border-radius:0.6rem;
     padding:0.55rem 0.7rem;
@@ -2371,7 +2775,7 @@
     padding:1.6rem 1.5rem;
     border:1px solid var(--line);
     border-radius:0.6rem;
-    background:rgba(var(--bg-rgb),0.6);
+    background:rgba(var(--bg-rgb),0.9);
     cursor:pointer;
     opacity:0;
     transform:translateY(18px);
@@ -2611,7 +3015,7 @@
     padding:1.4rem 1.6rem;
     border:1px solid var(--line);
     border-radius:0.8rem;
-    background:rgba(var(--bg-rgb),0.6);
+    background:rgba(var(--bg-rgb),0.9);
   }
   .deneme-net-buyuk{
     display:flex;
@@ -2770,7 +3174,7 @@
     border:1px solid var(--line);
     border-radius:0.7rem;
     padding:1.1rem 1.2rem 1.3rem;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
   }
   .brans-header{
     display:flex;
@@ -2912,7 +3316,7 @@
     width:100%;
     border:1px solid var(--line);
     border-radius:0.9rem;
-    background:rgba(var(--bg-rgb),0.7);
+    background:rgba(var(--bg-rgb),0.9);
     padding:1.8rem 1.6rem;
     opacity:0;
     transform:translateY(18px);
@@ -3167,7 +3571,7 @@
     width:100%;
     border:1px solid var(--line);
     border-radius:0.9rem;
-    background:rgba(var(--bg-rgb),0.7);
+    background:rgba(var(--bg-rgb),0.9);
     padding:2rem 1.8rem 1.8rem;
     opacity:0;
     transform:translateY(18px);
@@ -3550,7 +3954,7 @@
     border:1px solid var(--line);
     border-radius:0.9rem;
     padding:1.1rem 0.9rem 1rem;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
   }
   .analiz-grafik-svg{
     width:100%;
@@ -3631,7 +4035,7 @@
     padding:0.75rem 0.9rem;
     border:1px solid var(--line);
     border-radius:0.7rem;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
     font-family:"Helvetica Neue",Arial,sans-serif;
   }
   .analiz-rozet b{
@@ -3668,7 +4072,7 @@
     gap:0.8rem;
     border:1px solid var(--line);
     border-radius:0.8rem;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
     padding:0.8rem 1rem;
     cursor:pointer;
     transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease;
@@ -4038,7 +4442,7 @@
     border-radius:0.7rem;
     overflow:hidden;
     cursor:pointer;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
     transition: border-color 0.2s ease, transform 0.12s ease;
   }
   .havuz-kart:hover{ border-color:var(--accent); }
@@ -4151,7 +4555,7 @@
     gap:0.8rem;
     border:1px solid var(--line);
     border-radius:0.8rem;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
     padding:0.8rem 1rem;
     cursor:pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
@@ -4194,7 +4598,7 @@
     gap:0.6rem;
     border:1px solid var(--line);
     border-radius:0.8rem;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
     padding:0.7rem 0.6rem 0.7rem 0.9rem;
   }
   .havuz-brans-satir-ad{ flex:1; min-width:0; font-size:0.9rem; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -4268,7 +4672,7 @@
     gap:1rem;
     border:1px solid var(--line);
     border-radius:0.8rem;
-    background:rgba(var(--bg-rgb),0.74);
+    background:rgba(var(--bg-rgb),0.92);
     padding:1rem 1.1rem;
     cursor:pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
@@ -4458,6 +4862,27 @@
     <span class="dust"></span>
     <span class="dust"></span>
     <span class="dust"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="star"></span>
+    <span class="shooting-star"></span>
+    <span class="shooting-star"></span>
+    <span class="shooting-star"></span>
   </div>
 
   <main class="stage" id="viewHome">
@@ -4508,6 +4933,53 @@
           <button type="button" class="renk-swatch" data-renk="yesil" aria-label="Yeşil"></button>
         </div>
       </div>
+      <div class="settings-row" id="isikEfektiRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Işık Efektleri</span>
+          <span class="settings-row-sub" id="isikEfektiLabel">Işık huzmeleri aktif</span>
+        </div>
+        <button type="button" class="theme-switch" id="isikEfektiSwitch" role="switch" aria-checked="true" aria-label="Işık efektleri anahtarı">
+          <span class="theme-switch-knob"></span>
+        </button>
+      </div>
+      <div class="settings-row wrap-row" id="bganimRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Arka Plan Animasyonu</span>
+          <span class="settings-row-sub" id="bganimStateLabel">Işık Huzmesi aktif</span>
+        </div>
+        <div class="bganim-group" id="bganimGroup" role="group" aria-label="Arka plan animasyonu seçenekleri">
+          <button type="button" class="bganim-btn secili" data-bganim="isik">Işık Huzmesi</button>
+          <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
+        </div>
+      </div>
+      <div class="settings-row" id="yedekRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Verilerini Yedekle</span>
+          <span class="settings-row-sub">İçe / dışa aktararak verilerini koru</span>
+        </div>
+        <button type="button" class="yedek-ac-btn" id="yedekAcBtn" aria-label="Yedekleme seçeneklerini aç">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Yedekle</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ayarlar: veri yedekleme (içe/dışa aktar) seçim penceresi -->
+  <div class="modal-overlay" id="yedekModalOverlay">
+    <div class="modal-box" style="position:relative;">
+      <span class="modal-eyebrow">Veri Yedekleme</span>
+      <h3 class="modal-title">Verilerini Yedekle</h3>
+      <p class="modal-onay-metin">Tüm verilerini bir dosyaya kaydedebilir ya da daha önce aldığın bir yedeği geri yükleyebilirsin.</p>
+      <div class="modal-actions modal-actions-pill" style="margin-top:1.6rem; flex-direction:column; gap:0.7rem;">
+        <button type="button" class="modal-btn modal-btn-primary" id="yedekDisaAktarBtn">Dışa Aktar (İndir)</button>
+        <button type="button" class="modal-btn" id="yedekIceAktarBtn">İçe Aktar (Yükle)</button>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="yedekKapatBtn">Kapat</button>
+      </div>
+      <input type="file" id="yedekDosyaInput" accept="application/json,.json" style="display:none;">
+      <p class="modal-onay-metin" id="yedekDurumMetin" style="display:none;"></p>
     </div>
   </div>
 
@@ -4715,10 +5187,16 @@
     </div>
     <p class="gundelik-sub" id="gundelikSub">Bugünün rutinlerini ve yapılacaklarını burada takip et.</p>
 
-    <button type="button" class="gundelik-soru-havuzu-btn" id="gundelikSoruHavuzuBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path></svg>
-      <span>Soru Havuzu</span>
-    </button>
+    <div class="gundelik-buton-satir">
+      <button type="button" class="gundelik-soru-havuzu-btn" id="gundelikSoruHavuzuBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path></svg>
+        <span>Soru Havuzu</span>
+      </button>
+      <button type="button" class="gundelik-soru-havuzu-btn" id="gundelikSoruSayisiBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        <span>Soru Sayısı</span>
+      </button>
+    </div>
 
     <div class="gundelik-govde">
       <!-- ---- Bugünün Rutinleri: kendi başlıklarını oluşturup altına rutin ekleyebildiğin bölüm; her gün 00.00'da yalnızca işaretler sıfırlanır ---- -->
@@ -4877,6 +5355,43 @@
     </div>
   </div>
 
+  <div class="view-gundelik view-soru-sayisi" id="viewSoruSayisi">
+    <div class="sayac-listem-heading">
+      <button type="button" class="sayac-listem-geri-btn" id="soruSayisiGeriBtn" aria-label="Geri dön">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <span class="sayac-listem-eyebrow">Çözülen Sorular</span>
+      <h2 class="sayac-listem-title">Soru Sayısı</h2>
+    </div>
+
+    <div class="soru-sayisi-tarih-nav" id="soruSayisiTarihNav">
+      <button type="button" class="soru-sayisi-tarih-btn" id="soruSayisiOncekiGun" aria-label="Önceki gün">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <span class="soru-sayisi-tarih-metin" id="soruSayisiTarihMetin">Bugün</span>
+      <button type="button" class="soru-sayisi-tarih-btn" id="soruSayisiSonrakiGun" aria-label="Sonraki gün">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+    </div>
+
+    <div class="analiz-govde" id="soruSayisiGovde" style="margin-top:0.4rem;">
+      <div id="soruSayisiListe"></div>
+    </div>
+
+  <div class="soru-sayisi-toplam" id="soruSayisiToplam">
+      <div class="soru-sayisi-toplam-sol">
+        <span class="soru-sayisi-toplam-ikon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.6L22 10l-5.7 4.3L18 22l-6-3.6L6 22l1.7-7.7L2 10l7.4-1.4z"></path></svg>
+        </span>
+        <span class="soru-sayisi-toplam-etiket">Bugün Toplam</span>
+      </div>
+      <span class="soru-sayisi-toplam-sayi-wrap">
+        <span class="soru-sayisi-toplam-sayi" id="soruSayisiToplamSayi">0</span>
+        <span class="soru-sayisi-toplam-birim">soru</span>
+      </span>
+    </div>
+  </div>
+
   <!-- "Analizlerim": Denemelerim araç çubuğundan açılan, henüz yapım aşamasında olan sayfa -->
   <div class="view-analiz" id="viewAnaliz">
     <div class="sayac-listem-heading">
@@ -5025,6 +5540,25 @@
       <div class="modal-actions">
         <button type="button" class="modal-btn" id="sayacBaslatVazgec">Vazgeç</button>
         <button type="button" class="modal-btn modal-btn-primary" id="sayacBaslatBaslat">Başlat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Takvimde bir güne tekrar tıklanınca açılan pop-up: o gün çözülen toplam soru sayısını gösterir -->
+  <div class="modal-overlay" id="soruSayisiOzetModalOverlay">
+    <div class="modal-box soru-sayisi-ozet-box" style="position:relative;">
+      <button class="modal-close" id="soruSayisiOzetModalClose" type="button" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+      <span class="modal-eyebrow" id="soruSayisiOzetTarihMetni">Bugün</span>
+      <h3 class="modal-title">Çözülen Soru</h3>
+      <div class="soru-sayisi-ozet-govde">
+        <span class="soru-sayisi-ozet-sayi" id="soruSayisiOzetSayi">0</span>
+        <span class="soru-sayisi-ozet-etiket">soru çözüldü</span>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="soruSayisiOzetDuzenleBtn">Düzenle</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="soruSayisiOzetKapatBtn">Kapat</button>
       </div>
     </div>
   </div>
@@ -5626,6 +6160,7 @@
     const viewEmpty = document.getElementById('viewEmpty');
     const viewGundelik = document.getElementById('viewGundelik');
     const viewSoruHavuzu = document.getElementById('viewSoruHavuzu');
+    const viewSoruSayisi = document.getElementById('viewSoruSayisi');
     const viewDenemeler = document.getElementById('viewDenemeler');
     const viewDenemeDetay = document.getElementById('viewDenemeDetay');
     const viewTakvim = document.getElementById('viewTakvim');
@@ -5639,6 +6174,9 @@
     const settingsRow = document.getElementById('settingsRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
     const renkRow = document.getElementById('renkRow');
+    const isikEfektiRow = document.getElementById('isikEfektiRow');
+    const bganimRow = document.getElementById('bganimRow');
+    const yedekRow = document.getElementById('yedekRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
     const denemelerEyebrow = document.getElementById('denemelerEyebrow');
@@ -5650,6 +6188,7 @@
       viewEmpty.classList.remove('active');
       viewGundelik.classList.remove('active');
       viewSoruHavuzu.classList.remove('active');
+      viewSoruSayisi.classList.remove('active');
       viewDenemeler.classList.remove('active');
       viewDenemeDetay.classList.remove('active');
       viewTakvim.classList.remove('active');
@@ -5659,7 +6198,7 @@
       if(typeof window.sayacListemDurdur === 'function'){ window.sayacListemDurdur(); }
       pageFooter.style.display = 'none';
       // Geçiş sınıfını temizle ki görünüm bir dahaki sefere normal şekilde belirsin.
-      [viewHome, viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
+      [viewHome, viewEmpty, viewGundelik, viewSoruHavuzu, viewSoruSayisi, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
         if(v){ v.classList.remove('view-gecis-cikis'); }
       });
     }
@@ -5685,7 +6224,7 @@
     // kaldırıyor.
     let gecisBekleyenId = null;
     function gecisIleDegistir(icerikFn){
-      const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
+      const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewSoruSayisi, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
       const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
       const anaSayfaGorunur = viewHome && viewHome.style.display !== 'none';
       const cikanlar = canliListe.concat(anaSayfaGorunur ? [viewHome] : []);
@@ -5721,6 +6260,9 @@
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
       renkRow.classList.remove('animate');
+      isikEfektiRow.classList.remove('animate');
+      bganimRow.classList.remove('animate');
+      yedekRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
 
@@ -5749,6 +6291,9 @@
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
       renkRow.classList.remove('animate');
+      isikEfektiRow.classList.remove('animate');
+      bganimRow.classList.remove('animate');
+      yedekRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
       emptyRule.classList.add('animate');
@@ -5756,6 +6301,9 @@
       settingsRow.classList.add('animate');
       navbarPositionRow.classList.add('animate');
       renkRow.classList.add('animate');
+      isikEfektiRow.classList.add('animate');
+      bganimRow.classList.add('animate');
+      yedekRow.classList.add('animate');
       });
     }
 
@@ -5800,6 +6348,32 @@
       havuzFiltreCiz();
       if(havuzSeciliMod === 'test'){ havuzTestSeciciCiz(); }
       else { havuzListeCiz(); }
+    }
+
+    // tarih: Date (opsiyonel). Verilmezse bugünün tarihiyle açılır (Gündelik'teki
+    // "Soru Sayısı" düğmesi böyle çağırır). Takvimden aynı güne tekrar tıklanınca
+    // ise o günün tarihiyle çağrılır (bkz. window.soruSayisiPopupAc).
+    function showSoruSayisiView(tarih){
+      soruSayisiSeciliTarih = tarih ? new Date(tarih) : new Date();
+
+      gecisIleDegistir(function(){
+      hideAllViews();
+
+      viewSoruSayisi.classList.add('active');
+      void viewSoruSayisi.offsetWidth;
+      viewSoruSayisi.style.animation = 'none';
+      void viewSoruSayisi.offsetWidth;
+      viewSoruSayisi.style.animation = '';
+
+      const soruSayisiGovde = document.getElementById('soruSayisiGovde');
+      if(soruSayisiGovde){
+        soruSayisiGovde.style.animation = 'none';
+        void soruSayisiGovde.offsetWidth;
+        soruSayisiGovde.style.animation = '';
+      }
+      });
+
+      soruSayisiCiz();
     }
 
     function showDenemelerView(){
@@ -6745,38 +7319,82 @@
         metin.className = 'gundelik-madde-metin';
         metin.textContent = madde.text;
 
+        const duzenle = document.createElement('button');
+        duzenle.type = 'button';
+        duzenle.className = 'gundelik-madde-duzenle';
+        duzenle.setAttribute('aria-label', 'Düzenle');
+        duzenle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>';
+
         const sil = document.createElement('button');
         sil.type = 'button';
         sil.className = 'gundelik-madde-sil';
         sil.setAttribute('aria-label', 'Sil');
         sil.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
 
+        function veriOku(){ return tur === 'rutin' ? rutinleriOku() : todoOku(); }
+        function veriYaz(liste){ if(tur === 'rutin'){ rutinleriYaz(liste); } else { todoYaz(liste); } }
+        function yenidenCiz(){ if(tur === 'rutin'){ gundelikRutinCiz(); } else { gundelikTodoCiz(); } }
+
         check.addEventListener('click', function(){
-          if(tur === 'rutin'){
-            const liste = rutinleriOku();
-            const hedef = liste.find(function(m){ return m.id === madde.id; });
-            if(hedef){ hedef.tamam = !hedef.tamam; rutinleriYaz(liste); }
-            gundelikRutinCiz();
-          } else {
-            const liste = todoOku();
-            const hedef = liste.find(function(m){ return m.id === madde.id; });
-            if(hedef){ hedef.tamam = !hedef.tamam; todoYaz(liste); }
-            gundelikTodoCiz();
-          }
+          const liste = veriOku();
+          const hedef = liste.find(function(m){ return m.id === madde.id; });
+          if(hedef){ hedef.tamam = !hedef.tamam; veriYaz(liste); }
+          yenidenCiz();
         });
 
         sil.addEventListener('click', function(){
-          if(tur === 'rutin'){
-            rutinleriYaz(rutinleriOku().filter(function(m){ return m.id !== madde.id; }));
-            gundelikRutinCiz();
-          } else {
-            todoYaz(todoOku().filter(function(m){ return m.id !== madde.id; }));
-            gundelikTodoCiz();
-          }
+          veriYaz(veriOku().filter(function(m){ return m.id !== madde.id; }));
+          yenidenCiz();
         });
+
+        function duzenlemeyeBaslat(){
+          if(satir.classList.contains('duzenleniyor')) return;
+          satir.classList.add('duzenleniyor');
+
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'gundelik-madde-metin-input';
+          input.maxLength = tur === 'rutin' ? 80 : 120;
+          input.value = madde.text;
+          input.autocomplete = 'off';
+
+          satir.replaceChild(input, metin);
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+
+          let tamamlandi = false;
+
+          function kaydet(){
+            if(tamamlandi) return;
+            tamamlandi = true;
+            const yeniMetin = input.value.trim();
+            if(yeniMetin && yeniMetin !== madde.text){
+              const liste = veriOku();
+              const hedef = liste.find(function(m){ return m.id === madde.id; });
+              if(hedef){ hedef.text = yeniMetin; veriYaz(liste); }
+            }
+            yenidenCiz();
+          }
+
+          function vazgec(){
+            if(tamamlandi) return;
+            tamamlandi = true;
+            satir.replaceChild(metin, input);
+            satir.classList.remove('duzenleniyor');
+          }
+
+          input.addEventListener('keydown', function(e){
+            if(e.key === 'Enter'){ e.preventDefault(); kaydet(); }
+            else if(e.key === 'Escape'){ e.preventDefault(); vazgec(); }
+          });
+          input.addEventListener('blur', function(){ kaydet(); });
+        }
+
+        duzenle.addEventListener('click', duzenlemeyeBaslat);
 
         satir.appendChild(check);
         satir.appendChild(metin);
+        satir.appendChild(duzenle);
         satir.appendChild(sil);
         return satir;
       }
@@ -8137,6 +8755,227 @@
 
     // ==================== /SORU HAVUZU ====================
 
+    // ==================== SORU SAYISI (GÜNDELİK) ====================
+    // Gündelik ekranındaki "Soru Sayısı" düğmesiyle açılan, gün gün hangi
+    // dersten kaç soru çözüldüğünü kaydetmeye yarayan basit liste. Ders/branş
+    // listesi olarak Soru Havuzu'ndaki AYNI kategoriler (havuzBransListesi())
+    // kullanılır. Takvimde bir güne tekrar tıklanınca da o günün kayıtları
+    // gösterilir (bkz. window.soruSayisiPopupAc, Takvim bölümünde çağrılıyor).
+
+    const SORU_SAYISI_DEPOLAMA_ANAHTARI = 'sessizlik-soru-sayisi';
+    let soruSayisiSeciliTarih = new Date();
+    let soruSayisiTumVeri = {}; // { "YYYY-MM-DD": { "TYT|Matematik": 12, ... } }
+
+    function soruSayisiYukle(){
+      try{
+        const ham = localStorage.getItem(SORU_SAYISI_DEPOLAMA_ANAHTARI);
+        soruSayisiTumVeri = ham ? (JSON.parse(ham) || {}) : {};
+      }catch(e){
+        console.log('Soru sayısı verisi okunamadı:', e);
+        soruSayisiTumVeri = {};
+      }
+    }
+    soruSayisiYukle();
+
+    function soruSayisiKaydet(){
+      try{
+        localStorage.setItem(SORU_SAYISI_DEPOLAMA_ANAHTARI, JSON.stringify(soruSayisiTumVeri));
+      }catch(e){
+        console.log('Soru sayısı verisi kaydedilemedi (depolama alanı dolu olabilir):', e);
+      }
+    }
+
+    function soruSayisiTarihAnahtari(tarih){
+      return tarih.getFullYear() + '-' + String(tarih.getMonth() + 1).padStart(2, '0') + '-' + String(tarih.getDate()).padStart(2, '0');
+    }
+
+    function soruSayisiTarihMetniUret(tarih){
+      const bugun = new Date();
+      const dun = new Date(bugun);
+      dun.setDate(dun.getDate() - 1);
+      if(tarih.toDateString() === bugun.toDateString()) return 'Bugün';
+      if(tarih.toDateString() === dun.toDateString()) return 'Dün';
+      const gunIsimleriUzun = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+      const ayIsimleri = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+      return gunIsimleriUzun[tarih.getDay()] + ', ' + tarih.getDate() + ' ' + ayIsimleri[tarih.getMonth()] + ' ' + tarih.getFullYear();
+    }
+
+    function soruSayisiToplamHesapla(anahtar){
+      const gun = soruSayisiTumVeri[anahtar] || {};
+      return Object.keys(gun).reduce(function(t, k){ return t + (parseInt(gun[k], 10) || 0); }, 0);
+    }
+
+    function soruSayisiCiz(){
+      const tarihMetinEl = document.getElementById('soruSayisiTarihMetin');
+      const listeEl = document.getElementById('soruSayisiListe');
+      const toplamEl = document.getElementById('soruSayisiToplamSayi');
+      if(!listeEl) return;
+
+      const anahtar = soruSayisiTarihAnahtari(soruSayisiSeciliTarih);
+      if(tarihMetinEl){ tarihMetinEl.textContent = soruSayisiTarihMetniUret(soruSayisiSeciliTarih); }
+
+      const gunVerisi = soruSayisiTumVeri[anahtar] || {};
+      const branslar = havuzBransListesi(); // Soru Havuzu ile aynı ders kategorileri
+
+      listeEl.innerHTML = '';
+
+      if(branslar.length === 0){
+        const bosMetin = document.createElement('p');
+        bosMetin.className = 'gundelik-sub-metin';
+        bosMetin.style.marginTop = '1rem';
+        bosMetin.textContent = 'Önce Soru Havuzu > Branşlar sekmesinden ders ekleyebilirsin.';
+        listeEl.appendChild(bosMetin);
+      }
+
+      ['TYT', 'AYT'].forEach(function(alan){
+        const alanaAitBranslar = branslar.filter(function(b){ return b.alan === alan; });
+        if(alanaAitBranslar.length === 0) return;
+
+        const blok = document.createElement('div');
+        blok.className = 'havuz-brans-duzenle-blok';
+
+        const baslik = document.createElement('h4');
+        baslik.className = 'havuz-brans-duzenle-baslik';
+        baslik.textContent = alan;
+        blok.appendChild(baslik);
+
+        const liste = document.createElement('div');
+        liste.className = 'havuz-brans-duzenle-liste';
+
+        alanaAitBranslar.forEach(function(b){
+          const satir = document.createElement('div');
+          satir.className = 'soru-sayisi-satir';
+
+          const ad = document.createElement('span');
+          ad.className = 'soru-sayisi-satir-ad';
+          ad.textContent = b.brans;
+
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.inputMode = 'numeric';
+          input.min = '0';
+          input.className = 'soru-sayisi-satir-input';
+          const mevcutDeger = gunVerisi[b.anahtar];
+          input.value = mevcutDeger ? String(mevcutDeger) : '';
+          input.placeholder = '0';
+
+          input.addEventListener('input', function(){
+            const deger = parseInt(input.value, 10);
+            if(!soruSayisiTumVeri[anahtar]){ soruSayisiTumVeri[anahtar] = {}; }
+            if(!deger || deger <= 0){
+              delete soruSayisiTumVeri[anahtar][b.anahtar];
+            } else {
+              soruSayisiTumVeri[anahtar][b.anahtar] = deger;
+            }
+            if(Object.keys(soruSayisiTumVeri[anahtar]).length === 0){ delete soruSayisiTumVeri[anahtar]; }
+            soruSayisiKaydet();
+            if(toplamEl){
+              toplamEl.textContent = String(soruSayisiToplamHesapla(anahtar));
+              toplamEl.classList.remove('bip');
+              void toplamEl.offsetWidth;
+              toplamEl.classList.add('bip');
+            }
+          });
+
+          satir.appendChild(ad);
+          satir.appendChild(input);
+          liste.appendChild(satir);
+        });
+
+        blok.appendChild(liste);
+        listeEl.appendChild(blok);
+      });
+
+      if(toplamEl){ toplamEl.textContent = String(soruSayisiToplamHesapla(anahtar)); }
+    }
+
+    // ---- Gündelik ekranından geçiş / geri dönüş ----
+    const gundelikSoruSayisiBtn = document.getElementById('gundelikSoruSayisiBtn');
+    const soruSayisiGeriBtn = document.getElementById('soruSayisiGeriBtn');
+    let soruSayisiGeriHedefi = 'gundelik'; // 'gundelik' | 'takvim' — geri düğmesi nereye dönecek
+    if(gundelikSoruSayisiBtn){
+      gundelikSoruSayisiBtn.addEventListener('click', function(){
+        soruSayisiGeriHedefi = 'gundelik';
+        showSoruSayisiView(new Date());
+      });
+    }
+    if(soruSayisiGeriBtn){
+      soruSayisiGeriBtn.addEventListener('click', function(){
+        if(soruSayisiGeriHedefi === 'takvim' && typeof window.showTakvimView === 'function'){
+          window.showTakvimView();
+        } else {
+          showGundelikView();
+        }
+      });
+    }
+
+    // ---- Tarih ileri/geri gezinme ----
+    const soruSayisiOncekiGun = document.getElementById('soruSayisiOncekiGun');
+    const soruSayisiSonrakiGun = document.getElementById('soruSayisiSonrakiGun');
+    if(soruSayisiOncekiGun){
+      soruSayisiOncekiGun.addEventListener('click', function(){
+        const yeni = new Date(soruSayisiSeciliTarih);
+        yeni.setDate(yeni.getDate() - 1);
+        soruSayisiSeciliTarih = yeni;
+        soruSayisiCiz();
+      });
+    }
+    if(soruSayisiSonrakiGun){
+      soruSayisiSonrakiGun.addEventListener('click', function(){
+        const yeni = new Date(soruSayisiSeciliTarih);
+        yeni.setDate(yeni.getDate() + 1);
+        soruSayisiSeciliTarih = yeni;
+        soruSayisiCiz();
+      });
+    }
+
+    // Takvimde bir güne tekrar tıklanınca (önceden sayaç kurulum pop-up'ı açılıyordu;
+    // artık o günün toplam çözülen soru sayısını gösteren küçük bir özet pop-up açılıyor).
+    const soruSayisiOzetModalOverlay = document.getElementById('soruSayisiOzetModalOverlay');
+    const soruSayisiOzetModalClose = document.getElementById('soruSayisiOzetModalClose');
+    const soruSayisiOzetTarihMetni = document.getElementById('soruSayisiOzetTarihMetni');
+    const soruSayisiOzetSayi = document.getElementById('soruSayisiOzetSayi');
+    const soruSayisiOzetDuzenleBtn = document.getElementById('soruSayisiOzetDuzenleBtn');
+    const soruSayisiOzetKapatBtn = document.getElementById('soruSayisiOzetKapatBtn');
+    let soruSayisiOzetTarih = null;
+
+    function soruSayisiOzetModalAc(tarih){
+      soruSayisiOzetTarih = new Date(tarih);
+      const anahtar = soruSayisiTarihAnahtari(soruSayisiOzetTarih);
+      if(soruSayisiOzetTarihMetni){ soruSayisiOzetTarihMetni.textContent = soruSayisiTarihMetniUret(soruSayisiOzetTarih); }
+      if(soruSayisiOzetSayi){ soruSayisiOzetSayi.textContent = String(soruSayisiToplamHesapla(anahtar)); }
+      if(soruSayisiOzetModalOverlay){ soruSayisiOzetModalOverlay.classList.add('active'); }
+    }
+    function soruSayisiOzetModalKapat(){
+      if(soruSayisiOzetModalOverlay){ soruSayisiOzetModalOverlay.classList.remove('active'); }
+    }
+    if(soruSayisiOzetModalClose){ soruSayisiOzetModalClose.addEventListener('click', soruSayisiOzetModalKapat); }
+    if(soruSayisiOzetKapatBtn){ soruSayisiOzetKapatBtn.addEventListener('click', soruSayisiOzetModalKapat); }
+    if(soruSayisiOzetModalOverlay){
+      soruSayisiOzetModalOverlay.addEventListener('click', function(e){
+        if(e.target === soruSayisiOzetModalOverlay){ soruSayisiOzetModalKapat(); }
+      });
+    }
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && soruSayisiOzetModalOverlay && soruSayisiOzetModalOverlay.classList.contains('active')){
+        soruSayisiOzetModalKapat();
+      }
+    });
+    if(soruSayisiOzetDuzenleBtn){
+      soruSayisiOzetDuzenleBtn.addEventListener('click', function(){
+        const tarih = soruSayisiOzetTarih;
+        soruSayisiOzetModalKapat();
+        soruSayisiGeriHedefi = 'takvim';
+        showSoruSayisiView(tarih);
+      });
+    }
+
+    window.soruSayisiPopupAc = function(tarih){
+      soruSayisiOzetModalAc(tarih);
+    };
+
+    // ==================== /SORU SAYISI ====================
+
     function analizIcerikCiz(){
       if(analizSeciliAlan === 'SIFIR'){ sifirHataListesiCiz(); }
       else { analizGrafikCiz(analizSeciliAlan); }
@@ -9284,8 +10123,8 @@
             seciliTarih = gun.tarih;
             ciz();
             bilgiGuncelle(gun.tarih);
-            if(zatenSeciliMi && typeof window.sayacPopupAc === 'function'){
-              window.sayacPopupAc(gun.tarih);
+            if(zatenSeciliMi && typeof window.soruSayisiPopupAc === 'function'){
+              window.soruSayisiPopupAc(gun.tarih);
             }
           });
           takvimGunler.appendChild(btn);
@@ -10232,6 +11071,179 @@
         const yeniKonum = root.getAttribute('data-navbar') === 'bottom' ? 'top' : 'bottom';
         uygula(yeniKonum);
         try{ localStorage.setItem(STORAGE_KEY, yeniKonum); }catch(e){}
+      });
+    }
+  })();
+
+  // ================= IŞIK EFEKTLERİ (HUZMELER) AÇ/KAPA =================
+  (function(){
+    const root = document.documentElement;
+    const isikSwitch = document.getElementById('isikEfektiSwitch');
+    const isikLabel = document.getElementById('isikEfektiLabel');
+    const STORAGE_KEY = 'sessizlik-isik';
+
+    function uygula(durum){
+      if(durum === 'off'){
+        root.setAttribute('data-isik', 'off');
+        if(isikSwitch){
+          isikSwitch.classList.remove('on');
+          isikSwitch.setAttribute('aria-checked', 'false');
+        }
+        if(isikLabel){ isikLabel.textContent = 'Işık huzmeleri kapalı'; }
+      } else {
+        root.setAttribute('data-isik', 'on');
+        if(isikSwitch){
+          isikSwitch.classList.add('on');
+          isikSwitch.setAttribute('aria-checked', 'true');
+        }
+        if(isikLabel){ isikLabel.textContent = 'Işık huzmeleri aktif'; }
+      }
+    }
+
+    uygula(root.getAttribute('data-isik') === 'off' ? 'off' : 'on');
+
+    if(isikSwitch){
+      isikSwitch.addEventListener('click', function(){
+        const yeniDurum = root.getAttribute('data-isik') === 'off' ? 'on' : 'off';
+        uygula(yeniDurum);
+        try{ localStorage.setItem(STORAGE_KEY, yeniDurum); }catch(e){}
+      });
+    }
+  })();
+
+  // ================= ARKA PLAN ANİMASYONU (IŞIK HUZMESİ / YILDIZ GECESİ) =================
+  (function(){
+    const root = document.documentElement;
+    const bganimGroup = document.getElementById('bganimGroup');
+    const bganimLabel = document.getElementById('bganimStateLabel');
+    const STORAGE_KEY = 'sessizlik-bganim';
+    const isimler = { isik:'Işık Huzmesi', yildiz:'Yıldız Gecesi' };
+
+    function uygula(secim){
+      const gecerli = (secim === 'yildiz') ? 'yildiz' : 'isik';
+      root.setAttribute('data-bganim', gecerli);
+      if(bganimLabel){ bganimLabel.textContent = isimler[gecerli] + ' aktif'; }
+      if(bganimGroup){
+        bganimGroup.querySelectorAll('.bganim-btn').forEach(function(btn){
+          btn.classList.toggle('secili', btn.getAttribute('data-bganim') === gecerli);
+        });
+      }
+    }
+
+    uygula(root.getAttribute('data-bganim') === 'yildiz' ? 'yildiz' : 'isik');
+
+    if(bganimGroup){
+      bganimGroup.addEventListener('click', function(e){
+        const btn = e.target.closest('.bganim-btn');
+        if(!btn) return;
+        const secim = btn.getAttribute('data-bganim');
+        uygula(secim);
+        try{ localStorage.setItem(STORAGE_KEY, secim); }catch(e){}
+      });
+    }
+  })();
+
+  // ================= VERİ YEDEKLEME (İÇE / DIŞA AKTAR) =================
+  (function(){
+    const acBtn = document.getElementById('yedekAcBtn');
+    const overlay = document.getElementById('yedekModalOverlay');
+    const kapatBtn = document.getElementById('yedekKapatBtn');
+    const disaAktarBtn = document.getElementById('yedekDisaAktarBtn');
+    const iceAktarBtn = document.getElementById('yedekIceAktarBtn');
+    const dosyaInput = document.getElementById('yedekDosyaInput');
+    const durumMetin = document.getElementById('yedekDurumMetin');
+
+    if(!acBtn || !overlay) return;
+
+    function panelAc(){
+      if(durumMetin){ durumMetin.style.display = 'none'; durumMetin.textContent = ''; }
+      overlay.classList.add('active');
+    }
+    function panelKapat(){
+      overlay.classList.remove('active');
+    }
+
+    acBtn.addEventListener('click', panelAc);
+    if(kapatBtn){ kapatBtn.addEventListener('click', panelKapat); }
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay){ panelKapat(); }
+    });
+
+    function durumGoster(metin){
+      if(!durumMetin) return;
+      durumMetin.textContent = metin;
+      durumMetin.style.display = '';
+    }
+
+    // ---- Dışa Aktar: tüm localStorage verilerini tek bir JSON dosyası olarak indir ----
+    if(disaAktarBtn){
+      disaAktarBtn.addEventListener('click', function(){
+        try{
+          const veri = {};
+          for(let i = 0; i < localStorage.length; i++){
+            const anahtar = localStorage.key(i);
+            veri[anahtar] = localStorage.getItem(anahtar);
+          }
+          const paket = {
+            uygulama: 'Sessizliğin Sesi',
+            surum: 1,
+            tarih: new Date().toISOString(),
+            veri: veri
+          };
+          const blob = new Blob([JSON.stringify(paket, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const d = new Date();
+          const tarihEtiketi = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'sessizligin-sesi-yedek-' + tarihEtiketi + '.json';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+          durumGoster('Yedek dosyan indirildi.');
+        }catch(e){
+          durumGoster('Dışa aktarma sırasında bir sorun oluştu.');
+        }
+      });
+    }
+
+    // ---- İçe Aktar: seçilen JSON dosyasını okuyup verileri geri yükle ----
+    if(iceAktarBtn && dosyaInput){
+      iceAktarBtn.addEventListener('click', function(){
+        dosyaInput.value = '';
+        dosyaInput.click();
+      });
+
+      dosyaInput.addEventListener('change', function(){
+        const dosya = dosyaInput.files && dosyaInput.files[0];
+        if(!dosya) return;
+
+        const onay = window.confirm('İçe aktarma, mevcut verilerinin üzerine yazacak. Devam etmek istiyor musun?');
+        if(!onay) return;
+
+        const okuyucu = new FileReader();
+        okuyucu.onload = function(){
+          try{
+            const icerik = JSON.parse(String(okuyucu.result));
+            const veri = (icerik && icerik.veri && typeof icerik.veri === 'object') ? icerik.veri : icerik;
+            if(!veri || typeof veri !== 'object'){ throw new Error('Geçersiz yedek dosyası'); }
+
+            Object.keys(veri).forEach(function(anahtar){
+              const deger = veri[anahtar];
+              localStorage.setItem(anahtar, typeof deger === 'string' ? deger : JSON.stringify(deger));
+            });
+
+            durumGoster('Verilerin geri yüklendi. Sayfa yenileniyor...');
+            setTimeout(function(){ window.location.reload(); }, 900);
+          }catch(e){
+            durumGoster('Dosya okunamadı. Geçerli bir yedek dosyası seçtiğinden emin ol.');
+          }
+        };
+        okuyucu.onerror = function(){
+          durumGoster('Dosya okunurken bir sorun oluştu.');
+        };
+        okuyucu.readAsText(dosya);
       });
     }
   })();
