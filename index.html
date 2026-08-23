@@ -1047,7 +1047,7 @@
     color:var(--accent);
   }
 
-  .gundelik-soru-havuzu-btn{
+  .gundelik-takvim-btn{
     position:relative;
     margin-top:1.6rem;
     display:flex;
@@ -1067,16 +1067,16 @@
     box-shadow:0 2px 12px rgba(var(--shadow-rgb),0.05);
     transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  .gundelik-soru-havuzu-btn svg{ width:1.05rem; height:1.05rem; color:var(--accent); }
+  .gundelik-takvim-btn svg{ width:1.05rem; height:1.05rem; color:var(--accent); }
   @media (hover:hover) and (pointer:fine){
-    .gundelik-soru-havuzu-btn:hover{
+    .gundelik-takvim-btn:hover{
       background:linear-gradient(180deg, rgba(var(--accent-rgb),0.16), rgba(var(--accent-rgb),0.05));
       border-color:var(--accent);
       transform:translateY(-2px);
       box-shadow:0 10px 22px -8px rgba(var(--accent-rgb),0.45);
     }
   }
-  .gundelik-soru-havuzu-btn:active{ transform:scale(0.96); }
+  .gundelik-takvim-btn:active{ transform:scale(0.96); }
 
   .gundelik-buton-satir{
     display:flex;
@@ -1086,7 +1086,7 @@
     flex-wrap:wrap;
     margin-top:0.4rem;
   }
-  .gundelik-buton-satir .gundelik-soru-havuzu-btn{ margin-top:0; }
+  .gundelik-buton-satir .gundelik-takvim-btn{ margin-top:0; }
 
   /* ================= GÜNDELİK: RUTİNLER + YAPILACAKLAR LİSTESİ ================= */
   .gundelik-govde{
@@ -3263,6 +3263,8 @@
   }
 
   .takvim-heading{
+    position:relative;
+    width:100%;
     text-align:center;
     margin-bottom:2.2rem;
   }
@@ -4746,7 +4748,7 @@
         <a href="#" style="--i:0" data-view="home" class="active">Ana Sayfa</a>
         <a href="#" style="--i:1" data-view="denemeler">Denemelerim</a>
         <a href="#" style="--i:2" data-view="gundelik">Gündelik</a>
-        <a href="#" style="--i:3" data-view="takvim">Takvim</a>
+        <a href="#" style="--i:3" data-view="soru-havuzu">Soru Havuzu</a>
         <a href="#" style="--i:4" data-view="sayac">Geri Sayım</a>
         <a href="#" style="--i:5" data-view="empty">Ayarlarım</a>
       </div>
@@ -4772,9 +4774,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3" width="15" height="18" rx="2"></rect><line x1="8" y1="7.5" x2="16" y2="7.5"></line><line x1="8" y1="11.5" x2="16" y2="11.5"></line><line x1="8" y1="15.5" x2="12.5" y2="15.5"></line></svg>
         <span class="dock-tip">Gündelik</span>
       </button>
-      <button class="dock-btn" type="button" data-view="takvim">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="16" y1="2.5" x2="16" y2="6.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        <span class="dock-tip">Takvim</span>
+      <button class="dock-btn" type="button" data-view="soru-havuzu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path></svg>
+        <span class="dock-tip">Soru Havuzu</span>
       </button>
       <button class="dock-btn" type="button" data-view="sayac">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
@@ -5004,6 +5006,9 @@
 
   <div class="view-takvim" id="viewTakvim">
     <div class="takvim-heading">
+      <button type="button" class="sayac-listem-geri-btn" id="takvimGeriBtn" aria-label="Geri dön">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
       <h2 class="takvim-title" id="takvimTitle">Takvim</h2>
     </div>
     <div class="takvim-card" id="takvimCard">
@@ -5123,9 +5128,9 @@
     <p class="gundelik-sub gundelik-sub-tarih" id="gundelikSub"></p>
 
     <div class="gundelik-buton-satir">
-      <button type="button" class="gundelik-soru-havuzu-btn" id="gundelikSoruHavuzuBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path></svg>
-        <span>Soru Havuzu</span>
+      <button type="button" class="gundelik-takvim-btn" id="gundelikTakvimBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="16" y1="2.5" x2="16" y2="6.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Takvim</span>
       </button>
     </div>
 
@@ -5214,9 +5219,6 @@
 
   <div class="view-gundelik view-soru-havuzu" id="viewSoruHavuzu">
     <div class="sayac-listem-heading">
-      <button type="button" class="sayac-listem-geri-btn" id="soruHavuzuGeriBtn" aria-label="Geri dön">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
-      </button>
       <span class="sayac-listem-eyebrow">Çözemediklerin</span>
       <h2 class="sayac-listem-title">Soru Havuzu</h2>
     </div>
@@ -7786,16 +7788,16 @@
       return 'soru-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
     }
 
-    // ---- Gündelik (günlük) ekranından Soru Havuzu'na geçiş ve geri dönüş ----
-    const gundelikSoruHavuzuBtn = document.getElementById('gundelikSoruHavuzuBtn');
-    const soruHavuzuGeriBtn = document.getElementById('soruHavuzuGeriBtn');
-    if(gundelikSoruHavuzuBtn){
-      gundelikSoruHavuzuBtn.addEventListener('click', function(){
-        showSoruHavuzuView();
+    // ---- Gündelik (günlük) ekranından Takvim'e geçiş ve geri dönüş ----
+    const gundelikTakvimBtn = document.getElementById('gundelikTakvimBtn');
+    const takvimGeriBtn = document.getElementById('takvimGeriBtn');
+    if(gundelikTakvimBtn){
+      gundelikTakvimBtn.addEventListener('click', function(){
+        showTakvimView();
       });
     }
-    if(soruHavuzuGeriBtn){
-      soruHavuzuGeriBtn.addEventListener('click', function(){
+    if(takvimGeriBtn){
+      takvimGeriBtn.addEventListener('click', function(){
         showGundelikView();
       });
     }
@@ -10470,8 +10472,8 @@
           showGundelikView();
         } else if(a.dataset.view === 'denemeler'){
           showDenemelerView();
-        } else if(a.dataset.view === 'takvim'){
-          showTakvimView();
+        } else if(a.dataset.view === 'soru-havuzu'){
+          showSoruHavuzuView();
         } else if(a.dataset.view === 'sayac'){
           showSayacView();
         } else {
