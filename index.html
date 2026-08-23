@@ -9902,7 +9902,8 @@
         }).catch(function(err){
           console.log('Soru kaydedilemedi:', err);
           havuzEkleModalSave.disabled = false;
-          alert('Soru kaydedilemedi, lütfen tekrar dene. (Uygulamayı bir süre arka planda bıraktıysan bu bazen olabilir; "Havuza Ekle" butonuna tekrar basman yeterli.)');
+          const detay = (err && (err.name || err.message)) ? ('\n\nTeknik detay: ' + (err.name ? err.name + ' - ' : '') + (err.message || '')) : '';
+          alert('Soru kaydedilemedi, lütfen tekrar dene. (Uygulamayı bir süre arka planda bıraktıysan bu bazen olabilir; "Havuza Ekle" butonuna tekrar basman yeterli.)' + detay);
         });
       });
     }
