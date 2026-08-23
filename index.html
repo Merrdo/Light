@@ -13337,12 +13337,15 @@
           return;
         }
         // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
+        // Not: burada BİLEREK sayfa yenilenmiyor. Kullanıcı sayfayı kendi
+        // isteğiyle (bir butona basarak) yenilemedikçe otomatik reload
+        // tetiklenmez; yeni veriler depoya (localStorage/IndexedDB) sessizce
+        // yazılır ve bir sonraki açılışta/yenilemede kullanılır.
         return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
           return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
             bilinenModifiedYaz(mevcut.modifiedTime);
             sonSenkronZamani = Date.now();
-            senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-            setTimeout(function(){ window.location.reload(); }, 900);
+            senkronGuncelDurumuGoster();
           });
         });
       }).catch(function(err){
