@@ -5999,22 +5999,39 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:0.6rem;
-    font-family:"Helvetica Neue",Arial,sans-serif;
-    font-size:0.9rem;
-    letter-spacing:0.02em;
-    padding:0.85rem 1.2rem;
-    border-radius:0.5rem;
-    border:1px solid var(--line);
-    background:var(--ink);
-    color:var(--bg);
+    gap:0.7rem;
+    font-family:"Google Sans","Helvetica Neue",Arial,sans-serif;
+    font-size:0.92rem;
+    font-weight:500;
+    letter-spacing:0.01em;
+    padding:0.8rem 1.2rem;
+    border-radius:0.65rem;
+    border:1px solid #dadce0;
+    background:#ffffff;
+    color:#3c4043;
     cursor:pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, filter 0.2s ease;
+    box-shadow:0 1px 2px rgba(0,0,0,0.14);
+    transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.15s ease;
   }
-  .giris-google-btn:hover{ filter:brightness(1.05); transform:translateY(-1px); }
-  .giris-google-btn:active{ transform:scale(0.98); }
-  .giris-google-btn:disabled{ opacity:0.5; cursor:default; transform:none; }
-  .giris-google-btn svg{ width:1.15rem; height:1.15rem; flex-shrink:0; }
+  .giris-google-btn:hover{
+    background:#f8f9fa;
+    box-shadow:0 1px 3px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.12);
+    transform:translateY(-1px);
+  }
+  .giris-google-btn:active{ background:#f1f3f4; transform:scale(0.98); box-shadow:0 1px 2px rgba(0,0,0,0.16); }
+  .giris-google-btn:disabled{ opacity:0.6; cursor:default; transform:none; box-shadow:0 1px 2px rgba(0,0,0,0.14); }
+  .giris-google-btn svg{ width:1.2rem; height:1.2rem; flex-shrink:0; }
+  .giris-google-btn .giris-google-spin{
+    width:1.05rem; height:1.05rem; flex-shrink:0;
+    border-radius:50%;
+    border:2px solid #dadce0;
+    border-top-color:#4285F4;
+    animation: girisGoogleSpin 0.7s linear infinite;
+    display:none;
+  }
+  .giris-google-btn:disabled .giris-google-spin{ display:inline-block; }
+  .giris-google-btn:disabled svg{ display:none; }
+  @keyframes girisGoogleSpin{ to{ transform:rotate(360deg); } }
 
   .giris-durum{
     margin-top:1rem;
@@ -6028,6 +6045,35 @@
     align-items:center;
     justify-content:space-between;
     gap:0.8rem;
+  }
+  .hesap-satir-sol{
+    display:flex;
+    align-items:center;
+    gap:0.75rem;
+    min-width:0;
+  }
+  .hesap-avatar{
+    width:2.5rem;
+    height:2.5rem;
+    border-radius:50%;
+    flex-shrink:0;
+    object-fit:cover;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  .hesap-avatar-yer{
+    width:2.5rem;
+    height:2.5rem;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(var(--accent-rgb),0.16);
+    color:var(--accent);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:1rem;
+    font-weight:600;
   }
   .hesap-satir-bilgi{
     display:flex;
@@ -6058,11 +6104,23 @@
   .senkron-durum{
     display:flex;
     align-items:center;
-    gap:0.4rem;
-    margin-top:0.3rem;
-    font-size:0.74rem;
+    justify-content:center;
+    gap:0.5rem;
+    margin-top:0.7rem;
+    width:100%;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    letter-spacing:0.01em;
     color:var(--ink-soft);
+    background:rgba(var(--ink-rgb),0.045);
+    border:1px solid var(--line);
+    border-radius:0.5rem;
+    padding:0.6rem 0.8rem;
+    cursor:pointer;
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
   }
+  .senkron-durum:hover{ filter:brightness(1.04); }
+  .senkron-durum:active{ transform:scale(0.99); }
   .senkron-nokta{
     width:0.42rem;
     height:0.42rem;
@@ -6071,12 +6129,31 @@
     flex-shrink:0;
     transition: background 0.25s ease;
   }
-  .senkron-nokta.durum-calisiyor{
+  .senkron-durum.durum-calisiyor{
+    background:rgba(232,185,58,0.16);
+    border-color:rgba(232,185,58,0.45);
+    color:#8a6d1f;
+    cursor:wait;
+  }
+  html[data-theme="dark"] .senkron-durum.durum-calisiyor{ color:#e8c766; }
+  .senkron-durum.durum-calisiyor .senkron-nokta{
     background:#e8b93a;
     animation: senkronNabiz 1s ease-in-out infinite;
   }
-  .senkron-nokta.durum-ok{ background:#4caf7d; animation:none; }
-  .senkron-nokta.durum-hata{ background:#e05a5a; animation:none; }
+  .senkron-durum.durum-ok{
+    background:rgba(76,175,125,0.16);
+    border-color:rgba(76,175,125,0.45);
+    color:#2e6b4d;
+  }
+  html[data-theme="dark"] .senkron-durum.durum-ok{ color:#8fe0ac; }
+  .senkron-durum.durum-ok .senkron-nokta{ background:#4caf7d; animation:none; }
+  .senkron-durum.durum-hata{
+    background:rgba(224,90,90,0.16);
+    border-color:rgba(224,90,90,0.45);
+    color:#a13a3a;
+  }
+  html[data-theme="dark"] .senkron-durum.durum-hata{ color:#f2a49c; }
+  .senkron-durum.durum-hata .senkron-nokta{ background:#e05a5a; animation:none; }
   @keyframes senkronNabiz{
     0%, 100%{ opacity:1; }
     50%{ opacity:0.35; }
@@ -6091,6 +6168,7 @@
       <h1 class="giris-title">Hoş geldin</h1>
       <p class="giris-sub">Verilerini korumak ve cihazlar arasında eşleyebilmek için Google hesabınla devam et.</p>
       <button type="button" class="giris-google-btn" id="girisGoogleBtn">
+        <span class="giris-google-spin" aria-hidden="true"></span>
         <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4c-7.682 0-14.344 4.337-17.694 10.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
         <span>Google ile Devam Et</span>
       </button>
@@ -6251,15 +6329,21 @@
           <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
         </div>
       </div>
-      <div class="settings-row" id="hesapRow">
+      <div class="settings-row wrap-row" id="hesapRow">
         <div class="hesap-satir" style="width:100%;">
-          <div class="hesap-satir-bilgi">
-            <span class="settings-row-title" id="hesapAdSoyad">Google Hesabı</span>
-            <span class="settings-row-sub" id="hesapEposta"></span>
-            <span class="senkron-durum" id="senkronDurum"><span class="senkron-nokta" id="senkronNokta"></span><span id="senkronDurumMetin">Bağlanılıyor…</span></span>
+          <div class="hesap-satir-sol">
+            <img class="hesap-avatar" id="hesapAvatar" alt="" style="display:none;">
+            <div class="hesap-avatar-yer" id="hesapAvatarYer"></div>
+            <div class="hesap-satir-bilgi">
+              <span class="settings-row-title" id="hesapAdSoyad">Google Hesabı</span>
+              <span class="settings-row-sub" id="hesapEposta"></span>
+            </div>
           </div>
           <button type="button" class="hesap-cikis-btn" id="hesapCikisBtn">Çıkış Yap</button>
         </div>
+        <button type="button" class="senkron-durum" id="senkronDurum" aria-label="Şimdi senkronize et">
+          <span class="senkron-nokta" id="senkronNokta"></span><span id="senkronDurumMetin">Bağlanılıyor…</span>
+        </button>
       </div>
       <div class="settings-row" id="yedekRow">
         <div class="settings-row-text">
@@ -12847,7 +12931,10 @@
     const durumEl = document.getElementById('girisDurumMetin');
     const hesapAdEl = document.getElementById('hesapAdSoyad');
     const hesapEpostaEl = document.getElementById('hesapEposta');
+    const hesapAvatarEl = document.getElementById('hesapAvatar');
+    const hesapAvatarYerEl = document.getElementById('hesapAvatarYer');
     const cikisBtn = document.getElementById('hesapCikisBtn');
+    const senkronDurumBtn = document.getElementById('senkronDurum');
     const senkronNoktaEl = document.getElementById('senkronNokta');
     const senkronMetinEl = document.getElementById('senkronDurumMetin');
 
@@ -12858,9 +12945,9 @@
     }
 
     function senkronDurumAyarla(durum, metin){
-      if(senkronNoktaEl){
-        senkronNoktaEl.classList.remove('durum-calisiyor', 'durum-ok', 'durum-hata');
-        if(durum){ senkronNoktaEl.classList.add('durum-' + durum); }
+      if(senkronDurumBtn){
+        senkronDurumBtn.classList.remove('durum-calisiyor', 'durum-ok', 'durum-hata');
+        if(durum){ senkronDurumBtn.classList.add('durum-' + durum); }
       }
       if(senkronMetinEl){ senkronMetinEl.textContent = metin || ''; }
     }
@@ -12908,10 +12995,32 @@
       document.documentElement.classList.add('giris-bekleniyor');
     }
 
+    function hesapBaslangicHarfi(hesap){
+      const kaynak = (hesap && (hesap.name || hesap.email)) || '';
+      const harf = kaynak.trim().charAt(0);
+      return harf ? harf.toUpperCase() : 'G';
+    }
+
     function hesapBilgisiniUygula(hesap){
       if(!hesap) return;
       if(hesapAdEl){ hesapAdEl.textContent = hesap.name || 'Google Hesabı'; }
       if(hesapEpostaEl){ hesapEpostaEl.textContent = hesap.email || ''; }
+      if(hesapAvatarYerEl){ hesapAvatarYerEl.textContent = hesapBaslangicHarfi(hesap); }
+      if(hesapAvatarEl){
+        if(hesap.picture){
+          hesapAvatarEl.onerror = function(){
+            hesapAvatarEl.style.display = 'none';
+            hesapAvatarEl.onerror = null;
+            if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
+          };
+          hesapAvatarEl.src = hesap.picture;
+          hesapAvatarEl.style.display = '';
+          if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = 'none'; }
+        } else {
+          hesapAvatarEl.style.display = 'none';
+          if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
+        }
+      }
     }
 
     function standaloneMi(){
@@ -13069,6 +13178,16 @@
       });
     }
 
+    if(senkronDurumBtn){
+      senkronDurumBtn.addEventListener('click', function(){
+        // Doğrudan tıklamayla tetiklenen senkronizasyon: burada gerekirse
+        // Google'dan sessizce (ya da gerekirse hesap seçtirerek) jeton
+        // yenilenebilir, çünkü bu bir kullanıcı etkileşimidir. Arka plandaki
+        // otomatik senkronizasyon bu tür bir isteği kendiliğinden yapmaz.
+        otomatikYukle(true);
+      });
+    }
+
     // ================= DRIVE API YARDIMCILARI =================
     function hataDetayiOlustur(on, r, govde){
       return r.text().then(function(metin){
@@ -13136,13 +13255,25 @@
 
     // ================= OTOMATİK SENKRONİZASYON (buton yok, tamamen arka planda) =================
     let senkronSurmekte = false;
-    function otomatikYukle(){
+    function otomatikYukle(manuelMi){
       if(!hesapOku() || !window.__sessizlikYedekDosyasiOlustur) return Promise.resolve();
       if(senkronSurmekte) return Promise.resolve();
       senkronSurmekte = true;
       senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-      return gecerliTokenAl().then(function(token){
-        if(!token){ console.warn('[Sessizlik Senkron] Jeton alınamadı (sessiz yenileme başarısız).'); senkronDurumAyarla('hata', 'Senkronizasyon bekleniyor (yeniden bağlanılacak)'); return; }
+      // Otomatik (arka plan) senkronizasyonda yalnızca hâlihazırda geçerli
+      // olan bir jeton kullanılır; Google'a sessizce yeni jeton isteği
+      // GÖNDERİLMEZ, çünkü bu bazı tarayıcılarda kullanıcıya beklenmedik
+      // şekilde bir hesap/e-posta seçtirme ekranı olarak görünebiliyor.
+      // Manuel tıklamada (senkron butonuna dokunulduğunda) ise bu kullanıcı
+      // etkileşimi sayıldığından gerekirse jeton sessizce/görünür şekilde
+      // yenilenebilir.
+      const tokenPromise = manuelMi ? gecerliTokenAl() : Promise.resolve(tokenOku());
+      return tokenPromise.then(function(token){
+        if(!token){
+          if(manuelMi){ console.warn('[Sessizlik Senkron] Jeton alınamadı (yenileme başarısız).'); }
+          senkronDurumAyarla(manuelMi ? 'hata' : '', manuelMi ? 'Senkronizasyon başarısız, tekrar dene' : 'Senkronize etmek için dokun');
+          return;
+        }
         return window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
           return driveDosyaBul(token).then(function(mevcut){
             return driveDosyaYukle(token, dosya, mevcut ? mevcut.id : null);
@@ -13154,7 +13285,7 @@
         });
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar denenecek');
+        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar dene');
       }).finally(function(){
         senkronSurmekte = false;
       });
@@ -13190,30 +13321,33 @@
     // sessizce indirip geri yükler ----
     function acilistaKontrolEt(){
       if(!hesapOku() || !window.__sessizlikYedegiGeriYukle) return;
+      // Açılışta yalnızca hâlihazırda geçerli (süresi dolmamış) bir jeton
+      // varsa kontrol edilir; aksi halde Google'a sessizce yeni jeton
+      // istenmez (bkz. otomatikYukle'daki açıklama) — kullanıcı senkron
+      // butonuna dokunduğunda gerekirse yenilenir.
+      const token = tokenOku();
+      if(!token){ senkronDurumAyarla('', 'Senkronize etmek için dokun'); return; }
       senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-      gecerliTokenAl().then(function(token){
-        if(!token){ senkronDurumAyarla('', 'Senkronizasyon bekleniyor'); return; }
-        return driveDosyaBul(token).then(function(mevcut){
-          if(!mevcut){ sonSenkronZamani = Date.now(); senkronGuncelDurumuGoster(); return; }
-          const bilinen = bilinenModifiedOku();
-          if(bilinen && new Date(mevcut.modifiedTime).getTime() <= new Date(bilinen).getTime()){
+      driveDosyaBul(token).then(function(mevcut){
+        if(!mevcut){ sonSenkronZamani = Date.now(); senkronGuncelDurumuGoster(); return; }
+        const bilinen = bilinenModifiedOku();
+        if(bilinen && new Date(mevcut.modifiedTime).getTime() <= new Date(bilinen).getTime()){
+          sonSenkronZamani = Date.now();
+          senkronGuncelDurumuGoster();
+          return;
+        }
+        // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
+        return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
+          return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
+            bilinenModifiedYaz(mevcut.modifiedTime);
             sonSenkronZamani = Date.now();
-            senkronGuncelDurumuGoster();
-            return;
-          }
-          // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
-          return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
-            return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
-              bilinenModifiedYaz(mevcut.modifiedTime);
-              sonSenkronZamani = Date.now();
-              senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-              setTimeout(function(){ window.location.reload(); }, 900);
-            });
+            senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
+            setTimeout(function(){ window.location.reload(); }, 900);
           });
         });
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar denenecek');
+        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar dene');
       });
     }
 
