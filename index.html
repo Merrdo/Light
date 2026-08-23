@@ -13356,6 +13356,13 @@
     }
 
     // ---- Açılışta durumu belirle ----
+    // Not: Uygulama tamamen kapatılıp yeniden açıldığında (özellikle standalone
+    // PWA modunda) sessionStorage'daki erişim jetonu kaybolabiliyor; hesap
+    // bilgisi localStorage'da kalıcı olduğu için sessiz arka plan senkronu bu
+    // durumda jetonsuz kalıp fark edilmeden başarısız oluyordu. Bunu önlemek
+    // için her uygulama açılışında (redirect dönüşü hariç) giriş ekranı
+    // gösterilir; kullanıcı zaten bilinen hesabıyla (e-postasıyla) tekrar
+    // giriş yaparak taze bir jeton alır ve senkronizasyon güvenilir çalışır.
     const mevcutHesap = hesapOku();
     if(redirectSonuc){
       let bekleyen = false;
@@ -13365,10 +13372,13 @@
       tokenKaydet(redirectSonuc.token, redirectSonuc.expiresIn);
       girisTamamla(redirectSonuc.token);
     } else if(mevcutHesap){
+      // Hesap bilgisini (ad, e-posta, avatar) giriş ekranında göster ki
+      // kullanıcı hangi hesapla devam edeceğini görsün, ama ekranı gizleme —
+      // her açılışta tekrar giriş yapılması istendiği için giriş ekranı
+      // gösterilmeye devam eder.
       hesapBilgisiniUygula(mevcutHesap);
-      ekraniGizle();
-      senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
-      ilkSenkronuBaslat();
+      ekraniGoster();
+      durumGoster(mevcutHesap.email ? (mevcutHesap.email + ' hesabıyla devam etmek için tekrar giriş yap.') : '');
     } else {
       ekraniGoster();
     }
