@@ -13130,6 +13130,23 @@
       return tokenSessizAl();
     }
 
+    // Manuel (dokunmayla tetiklenen) senkronda kullanılır: sessiz jeton alma
+    // standalone (ana ekran) modda her zaman başarısız olur, çünkü Google
+    // izole bir WebView içinde sessiz jeton yenilemeye izin vermiyor. Bu
+    // yüzden burada, kullanıcı etkileşimi olduğu için tam bir yeniden-giriş
+    // (girisBaslat) denenir; bu sayede kullanıcı çıkış yapıp tekrar hesap
+    // eklemek zorunda kalmadan, sadece senkron noktasına dokunarak jetonunu
+    // tazeleyebilir.
+    function gecerliTokenAlManuel(){
+      const mevcut = tokenOku();
+      if(mevcut) return Promise.resolve(mevcut);
+      return tokenSessizAl().then(function(token){
+        if(token) return token;
+        if(standaloneMi()){ senkronDurumAyarla('calisiyor', 'Google hesabına yönlendiriliyor…'); }
+        return girisBaslat();
+      });
+    }
+
     function kullaniciBilgisiniGetir(token){
       return fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { 'Authorization': 'Bearer ' + token }
@@ -13267,7 +13284,7 @@
       // Manuel tıklamada (senkron butonuna dokunulduğunda) ise bu kullanıcı
       // etkileşimi sayıldığından gerekirse jeton sessizce/görünür şekilde
       // yenilenebilir.
-      const tokenPromise = manuelMi ? gecerliTokenAl() : Promise.resolve(tokenOku());
+      const tokenPromise = manuelMi ? gecerliTokenAlManuel() : Promise.resolve(tokenOku());
       return tokenPromise.then(function(token){
         if(!token){
           if(manuelMi){ console.warn('[Sessizlik Senkron] Jeton alınamadı (yenileme başarısız).'); }
@@ -13356,13 +13373,14 @@
     }
 
     // ---- Açılışta durumu belirle ----
-    // Not: Uygulama tamamen kapatılıp yeniden açıldığında (özellikle standalone
-    // PWA modunda) sessionStorage'daki erişim jetonu kaybolabiliyor; hesap
-    // bilgisi localStorage'da kalıcı olduğu için sessiz arka plan senkronu bu
-    // durumda jetonsuz kalıp fark edilmeden başarısız oluyordu. Bunu önlemek
-    // için her uygulama açılışında (redirect dönüşü hariç) giriş ekranı
-    // gösterilir; kullanıcı zaten bilinen hesabıyla (e-postasıyla) tekrar
-    // giriş yaparak taze bir jeton alır ve senkronizasyon güvenilir çalışır.
+    // Not: iOS'ta ana ekrana eklenmiş (standalone) bir PWA sık sık arka planda
+    // iken bellekten atılıp sayfa sessizce yeniden yükleniyor; bu, kullanıcı
+    // "uygulamanın içinde" olduğunu düşünürken bile gerçekleşebiliyor. Bu
+    // yüzden bilinen bir hesap varsa giriş ekranını HER seferinde zorla
+    // göstermiyoruz (bu, ortasında veri kaybına ve rahatsız edici bir akışa
+    // yol açar) — bunun yerine ekranı gizleyip normal kullanıma devam ediyor,
+    // jeton süresi dolmuşsa senkron durumuna dokunulduğunda gerçek bir
+    // yeniden-giriş akışı tetikleniyor (bkz. otomatikYukle).
     const mevcutHesap = hesapOku();
     if(redirectSonuc){
       let bekleyen = false;
@@ -13372,13 +13390,10 @@
       tokenKaydet(redirectSonuc.token, redirectSonuc.expiresIn);
       girisTamamla(redirectSonuc.token);
     } else if(mevcutHesap){
-      // Hesap bilgisini (ad, e-posta, avatar) giriş ekranında göster ki
-      // kullanıcı hangi hesapla devam edeceğini görsün, ama ekranı gizleme —
-      // her açılışta tekrar giriş yapılması istendiği için giriş ekranı
-      // gösterilmeye devam eder.
       hesapBilgisiniUygula(mevcutHesap);
-      ekraniGoster();
-      durumGoster(mevcutHesap.email ? (mevcutHesap.email + ' hesabıyla devam etmek için tekrar giriş yap.') : '');
+      ekraniGizle();
+      senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
+      ilkSenkronuBaslat();
     } else {
       ekraniGoster();
     }
