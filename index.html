@@ -7181,6 +7181,60 @@
         function yenidenCiz(){ if(tur === 'rutin'){ gundelikRutinCiz(); } else { gundelikTodoCiz(); } }
 
         check.addEventListener('click', function(){
+          // ---- Yapılacaklar Listesi: işaretlenince yumuşak bir geçişle listeden kaldır ----
+          if(tur === 'todo'){
+            if(satir.classList.contains('gundelik-madde-siliniyor')) return;
+            const oncekiListe = veriOku();
+            const hedefMadde = oncekiListe.find(function(m){ return m.id === madde.id; });
+            if(!hedefMadde || hedefMadde.tamam) return;
+
+            satir.classList.add('gundelik-madde-siliniyor', 'tamam');
+            check.setAttribute('aria-checked', 'true');
+            satir.style.pointerEvents = 'none';
+
+            function kaldir(){
+              veriYaz(veriOku().filter(function(m){ return m.id !== madde.id; }));
+              yenidenCiz();
+            }
+
+            const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if(azaltilmisHareket){
+              kaldir();
+              return;
+            }
+
+            const yukseklik = satir.getBoundingClientRect().height;
+            satir.style.height = yukseklik + 'px';
+            satir.style.overflow = 'hidden';
+            void satir.offsetHeight; // reflow zorla, geçişin baştan tetiklenmesi için
+
+            requestAnimationFrame(function(){
+              satir.style.transition =
+                'height 0.36s cubic-bezier(.4,0,.2,1), opacity 0.28s ease, transform 0.32s cubic-bezier(.4,0,.2,1), margin 0.36s cubic-bezier(.4,0,.2,1), padding 0.36s cubic-bezier(.4,0,.2,1), border-width 0.36s ease';
+              satir.style.opacity = '0';
+              satir.style.transform = 'translateX(18px) scale(0.94)';
+              satir.style.height = '0px';
+              satir.style.marginTop = '0px';
+              satir.style.marginBottom = '-0.55rem';
+              satir.style.paddingTop = '0px';
+              satir.style.paddingBottom = '0px';
+              satir.style.borderWidth = '0px';
+            });
+
+            let tamamlandi = false;
+            function bitir(){
+              if(tamamlandi) return;
+              tamamlandi = true;
+              kaldir();
+            }
+            satir.addEventListener('transitionend', function(e){
+              if(e.target === satir && e.propertyName === 'height'){ bitir(); }
+            });
+            // Güvenlik ağı: bir sebeple transitionend tetiklenmezse yine de kaldır
+            setTimeout(bitir, 460);
+            return;
+          }
+
           const liste = veriOku();
           const hedef = liste.find(function(m){ return m.id === madde.id; });
           if(hedef){ hedef.tamam = !hedef.tamam; veriYaz(liste); }
