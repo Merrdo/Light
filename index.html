@@ -1672,6 +1672,8 @@
     width:auto;
     height:auto;
     background:none;
+    margin-top:0.4rem;
+    margin-bottom:2.4rem;
   }
   .kalori-pane-calisma.hazirlik-durumu .kalori-sayac-wrap::before{
     content:none;
@@ -12459,22 +12461,72 @@
       durumMetin.style.display = '';
     }
 
-    // ---- Dışa Aktar: tüm localStorage verilerini tek bir JSON dosyası olarak indir ----
+    // ---- Dosya <-> base64 dönüşümleri: IndexedDB'deki görsel/PDF blob'larını
+    // JSON yedeğine gömebilmek (ve geri okuyabilmek) için ----
+    function dosyaBlobToBase64(blob){
+      return new Promise(function(resolve, reject){
+        const okuyucu = new FileReader();
+        okuyucu.onload = function(){ resolve(String(okuyucu.result)); };
+        okuyucu.onerror = function(){ reject(okuyucu.error); };
+        okuyucu.readAsDataURL(blob);
+      });
+    }
+    function dosyaBase64ToBlob(dataUrl){
+      const parcalar = String(dataUrl).split(',');
+      const mimeEslesme = parcalar[0].match(/:(.*?);/);
+      const mime = mimeEslesme ? mimeEslesme[1] : 'application/octet-stream';
+      const ikili = atob(parcalar[1] || '');
+      const bayt = new Uint8Array(ikili.length);
+      for(let i = 0; i < ikili.length; i++){ bayt[i] = ikili.charCodeAt(i); }
+      return new Blob([bayt], { type: mime });
+    }
+
+    // ---- Dışa Aktar: tüm localStorage verilerini VE IndexedDB'de saklanan
+    // görsel/dosya blob'larını (base64 olarak) tek bir JSON dosyası içinde indir ----
     if(disaAktarBtn){
       disaAktarBtn.addEventListener('click', function(){
+        disaAktarBtn.disabled = true;
+        durumGoster('Yedek hazırlanıyor, görseller de dahil ediliyor…');
+
+        const veri = {};
         try{
-          const veri = {};
           for(let i = 0; i < localStorage.length; i++){
             const anahtar = localStorage.key(i);
             veri[anahtar] = localStorage.getItem(anahtar);
           }
+        }catch(e){
+          durumGoster('Dışa aktarma sırasında bir sorun oluştu.');
+          disaAktarBtn.disabled = false;
+          return;
+        }
+
+        const dosyalarSozu = window.__sessizlikDosyaTumIcerigiAl
+          ? window.__sessizlikDosyaTumIcerigiAl().catch(function(){ return {}; })
+          : Promise.resolve({});
+
+        dosyalarSozu.then(function(dosyalar){
+          const idler = Object.keys(dosyalar || {});
+          return Promise.all(idler.map(function(id){
+            const blob = dosyalar[id];
+            return dosyaBlobToBase64(blob).then(function(dataUrl){
+              return { id: id, tip: blob.type || '', veri: dataUrl };
+            }).catch(function(){ return null; });
+          })).then(function(sonuclar){
+            const dosyaPaket = {};
+            sonuclar.forEach(function(s){
+              if(s){ dosyaPaket[s.id] = { tip: s.tip, veri: s.veri }; }
+            });
+            return dosyaPaket;
+          });
+        }).then(function(dosyaPaket){
           const paket = {
             uygulama: 'Sessizliğin Sesi',
-            surum: 1,
+            surum: 2,
             tarih: new Date().toISOString(),
-            veri: veri
+            veri: veri,
+            dosyalar: dosyaPaket
           };
-          const blob = new Blob([JSON.stringify(paket, null, 2)], { type: 'application/json' });
+          const blob = new Blob([JSON.stringify(paket)], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
           const d = new Date();
           const tarihEtiketi = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -12485,19 +12537,35 @@
           a.click();
           document.body.removeChild(a);
           setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-          durumGoster('Yedek dosyan indirildi.');
-        }catch(e){
+          durumGoster('Yedek dosyan indirildi (görseller dahil).');
+          disaAktarBtn.disabled = false;
+        }).catch(function(){
           durumGoster('Dışa aktarma sırasında bir sorun oluştu.');
-        }
+          disaAktarBtn.disabled = false;
+        });
       });
     }
 
-    // ---- İçe Aktar: seçilen JSON dosyasını okuyup verileri geri yükle ----
+    // ---- İçe Aktar: seçilen JSON dosyasını okuyup verileri VE görsel/dosya
+    // blob'larını (varsa) geri yükle ----
     if(iceAktarBtn && dosyaInput){
       iceAktarBtn.addEventListener('click', function(){
         dosyaInput.value = '';
         dosyaInput.click();
       });
+
+      function dosyalariGeriYukle(dosyalar){
+        if(!window.__sessizlikDosyaKaydet || !dosyalar) return Promise.resolve();
+        const idler = Object.keys(dosyalar);
+        return Promise.all(idler.map(function(id){
+          const kayit = dosyalar[id];
+          if(!kayit || !kayit.veri) return Promise.resolve();
+          try{
+            const blob = dosyaBase64ToBlob(kayit.veri);
+            return window.__sessizlikDosyaKaydet(id, blob);
+          }catch(e){ return Promise.resolve(); }
+        }));
+      }
 
       dosyaInput.addEventListener('change', function(){
         const dosya = dosyaInput.files && dosyaInput.files[0];
@@ -12506,23 +12574,36 @@
         const onay = window.confirm('İçe aktarma, mevcut verilerinin üzerine yazacak. Devam etmek istiyor musun?');
         if(!onay) return;
 
+        durumGoster('Yedek okunuyor…');
+
         const okuyucu = new FileReader();
         okuyucu.onload = function(){
+          let veri, dosyalar;
           try{
             const icerik = JSON.parse(String(okuyucu.result));
-            const veri = (icerik && icerik.veri && typeof icerik.veri === 'object') ? icerik.veri : icerik;
+            veri = (icerik && icerik.veri && typeof icerik.veri === 'object') ? icerik.veri : icerik;
+            dosyalar = (icerik && icerik.dosyalar && typeof icerik.dosyalar === 'object') ? icerik.dosyalar : null;
             if(!veri || typeof veri !== 'object'){ throw new Error('Geçersiz yedek dosyası'); }
 
             Object.keys(veri).forEach(function(anahtar){
               const deger = veri[anahtar];
               localStorage.setItem(anahtar, typeof deger === 'string' ? deger : JSON.stringify(deger));
             });
-
-            durumGoster('Verilerin geri yüklendi. Sayfa yenileniyor...');
-            setTimeout(function(){ window.location.reload(); }, 900);
           }catch(e){
             durumGoster('Dosya okunamadı. Geçerli bir yedek dosyası seçtiğinden emin ol.');
+            return;
           }
+
+          durumGoster(dosyalar ? 'Görseller geri yükleniyor…' : 'Verilerin geri yükleniyor…');
+          dosyalariGeriYukle(dosyalar).then(function(){
+            durumGoster('Verilerin geri yüklendi. Sayfa yenileniyor...');
+            setTimeout(function(){ window.location.reload(); }, 900);
+          }).catch(function(){
+            // localStorage zaten geri yüklendi; görsellerden biri başarısız olsa
+            // bile kullanıcıyı bekletmemek için yine de devam edip yenile.
+            durumGoster('Verilerin geri yüklendi. Sayfa yenileniyor...');
+            setTimeout(function(){ window.location.reload(); }, 900);
+          });
         };
         okuyucu.onerror = function(){
           durumGoster('Dosya okunurken bir sorun oluştu.');
