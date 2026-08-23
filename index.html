@@ -9708,9 +9708,13 @@
     function havuzYukle(){
       try{
         const ham = localStorage.getItem(HAVUZ_DEPOLAMA_ANAHTARI);
-        if(ham) havuzVerileri = JSON.parse(ham) || [];
+        if(ham){
+          const ayristirilmis = JSON.parse(ham);
+          havuzVerileri = Array.isArray(ayristirilmis) ? ayristirilmis : [];
+        }
       }catch(e){
         console.log('Soru havuzu okunamadı:', e);
+        havuzVerileri = [];
       }
     }
     havuzYukle();
@@ -9887,6 +9891,7 @@
         havuzEkleModalSave.disabled = true;
         const id = havuzSoruIdUret();
         dosyaKaydet(id, havuzSeciliDosya).then(function(){
+          if(!Array.isArray(havuzVerileri)) havuzVerileri = [];
           havuzVerileri.push({
             id: id,
             alan: havuzSeciliAlanEkle,
@@ -13253,9 +13258,14 @@
       return kullaniciBilgisiniGetir(token).then(function(hesap){
         hesapYaz(hesap);
         hesapBilgisiniUygula(hesap);
+        durumGoster('Verileriniz yükleniyor…');
+        return girisSonrasiVeriYukle(token);
+      }).then(function(){
+        // Buraya ulaşıldıysa (yani sayfa yenilenmediyse) ya yedek yoktu ya
+        // da zaten günceldik: veriler hazır, artık uygulamayı açabiliriz.
         durumGoster('');
         ekraniGizle();
-        ilkSenkronuBaslat();
+        senkronGuncelDurumuGoster();
       }).catch(function(err){
         durumGoster((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
         if(girisBtn){ girisBtn.disabled = false; }
@@ -13592,6 +13602,34 @@
 
     function ilkSenkronuBaslat(){
       setTimeout(acilistaKontrolEt, 800);
+    }
+
+    // Google ile TAZE giriş yapıldığında (misafirden geçiş değil) kullanılır.
+    // Giriş ekranını kapatmadan ÖNCE Drive'da bir yedek olup olmadığına bakar;
+    // varsa indirip geri yükler ve sayfayı BİR KEZ yeniler — böylece kullanıcı
+    // hiçbir zaman boş/eski bir uygulama görüp ardından aniden yenilenen bir
+    // sayfa görmez. Yedek yoksa (ya da kontrol başarısız olursa) direkt devam
+    // edilir, kullanıcı giriş ekranında gereksiz yere bekletilmez.
+    function girisSonrasiVeriYukle(token){
+      if(!window.__sessizlikYedegiGeriYukle) return Promise.resolve();
+      return driveDosyaBul(token).then(function(mevcut){
+        if(!mevcut){ sonSenkronZamani = Date.now(); return; }
+        return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
+          return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
+            bilinenModifiedYaz(mevcut.modifiedTime);
+            window.location.reload();
+            // Sayfa yenilemesi devralacak; bu zincirin devam etmesini
+            // (ör. giriş ekranının erken kapanmasını) engellemek için
+            // kasıtlı olarak hiç çözülmeyen bir promise döndürülür.
+            return new Promise(function(){});
+          });
+        });
+      }).catch(function(err){
+        console.error('[Sessizlik Senkron] Giriş sonrası veri yükleme başarısız:', err);
+        // Veriler indirilemese bile kullanıcıyı giriş ekranında sonsuza kadar
+        // bekletmeyelim; uygulama mevcut haliyle açılır, senkron daha sonra
+        // (senkron düğmesi veya periyodik kontrol ile) tekrar denenebilir.
+      });
     }
 
     // ---- Açılışta durumu belirle ----
