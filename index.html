@@ -810,6 +810,48 @@
     .spor-modu-overlay{ transition:opacity 0.15s ease, visibility 0s linear 0.15s; transform:none; }
     .spor-modu-overlay.active{ transition:opacity 0.15s ease, visibility 0s linear 0s; transform:none; }
   }
+
+  /* ---- Spor Modu Geçişi: gerçek bir uygulama açılışı hissi veren ikon-büyütme animasyonu ---- */
+  .spor-gecis-scrim{
+    position:fixed;
+    inset:0;
+    z-index:9998;
+    background:radial-gradient(circle at var(--gecis-x,50%) var(--gecis-y,50%), rgba(var(--shadow-rgb),0.5), rgba(var(--shadow-rgb),0.85) 75%);
+    opacity:0;
+    pointer-events:none;
+  }
+  .spor-gecis-ikon{
+    position:fixed;
+    z-index:10000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    box-shadow:0 24px 64px -12px rgba(var(--sari-rgb),0.65), 0 0 0 1px rgba(255,255,255,0.08) inset;
+    overflow:hidden;
+    pointer-events:none;
+    will-change:transform,width,height,top,left,border-radius;
+  }
+  .spor-gecis-ikon svg{
+    width:36%;
+    height:36%;
+    color:var(--bg);
+    flex-shrink:0;
+  }
+  .spor-gecis-ikon-shine{
+    position:absolute;
+    top:-50%;
+    left:-30%;
+    width:42%;
+    height:200%;
+    background:linear-gradient(75deg, transparent, rgba(255,255,255,0.55), transparent);
+    transform:translateX(-220%) rotate(8deg);
+    pointer-events:none;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spor-gecis-scrim, .spor-gecis-ikon{ display:none !important; }
+  }
+
   .spor-modu-view{
     flex:1;
     display:none;
@@ -1123,6 +1165,80 @@
     object-fit:cover;
     border-radius:0.6rem;
     margin-top:1.1rem;
+  }
+
+  /* Antrenman modalları Spor Modu tam ekranının (z-index:9999) ÜSTÜNDE açılmalı,
+     ayrıca sitenin genel (mavi) vurgu rengi yerine Spor Modu'nun sarı temasını kullanmalı */
+  #antrenmanKartModalOverlay,
+  #antrenmanKartSilOnayOverlay,
+  #antrenmanEgzersizModalOverlay,
+  #antrenmanEgzersizDetayOverlay,
+  #antrenmanEgzersizSilOnayOverlay{
+    z-index:10050;
+    background:
+      radial-gradient(circle at 50% 32%, rgba(var(--sari-rgb),0.14), transparent 55%),
+      rgba(0,0,0,0.8);
+  }
+  #antrenmanKartModalOverlay .modal-eyebrow,
+  #antrenmanKartSilOnayOverlay .modal-eyebrow,
+  #antrenmanEgzersizModalOverlay .modal-eyebrow,
+  #antrenmanEgzersizDetayOverlay .modal-eyebrow,
+  #antrenmanEgzersizSilOnayOverlay .modal-eyebrow{
+    color:var(--sari);
+  }
+  #antrenmanKartModalOverlay .modal-field input:focus,
+  #antrenmanEgzersizModalOverlay .modal-field input:focus{
+    border-color:var(--sari);
+  }
+  #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary,
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary,
+  #antrenmanEgzersizDetayOverlay .modal-actions-pill .modal-btn-primary{
+    border:1px solid rgba(var(--sari-rgb),0.5);
+    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
+  }
+  #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary:hover,
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary:hover,
+  #antrenmanEgzersizDetayOverlay .modal-actions-pill .modal-btn-primary:hover{
+    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    box-shadow:0 14px 30px -6px rgba(var(--sari-rgb),0.62);
+  }
+
+  /* ---- Spor Modu: sekmeler arası geçiş animasyonu ---- */
+  .spor-modu-view.active{
+    animation: sporGorunumGir 0.38s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes sporGorunumGir{
+    0%{ opacity:0; transform:translateY(10px) scale(0.985); }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spor-modu-view.active{ animation:none; }
+  }
+
+  /* ---- Antrenman: kart listesi <-> kart detayı geçiş animasyonu ---- */
+  .antrenman-pane.active{
+    animation: antrenmanPaneGir 0.36s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes antrenmanPaneGir{
+    0%{ opacity:0; transform:translateX(14px); }
+    100%{ opacity:1; transform:translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .antrenman-pane.active{ animation:none; }
+  }
+
+  /* ---- Antrenman: yeni oluşturulan kart/egzersiz ızgaraya "pop" ile girer ---- */
+  .antrenman-kart-yeni{
+    animation: antrenmanKartPop 0.42s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes antrenmanKartPop{
+    0%{ opacity:0; transform:scale(0.82) translateY(6px); }
+    60%{ opacity:1; transform:scale(1.04) translateY(0); }
+    100%{ opacity:1; transform:scale(1) translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .antrenman-kart-yeni{ animation:none; }
   }
 
   .settings-row-text{
@@ -11469,6 +11585,14 @@
 
     const tumDockBtnlar = [antrenmanBtn, nabizBtn, kaloriBtn, programBtn, istatistikBtn, ayarlarBtn].filter(Boolean);
 
+    const sporGecisAzaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let sporGecisCalisiyor = false;
+    let sporGirisRect = null;
+
+    function sporGecisTemizle(){
+      document.querySelectorAll('.spor-gecis-scrim, .spor-gecis-ikon').forEach(function(el){ el.remove(); });
+    }
+
     function sporModuIcGoster(hedefView){
       [viewAna, viewAyarlar, viewAntrenman].forEach(function(v){
         if(v){ v.classList.toggle('active', v === hedefView); }
@@ -11510,10 +11634,134 @@
       if(anaAciklama){ anaAciklama.textContent = 'Çok yakında burada.'; }
       sporModuIcGoster(viewAna);
       sporDockAktifYap(null);
-      overlay.classList.add('active');
+
+      // Azaltılmış hareket tercih edildiyse ya da bir geçiş zaten sürüyorsa: sade aç/kapa
+      if(sporGecisAzaltilmisHareket || sporGecisCalisiyor){
+        overlay.classList.add('active');
+        return;
+      }
+
+      sporGecisCalisiyor = true;
+      sporGecisTemizle();
+
+      const rect = acBtn.getBoundingClientRect();
+      sporGirisRect = rect;
+      const vpW = window.innerWidth;
+      const vpH = window.innerHeight;
+
+      // 1) Ekranı hafifçe karartan, düğmenin tam üstünden yayılan bir perde
+      const scrim = document.createElement('div');
+      scrim.className = 'spor-gecis-scrim';
+      scrim.style.setProperty('--gecis-x', (rect.left + rect.width / 2) + 'px');
+      scrim.style.setProperty('--gecis-y', (rect.top + rect.height / 2) + 'px');
+      scrim.style.transition = 'opacity 0.5s ease';
+      document.body.appendChild(scrim);
+      requestAnimationFrame(function(){ scrim.style.opacity = '1'; });
+
+      // 2) Düğmenin tam konumu/boyutuyla eşleşen, uygulama ikonu gibi görünen bir karo
+      const ikon = document.createElement('div');
+      ikon.className = 'spor-gecis-ikon';
+      ikon.style.top = rect.top + 'px';
+      ikon.style.left = rect.left + 'px';
+      ikon.style.width = rect.width + 'px';
+      ikon.style.height = rect.height + 'px';
+      ikon.style.borderRadius = '9999px';
+
+      const svgKaynak = acBtn.querySelector('svg');
+      let svgKopya = null;
+      if(svgKaynak){
+        svgKopya = svgKaynak.cloneNode(true);
+        svgKopya.removeAttribute('id');
+        ikon.appendChild(svgKopya);
+      }
+      const shine = document.createElement('span');
+      shine.className = 'spor-gecis-ikon-shine';
+      ikon.appendChild(shine);
+      document.body.appendChild(ikon);
+
+      // 3) Küçük bir "basılma" zıplaması, sonra tam ekrana genişleme — gerçek bir uygulama simgesine dokunmuş gibi
+      const basilma = ikon.animate([
+        { transform:'scale(1)' },
+        { transform:'scale(0.93)' },
+        { transform:'scale(1.04)' },
+        { transform:'scale(1)' }
+      ], { duration:320, easing:'cubic-bezier(.3,1.2,.5,1)' });
+
+      basilma.onfinish = function(){
+        const buyume = ikon.animate([
+          {
+            top: rect.top + 'px', left: rect.left + 'px',
+            width: rect.width + 'px', height: rect.height + 'px',
+            borderRadius:'9999px'
+          },
+          {
+            top:'0px', left:'0px',
+            width: vpW + 'px', height: vpH + 'px',
+            borderRadius:'0px'
+          }
+        ], { duration:980, easing:'cubic-bezier(.22,1,.36,1)', fill:'forwards' });
+
+        if(svgKopya){
+          svgKopya.animate([
+            { transform:'scale(1) rotate(0deg)', opacity:1, offset:0 },
+            { transform:'scale(1.5) rotate(12deg)', opacity:1, offset:0.6 },
+            { transform:'scale(2.2) rotate(18deg)', opacity:0, offset:1 }
+          ], { duration:980, easing:'cubic-bezier(.22,1,.36,1)', fill:'forwards' });
+        }
+        shine.animate([
+          { transform:'translateX(-220%) rotate(8deg)' },
+          { transform:'translateX(230%) rotate(8deg)' }
+        ], { duration:820, delay:80, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards' });
+
+        // İçerik, karo henüz ekranı kaplarken sessizce hazırlanır
+        setTimeout(function(){ overlay.classList.add('active'); }, 460);
+
+        buyume.onfinish = function(){
+          // 4) Karo eriyerek gerçek Spor Modu içeriğini açığa çıkarır
+          const eriyis = ikon.animate([
+            { opacity:1 },
+            { opacity:0 }
+          ], { duration:340, easing:'ease-out', fill:'forwards' });
+          scrim.style.transition = 'opacity 0.34s ease';
+          scrim.style.opacity = '0';
+
+          eriyis.onfinish = function(){
+            sporGecisTemizle();
+            sporGecisCalisiyor = false;
+          };
+        };
+      };
     }
+
     function sporModundanCik(){
-      overlay.classList.remove('active');
+      if(sporGecisAzaltilmisHareket || sporGecisCalisiyor){
+        overlay.classList.remove('active');
+        return;
+      }
+
+      sporGecisCalisiyor = true;
+      sporGecisTemizle();
+
+      const vpH = window.innerHeight;
+
+      // Tam ekran kart, hafifçe aşağı kayıp küçülerek ve solarak kapanır —
+      // oranlar hep birebir korunur, hiçbir çarpılma olmaz.
+      const kapanma = overlay.animate([
+        { transform:'translateY(0px) scale(1)', borderRadius:'0px', opacity:1, offset:0 },
+        { transform:'translateY(' + (vpH * 0.05) + 'px) scale(0.95)', borderRadius:'30px', opacity:1, offset:0.4 },
+        { transform:'translateY(' + (vpH * 0.16) + 'px) scale(0.86)', borderRadius:'42px', opacity:0, offset:1 }
+      ], { duration:620, easing:'cubic-bezier(.4,0,.2,1)', fill:'forwards' });
+
+      kapanma.onfinish = function(){
+        overlay.style.transition = 'none';
+        overlay.classList.remove('active');
+        overlay.getAnimations().forEach(function(a){ a.cancel(); });
+        overlay.style.transform = '';
+        overlay.style.borderRadius = '';
+        void overlay.offsetWidth;
+        overlay.style.transition = '';
+        sporGecisCalisiyor = false;
+      };
     }
 
     acBtn.addEventListener('click', sporModunaGec);
@@ -11623,12 +11871,12 @@
       return kartlar.find(function(k){ return k.id === id; }) || null;
     }
 
-    function kartlariRenderEt(){
+    function kartlariRenderEt(vurgulananId){
       kartIzgara.querySelectorAll('.antrenman-kart:not(.antrenman-kart-ekle)').forEach(function(el){ el.remove(); });
       kartlar.forEach(function(kart){
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'antrenman-kart';
+        btn.className = (kart.id === vurgulananId) ? 'antrenman-kart antrenman-kart-yeni' : 'antrenman-kart';
         btn.dataset.id = kart.id;
 
         const ikon = document.createElement('span');
@@ -11652,7 +11900,7 @@
       });
     }
 
-    function egzersizleriRenderEt(){
+    function egzersizleriRenderEt(vurgulananId){
       const kart = kartBul(aktifKartId);
       egzersizIzgara.querySelectorAll('.antrenman-kart:not(.antrenman-kart-ekle)').forEach(function(el){ el.remove(); });
       if(!kart) return;
@@ -11662,7 +11910,8 @@
         btn.dataset.id = eg.id;
 
         const gorselVar = guvenliUrlMi(eg.gorsel);
-        btn.className = gorselVar ? 'antrenman-kart antrenman-egzersiz-kart gorselli' : 'antrenman-kart antrenman-egzersiz-kart';
+        const yeniMi = eg.id === vurgulananId;
+        btn.className = 'antrenman-kart antrenman-egzersiz-kart' + (gorselVar ? ' gorselli' : '') + (yeniMi ? ' antrenman-kart-yeni' : '');
 
         if(gorselVar){
           const img = document.createElement('img');
@@ -11729,9 +11978,10 @@
         e.preventDefault();
         const isim = (kartIsimInput.value || '').trim();
         if(!isim) return;
-        kartlar.push({ id: idUret(), isim: isim, egzersizler: [] });
+        const yeniKart = { id: idUret(), isim: isim, egzersizler: [] };
+        kartlar.push(yeniKart);
         kaydet();
-        kartlariRenderEt();
+        kartlariRenderEt(yeniKart.id);
         kartModalKapat();
       });
     }
@@ -11779,14 +12029,15 @@
         const gorsel = (egzersizGorselInput.value || '').trim();
         const video = (egzersizVideoInput.value || '').trim();
         kart.egzersizler = kart.egzersizler || [];
-        kart.egzersizler.push({
+        const yeniEg = {
           id: idUret(),
           isim: isim,
           gorsel: guvenliUrlMi(gorsel) ? gorsel : '',
           video: guvenliUrlMi(video) ? video : ''
-        });
+        };
+        kart.egzersizler.push(yeniEg);
         kaydet();
-        egzersizleriRenderEt();
+        egzersizleriRenderEt(yeniEg.id);
         egzersizModalKapat();
       });
     }
@@ -12194,7 +12445,15 @@
       document.body.style.left = '';
       document.body.style.right = '';
       document.body.style.width = '';
+      // Not: sayfada scroll-behavior:smooth tanımlı olduğu için normal bir
+      // scrollTo çağrısı burada gözle görülür, istenmeyen bir "kayma"
+      // animasyonuna sebep oluyordu. Bu geri dönüş kullanıcı odaklı bir
+      // kaydırma değil, konumu sessizce eski haline getirme işlemi
+      // olduğundan anlık (instant) yapılmalı.
+      const oncekiDavranis = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = 'auto';
       window.scrollTo(0, kilitliKonum);
+      document.documentElement.style.scrollBehavior = oncekiDavranis;
     }
     function durumuKontrolEt(){
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
