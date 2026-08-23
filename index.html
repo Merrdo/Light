@@ -7540,8 +7540,21 @@
             db.createObjectStore(DOSYA_STORE_ADI);
           }
         };
-        istek.onsuccess = function(){ resolve(istek.result); };
-        istek.onerror = function(){ reject(istek.error); };
+        istek.onsuccess = function(){
+          const db = istek.result;
+          // Not: Ana ekrana eklenmiş (standalone) PWA'larda uygulama arka plana
+          // alınıp geri getirildiğinde iOS/Android bazen bu bağlantıyı sessizce
+          // kapatıyor (hiçbir hata fırlatmadan). Önbellekteki "ölü" bağlantı
+          // tekrar kullanılmaya devam edilirse sonraki transaction'lar sonsuza
+          // kadar asılı kalıyor (ne başarı ne hata). Bu yüzden kapanma/versiyon
+          // değişimi anında önbelleği sıfırlıyoruz ki bir sonraki çağrı taze bir
+          // bağlantı açsın.
+          db.onclose = function(){ dosyaDbSozu = null; };
+          db.onversionchange = function(){ try{ db.close(); }catch(e){} dosyaDbSozu = null; };
+          resolve(db);
+        };
+        istek.onerror = function(){ dosyaDbSozu = null; reject(istek.error); };
+        istek.onblocked = function(){ dosyaDbSozu = null; reject(new Error('IndexedDB açma engellendi')); };
       });
       return dosyaDbSozu;
     }
@@ -7550,36 +7563,63 @@
       return 'dosya-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
     }
 
-    function dosyaKaydet(id, blob){
+    // Bağlantı bayatlamış olabileceğinden (bkz. yukarıdaki not), her işlemi bir
+    // zaman aşımı ile sarıyoruz. Süre dolarsa önbelleği temizleyip HATA veriyoruz;
+    // böylece arayan taraf (ör. Havuza Ekle butonu) sonsuza kadar asılı kalmak
+    // yerine tekrar denenebilir bir hata alıyor.
+    function dosyaIslemZamanAsimliCalistir(calistir){
       return dosyaDbAc().then(function(db){
         return new Promise(function(resolve, reject){
-          const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
-          islem.objectStore(DOSYA_STORE_ADI).put(blob, id);
-          islem.oncomplete = function(){ resolve(); };
-          islem.onerror = function(){ reject(islem.error); };
+          let bitti = false;
+          const zamanAsimi = setTimeout(function(){
+            if(bitti) return;
+            bitti = true;
+            dosyaDbSozu = null; // bağlantı muhtemelen ölü; bir sonraki denemede taze aç
+            reject(new Error('IndexedDB işlemi zaman aşımına uğradı'));
+          }, 6000);
+          function tamamla(fn){
+            return function(arg){
+              if(bitti) return;
+              bitti = true;
+              clearTimeout(zamanAsimi);
+              fn(arg);
+            };
+          }
+          try{
+            calistir(db, tamamla(resolve), tamamla(reject));
+          }catch(e){
+            tamamla(reject)(e);
+          }
         });
+      });
+    }
+
+    function dosyaKaydet(id, blob){
+      return dosyaIslemZamanAsimliCalistir(function(db, resolve, reject){
+        const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
+        islem.objectStore(DOSYA_STORE_ADI).put(blob, id);
+        islem.oncomplete = function(){ resolve(); };
+        islem.onerror = function(){ reject(islem.error); };
+        islem.onabort = function(){ reject(islem.error || new Error('IndexedDB işlemi iptal edildi')); };
       });
     }
 
     function dosyaOku(id){
-      return dosyaDbAc().then(function(db){
-        return new Promise(function(resolve, reject){
-          const islem = db.transaction(DOSYA_STORE_ADI, 'readonly');
-          const istek = islem.objectStore(DOSYA_STORE_ADI).get(id);
-          istek.onsuccess = function(){ resolve(istek.result || null); };
-          istek.onerror = function(){ reject(istek.error); };
-        });
+      return dosyaIslemZamanAsimliCalistir(function(db, resolve, reject){
+        const islem = db.transaction(DOSYA_STORE_ADI, 'readonly');
+        const istek = islem.objectStore(DOSYA_STORE_ADI).get(id);
+        istek.onsuccess = function(){ resolve(istek.result || null); };
+        istek.onerror = function(){ reject(istek.error); };
       });
     }
 
     function dosyaSil(id){
-      return dosyaDbAc().then(function(db){
-        return new Promise(function(resolve, reject){
-          const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
-          islem.objectStore(DOSYA_STORE_ADI).delete(id);
-          islem.oncomplete = function(){ resolve(); };
-          islem.onerror = function(){ reject(islem.error); };
-        });
+      return dosyaIslemZamanAsimliCalistir(function(db, resolve, reject){
+        const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
+        islem.objectStore(DOSYA_STORE_ADI).delete(id);
+        islem.oncomplete = function(){ resolve(); };
+        islem.onerror = function(){ reject(islem.error); };
+        islem.onabort = function(){ reject(islem.error || new Error('IndexedDB işlemi iptal edildi')); };
       });
     }
 
@@ -9820,6 +9860,7 @@
         }).catch(function(err){
           console.log('Soru kaydedilemedi:', err);
           havuzEkleModalSave.disabled = false;
+          alert('Soru kaydedilemedi, lütfen tekrar dene. (Uygulamayı bir süre arka planda bıraktıysan bu bazen olabilir; "Havuza Ekle" butonuna tekrar basman yeterli.)');
         });
       });
     }
