@@ -13406,6 +13406,16 @@
 
     if(senkronDurumBtn){
       senkronDurumBtn.addEventListener('click', function(){
+        // PWA (standalone) modda Google'dan sessizce yeni jeton alınamıyor
+        // (bkz. tokenSessizAl). Elimizdeki jetonun süresi dolmuşsa, manuel
+        // dokunma bir kullanıcı etkileşimi olduğu için Google'a yeniden
+        // yönlendirip jetonu tazeleriz; aksi halde senkron kalıcı olarak
+        // "başarısız" durumunda takılı kalırdı.
+        if(!tokenOku() && standaloneMi()){
+          senkronDurumAyarla('calisiyor', 'Google hesabına yönlendiriliyor…');
+          girisBaslat();
+          return;
+        }
         // Doğrudan tıklamayla tetiklenen senkronizasyon: burada gerekirse
         // Google'dan sessizce (ya da gerekirse hesap seçtirerek) jeton
         // yenilenebilir, çünkü bu bir kullanıcı etkileşimidir. Arka plandaki
@@ -13511,7 +13521,8 @@
         });
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar dene');
+        const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
+        senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
       }).finally(function(){
         senkronSurmekte = false;
       });
@@ -13573,7 +13584,8 @@
         });
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar dene');
+        const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
+        senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
       });
     }
 
