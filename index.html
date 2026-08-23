@@ -11688,17 +11688,24 @@
       ], { duration:320, easing:'cubic-bezier(.3,1.2,.5,1)' });
 
       basilma.onfinish = function(){
+        // Karoyu baştan tam ekran boyutuna getirip transform ile düğmenin üstüne
+        // "sabitliyoruz" — böylece büyüme animasyonu sadece transform + border-radius
+        // değiştiriyor (layout'u değil), bu da 90fps+ akıcılık sağlıyor. top/left/
+        // width/height'ı her frame değiştirmek tam ekran boyutunda bir elemanda
+        // reflow'a (layout thrashing) yol açıp kasmaya sebep oluyordu.
+        ikon.style.top = '0px';
+        ikon.style.left = '0px';
+        ikon.style.width = vpW + 'px';
+        ikon.style.height = vpH + 'px';
+        ikon.style.transformOrigin = '0 0';
+
+        const olcekX = rect.width / vpW;
+        const olcekY = rect.height / vpH;
+        const baslangicTransform = 'translate(' + rect.left + 'px,' + rect.top + 'px) scale(' + olcekX + ',' + olcekY + ')';
+
         const buyume = ikon.animate([
-          {
-            top: rect.top + 'px', left: rect.left + 'px',
-            width: rect.width + 'px', height: rect.height + 'px',
-            borderRadius:'9999px'
-          },
-          {
-            top:'0px', left:'0px',
-            width: vpW + 'px', height: vpH + 'px',
-            borderRadius:'0px'
-          }
+          { transform: baslangicTransform, borderRadius:'9999px' },
+          { transform: 'translate(0px,0px) scale(1,1)', borderRadius:'0px' }
         ], { duration:980, easing:'cubic-bezier(.22,1,.36,1)', fill:'forwards' });
 
         if(svgKopya){
