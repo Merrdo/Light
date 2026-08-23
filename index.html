@@ -735,6 +735,9 @@
   #yedekRow.animate{
     animation-delay:1.6s;
   }
+  #sporModuRow.animate{
+    animation-delay:1.75s;
+  }
   .yedek-ac-btn{
     flex-shrink:0;
     display:flex;
@@ -758,6 +761,29 @@
   }
   .yedek-ac-btn:active{ transform:scale(0.96); }
   .yedek-ac-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
+  .spor-modu-btn{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.45rem;
+    padding:0.65rem 1.1rem;
+    border-radius:9999px;
+    border:1px solid rgba(var(--sari-rgb),0.55);
+    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    color:var(--bg);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    font-weight:600;
+    letter-spacing:0.03em;
+    cursor:pointer;
+    box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.5);
+    transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s ease, filter 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .spor-modu-btn:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+  }
+  .spor-modu-btn:active{ transform:scale(0.96); }
+  .spor-modu-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
   .settings-row-text{
     display:flex;
     flex-direction:column;
@@ -4901,6 +4927,16 @@
           <span>Yedekle</span>
         </button>
       </div>
+      <div class="settings-row" id="sporModuRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Spor Modu</span>
+          <span class="settings-row-sub">Yakında aktif olacak</span>
+        </div>
+        <button type="button" class="spor-modu-btn" id="sporModuBtn" aria-label="Spor Moduna Geç">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path></svg>
+          <span>Spor Moduna Geç</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -6047,6 +6083,7 @@
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
     const yedekRow = document.getElementById('yedekRow');
+    const sporModuRow = document.getElementById('sporModuRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
     const denemelerEyebrow = document.getElementById('denemelerEyebrow');
@@ -6132,6 +6169,7 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
+      sporModuRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
 
@@ -6163,6 +6201,7 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
+      sporModuRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
       emptyRule.classList.add('animate');
@@ -6173,6 +6212,7 @@
       isikEfektiRow.classList.add('animate');
       bganimRow.classList.add('animate');
       yedekRow.classList.add('animate');
+      sporModuRow.classList.add('animate');
       });
     }
 
@@ -7181,57 +7221,16 @@
         function yenidenCiz(){ if(tur === 'rutin'){ gundelikRutinCiz(); } else { gundelikTodoCiz(); } }
 
         check.addEventListener('click', function(){
-          // ---- Yapılacaklar Listesi: işaretlenince yumuşak bir geçişle listeden kaldır ----
+          // ---- Yapılacaklar Listesi: işaretlenince anında listeden kaldır ----
+          // Not: Önceden burada yumuşak bir "daralma" geçiş animasyonu vardı;
+          // hızlı arka arkaya işaretlemelerde uygulamayı hantallaştırdığı için kaldırıldı.
           if(tur === 'todo'){
-            if(satir.classList.contains('gundelik-madde-siliniyor')) return;
             const oncekiListe = veriOku();
             const hedefMadde = oncekiListe.find(function(m){ return m.id === madde.id; });
             if(!hedefMadde || hedefMadde.tamam) return;
 
-            satir.classList.add('gundelik-madde-siliniyor', 'tamam');
-            check.setAttribute('aria-checked', 'true');
-            satir.style.pointerEvents = 'none';
-
-            function kaldir(){
-              veriYaz(veriOku().filter(function(m){ return m.id !== madde.id; }));
-              yenidenCiz();
-            }
-
-            const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            if(azaltilmisHareket){
-              kaldir();
-              return;
-            }
-
-            const yukseklik = satir.getBoundingClientRect().height;
-            satir.style.height = yukseklik + 'px';
-            satir.style.overflow = 'hidden';
-            void satir.offsetHeight; // reflow zorla, geçişin baştan tetiklenmesi için
-
-            requestAnimationFrame(function(){
-              satir.style.transition =
-                'height 0.36s cubic-bezier(.4,0,.2,1), opacity 0.28s ease, transform 0.32s cubic-bezier(.4,0,.2,1), margin 0.36s cubic-bezier(.4,0,.2,1), padding 0.36s cubic-bezier(.4,0,.2,1), border-width 0.36s ease';
-              satir.style.opacity = '0';
-              satir.style.transform = 'translateX(18px) scale(0.94)';
-              satir.style.height = '0px';
-              satir.style.marginTop = '0px';
-              satir.style.marginBottom = '-0.55rem';
-              satir.style.paddingTop = '0px';
-              satir.style.paddingBottom = '0px';
-              satir.style.borderWidth = '0px';
-            });
-
-            let tamamlandi = false;
-            function bitir(){
-              if(tamamlandi) return;
-              tamamlandi = true;
-              kaldir();
-            }
-            satir.addEventListener('transitionend', function(e){
-              if(e.target === satir && e.propertyName === 'height'){ bitir(); }
-            });
-            // Güvenlik ağı: bir sebeple transitionend tetiklenmezse yine de kaldır
-            setTimeout(bitir, 460);
+            veriYaz(oncekiListe.filter(function(m){ return m.id !== madde.id; }));
+            yenidenCiz();
             return;
           }
 
