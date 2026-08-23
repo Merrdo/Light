@@ -6033,6 +6033,23 @@
   .giris-google-btn:disabled svg{ display:none; }
   @keyframes girisGoogleSpin{ to{ transform:rotate(360deg); } }
 
+  .giris-misafir-btn{
+    margin-top:0.9rem;
+    width:100%;
+    padding:0.75rem 1.2rem;
+    border-radius:0.65rem;
+    border:1px solid transparent;
+    background:transparent;
+    font-family:inherit;
+    font-size:0.85rem;
+    letter-spacing:0.01em;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+  .giris-misafir-btn:hover{ color:var(--ink); background:rgba(var(--ink-rgb),0.05); }
+  .giris-misafir-btn:active{ transform:scale(0.98); }
+
   .giris-durum{
     margin-top:1rem;
     font-size:0.8rem;
@@ -6172,6 +6189,7 @@
         <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4c-7.682 0-14.344 4.337-17.694 10.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
         <span>Google ile Devam Et</span>
       </button>
+      <button type="button" class="giris-misafir-btn" id="girisMisafirBtn">Misafir Olarak Devam Et</button>
       <p class="giris-durum" id="girisDurumMetin"></p>
     </div>
   </div>
@@ -6384,6 +6402,30 @@
       </div>
       <input type="file" id="yedekDosyaInput" accept="application/json,.json" style="display:none;">
       <p class="modal-onay-metin" id="yedekDurumMetin" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Misafirken hesaba giriş yapılırken, hesapta kayıtlı veri bulunursa çıkan uyarı -->
+  <div class="modal-overlay" id="hesapCakismaModalOverlay">
+    <div class="modal-box" style="position:relative;">
+      <span class="modal-eyebrow">Hesap Girişi</span>
+      <h3 class="modal-title">Kayıtlı Verileriniz Bulundu</h3>
+      <p class="modal-onay-metin">Giriş yaptığınız hesapta daha önceden kaydedilmiş verileriniz var. Nasıl devam etmek istersiniz?</p>
+
+      <div class="modal-actions modal-actions-pill" style="margin-top:1.2rem; flex-direction:column; gap:0.7rem;">
+        <button type="button" class="modal-btn modal-btn-primary" id="hesapCakismaBulutBtn">
+          Devam Et
+        </button>
+        <p class="modal-onay-metin" style="margin-top:-0.35rem; font-size:0.72rem; opacity:0.75;">Hesabınızdaki kayıtlı veriler yüklenir, cihazınızdaki mevcut veriler bunların üzerine yazılır.</p>
+        <button type="button" class="modal-btn" id="hesapCakismaYerelBtn">
+          Şu Anki Verilerimi Kullan
+        </button>
+        <p class="modal-onay-metin" style="margin-top:-0.35rem; font-size:0.72rem; opacity:0.75;">Cihazınızdaki mevcut veriler korunur, hesabınızdaki kayıtlı verilerin üzerine yazılır.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="hesapCakismaVazgecBtn">Vazgeç</button>
+      </div>
+      <p class="modal-onay-metin" id="hesapCakismaDurumMetin" style="display:none;"></p>
     </div>
   </div>
 
@@ -12960,6 +13002,7 @@
     const HESAP_SCOPE = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file';
     const REDIRECT_URI = 'https://merrdo.github.io/Light/';
     const BEKLEYEN_ANAHTARI = 'sessizlik-hesap-bekleyen';
+    const MISAFIR_GECIS_ANAHTARI = 'sessizlik-hesap-misafir-gecis';
     const HESAP_ANAHTARI = 'sessizlik-hesap-bilgi';
     const DRIVE_DOSYA_ADI = 'sessizligin-sesi-yedek.json';
     const TOKEN_ANAHTARI = 'sessizlik-hesap-token';
@@ -12969,6 +13012,7 @@
 
     const overlay = document.getElementById('girisEkraniOverlay');
     const girisBtn = document.getElementById('girisGoogleBtn');
+    const girisMisafirBtn = document.getElementById('girisMisafirBtn');
     const durumEl = document.getElementById('girisDurumMetin');
     const hesapAdEl = document.getElementById('hesapAdSoyad');
     const hesapEpostaEl = document.getElementById('hesapEposta');
@@ -12978,6 +13022,11 @@
     const senkronDurumBtn = document.getElementById('senkronDurum');
     const senkronNoktaEl = document.getElementById('senkronNokta');
     const senkronMetinEl = document.getElementById('senkronDurumMetin');
+    const cakismaOverlay = document.getElementById('hesapCakismaModalOverlay');
+    const cakismaBulutBtn = document.getElementById('hesapCakismaBulutBtn');
+    const cakismaYerelBtn = document.getElementById('hesapCakismaYerelBtn');
+    const cakismaVazgecBtn = document.getElementById('hesapCakismaVazgecBtn');
+    const cakismaDurumEl = document.getElementById('hesapCakismaDurumMetin');
 
     function durumGoster(metin){
       if(!durumEl) return;
@@ -13044,6 +13093,15 @@
 
     function hesapBilgisiniUygula(hesap){
       if(!hesap) return;
+      if(cikisBtn){ cikisBtn.textContent = hesap.misafir ? 'Giriş Yap' : 'Çıkış Yap'; }
+      if(senkronDurumBtn){ senkronDurumBtn.style.display = hesap.misafir ? 'none' : ''; }
+      if(hesap.misafir){
+        if(hesapAdEl){ hesapAdEl.textContent = 'Misafir Hesabı'; }
+        if(hesapEpostaEl){ hesapEpostaEl.textContent = 'Senkronizasyon kapalı'; }
+        if(hesapAvatarEl){ hesapAvatarEl.style.display = 'none'; hesapAvatarEl.removeAttribute('src'); }
+        if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; hesapAvatarYerEl.textContent = 'M'; }
+        return;
+      }
       if(hesapAdEl){ hesapAdEl.textContent = hesap.name || 'Google Hesabı'; }
       if(hesapEpostaEl){ hesapEpostaEl.textContent = hesap.email || ''; }
       if(hesapAvatarYerEl){ hesapAvatarYerEl.textContent = hesapBaslangicHarfi(hesap); }
@@ -13062,6 +13120,13 @@
           if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
         }
       }
+    }
+
+    // Hesap misafir değilse ve gerçekten kayıtlıysa true döner; yalnızca bu
+    // durumda otomatik/periyodik senkronizasyon çalışabilir.
+    function hesapSenkroneUygunMu(){
+      const h = hesapOku();
+      return !!(h && !h.misafir);
     }
 
     function standaloneMi(){
@@ -13210,8 +13275,128 @@
       });
     }
 
+    if(girisMisafirBtn){
+      girisMisafirBtn.addEventListener('click', function(){
+        const hesap = { misafir: true, name: 'Misafir Hesabı', email: '', picture: '' };
+        hesapYaz(hesap);
+        hesapBilgisiniUygula(hesap);
+        durumGoster('');
+        ekraniGizle();
+        // Misafir olarak devam edilince senkronizasyon başlatılmaz; veriler
+        // yalnızca cihazda tutulur, eski usül dışa/içe aktarma çalışmaya devam eder.
+      });
+    }
+
+    // Misafirken hesaba giriş yapılırken bulutta kayıtlı bir yedek bulunursa
+    // gösterilen uyarı penceresini yönetir.
+    let bekleyenHesapGecisi = null;
+
+    function cakismaDurumGoster(metin){
+      if(!cakismaDurumEl) return;
+      cakismaDurumEl.textContent = metin || '';
+      cakismaDurumEl.style.display = metin ? '' : 'none';
+    }
+    function cakismaBtnDurumu(devreDisi){
+      if(cakismaBulutBtn){ cakismaBulutBtn.disabled = devreDisi; }
+      if(cakismaYerelBtn){ cakismaYerelBtn.disabled = devreDisi; }
+      if(cakismaVazgecBtn){ cakismaVazgecBtn.disabled = devreDisi; }
+    }
+    function cakismaModaluKapat(){
+      if(cakismaOverlay){ cakismaOverlay.classList.remove('active'); }
+      cakismaDurumGoster('');
+      cakismaBtnDurumu(false);
+      bekleyenHesapGecisi = null;
+    }
+
+    // Misafirden hesaba geçişte bulutta kayıtlı veri olup olmadığını denetler.
+    // Kayıt yoksa direkt hesaba geçilip cihazdaki (misafir) veriler ilk yedek
+    // olarak yüklenir; kayıt varsa kullanıcıya seçim sorulur.
+    function misafirdenGecisiIsle(token, hesap){
+      return driveDosyaBul(token).then(function(dosya){
+        if(dosya){
+          bekleyenHesapGecisi = { token: token, hesap: hesap, dosya: dosya };
+          cakismaDurumGoster('');
+          cakismaBtnDurumu(false);
+          if(cakismaOverlay){ cakismaOverlay.classList.add('active'); }
+        } else {
+          hesapYaz(hesap);
+          hesapBilgisiniUygula(hesap);
+          ekraniGizle();
+          senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
+          otomatikYukle(true);
+        }
+      });
+    }
+
+    if(cakismaBulutBtn){
+      cakismaBulutBtn.addEventListener('click', function(){
+        if(!bekleyenHesapGecisi) return;
+        const gecis = bekleyenHesapGecisi;
+        cakismaBtnDurumu(true);
+        cakismaDurumGoster('Hesabınızdaki veriler yükleniyor…');
+        driveDosyaIndir(gecis.token, gecis.dosya.id).then(function(icerikMetin){
+          return window.__sessizlikYedegiGeriYukle(icerikMetin);
+        }).then(function(){
+          hesapYaz(gecis.hesap);
+          bilinenModifiedYaz(gecis.dosya.modifiedTime);
+          window.location.reload();
+        }).catch(function(err){
+          cakismaDurumGoster((err && err.message) ? err.message : 'Veriler geri yüklenirken bir sorun oluştu.');
+          cakismaBtnDurumu(false);
+        });
+      });
+    }
+    if(cakismaYerelBtn){
+      cakismaYerelBtn.addEventListener('click', function(){
+        if(!bekleyenHesapGecisi) return;
+        const gecis = bekleyenHesapGecisi;
+        cakismaBtnDurumu(true);
+        cakismaDurumGoster('Cihazınızdaki veriler yükleniyor…');
+        if(!window.__sessizlikYedekDosyasiOlustur){ cakismaDurumGoster('Yedekleme sistemi hazır değil.'); cakismaBtnDurumu(false); return; }
+        window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
+          return driveDosyaYukle(gecis.token, dosya, gecis.dosya.id);
+        }).then(function(sonuc){
+          hesapYaz(gecis.hesap);
+          if(sonuc && sonuc.modifiedTime){ bilinenModifiedYaz(sonuc.modifiedTime); }
+          window.location.reload();
+        }).catch(function(err){
+          cakismaDurumGoster((err && err.message) ? err.message : 'Veriler yüklenirken bir sorun oluştu.');
+          cakismaBtnDurumu(false);
+        });
+      });
+    }
+    if(cakismaVazgecBtn){
+      cakismaVazgecBtn.addEventListener('click', function(){
+        cakismaModaluKapat();
+      });
+    }
+    if(cakismaOverlay){
+      cakismaOverlay.addEventListener('click', function(e){
+        if(e.target === cakismaOverlay){ cakismaModaluKapat(); }
+      });
+    }
+
     if(cikisBtn){
       cikisBtn.addEventListener('click', function(){
+        const guncelHesap = hesapOku();
+        if(guncelHesap && guncelHesap.misafir){
+          cikisBtn.disabled = true;
+          if(standaloneMi()){
+            try{ sessionStorage.setItem(MISAFIR_GECIS_ANAHTARI, '1'); }catch(e){}
+          }
+          girisBaslat().then(function(token){
+            if(!token) return; // standalone: sayfa yönlendiriliyor, dönüşte ele alınacak
+            return kullaniciBilgisiniGetir(token).then(function(yeniHesap){
+              return misafirdenGecisiIsle(token, yeniHesap);
+            });
+          }).catch(function(err){
+            try{ sessionStorage.removeItem(MISAFIR_GECIS_ANAHTARI); }catch(e){}
+            window.alert((err && err.message) ? err.message : 'Google girişi tamamlanamadı.');
+          }).finally(function(){
+            cikisBtn.disabled = false;
+          });
+          return;
+        }
         const onay = window.confirm('Hesabından çıkış yapmak istediğine emin misin? Bir sonraki açılışta tekrar giriş yapman istenecek.');
         if(!onay) return;
         hesapSil();
@@ -13297,7 +13482,7 @@
     // ================= OTOMATİK SENKRONİZASYON (buton yok, tamamen arka planda) =================
     let senkronSurmekte = false;
     function otomatikYukle(manuelMi){
-      if(!hesapOku() || !window.__sessizlikYedekDosyasiOlustur) return Promise.resolve();
+      if(!hesapSenkroneUygunMu() || !window.__sessizlikYedekDosyasiOlustur) return Promise.resolve();
       if(senkronSurmekte) return Promise.resolve();
       senkronSurmekte = true;
       senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
@@ -13361,7 +13546,7 @@
     // ---- Açılışta: Drive'da bu cihazın bilmediği daha yeni bir sürüm varsa
     // sessizce indirip geri yükler ----
     function acilistaKontrolEt(){
-      if(!hesapOku() || !window.__sessizlikYedegiGeriYukle) return;
+      if(!hesapSenkroneUygunMu() || !window.__sessizlikYedegiGeriYukle) return;
       // Açılışta yalnızca hâlihazırda geçerli (süresi dolmamış) bir jeton
       // varsa kontrol edilir; aksi halde Google'a sessizce yeni jeton
       // istenmez (bkz. otomatikYukle'daki açıklama) — kullanıcı senkron
@@ -13398,18 +13583,33 @@
 
     // ---- Açılışta durumu belirle ----
     const mevcutHesap = hesapOku();
+    let misafirGecisBekleniyor = false;
+    try{ misafirGecisBekleniyor = sessionStorage.getItem(MISAFIR_GECIS_ANAHTARI) === '1'; sessionStorage.removeItem(MISAFIR_GECIS_ANAHTARI); }catch(e){}
     if(redirectSonuc){
-      let bekleyen = false;
-      try{ bekleyen = sessionStorage.getItem(BEKLEYEN_ANAHTARI) === '1'; sessionStorage.removeItem(BEKLEYEN_ANAHTARI); }catch(e){}
-      ekraniGoster();
-      durumGoster('Hesap bilgileri alınıyor…');
+      try{ sessionStorage.removeItem(BEKLEYEN_ANAHTARI); }catch(e){}
       tokenKaydet(redirectSonuc.token, redirectSonuc.expiresIn);
-      girisTamamla(redirectSonuc.token);
+      if(misafirGecisBekleniyor){
+        // Standalone modda misafirken "Giriş Yap" ile başlatılan geçiş: yönlendirme
+        // dönüşünde de aynı çakışma kontrolünden geçirilir, veriler asla sorulmadan
+        // ezilmez.
+        ekraniGizle();
+        kullaniciBilgisiniGetir(redirectSonuc.token).then(function(yeniHesap){
+          return misafirdenGecisiIsle(redirectSonuc.token, yeniHesap);
+        }).catch(function(err){
+          window.alert((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
+        });
+      } else {
+        ekraniGoster();
+        durumGoster('Hesap bilgileri alınıyor…');
+        girisTamamla(redirectSonuc.token);
+      }
     } else if(mevcutHesap){
       hesapBilgisiniUygula(mevcutHesap);
       ekraniGizle();
-      senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
-      ilkSenkronuBaslat();
+      if(!mevcutHesap.misafir){
+        senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
+        ilkSenkronuBaslat();
+      }
     } else {
       ekraniGoster();
     }
