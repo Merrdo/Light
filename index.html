@@ -784,6 +784,183 @@
   }
   .spor-modu-btn:active{ transform:scale(0.96); }
   .spor-modu-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
+
+  /* ---- Spor Modu: tam ekran, ayrı bir uygulamaya geçmiş gibi ---- */
+  .spor-modu-overlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    transform:scale(0.94);
+    pointer-events:none;
+    visibility:hidden;
+    transition: opacity 0.32s cubic-bezier(.22,1,.36,1), transform 0.38s cubic-bezier(.22,1,.36,1), visibility 0s linear 0.38s;
+  }
+  .spor-modu-overlay.active{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+    visibility:visible;
+    transition: opacity 0.34s cubic-bezier(.22,1,.36,1), transform 0.42s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spor-modu-overlay{ transition:opacity 0.15s ease, visibility 0s linear 0.15s; transform:none; }
+    .spor-modu-overlay.active{ transition:opacity 0.15s ease, visibility 0s linear 0s; transform:none; }
+  }
+  .spor-modu-view{
+    flex:1;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:calc(2rem + env(safe-area-inset-top, 0px)) 2rem 2rem;
+    gap:0.9rem;
+  }
+  .spor-modu-view.active{
+    display:flex;
+  }
+  .spor-modu-simge{
+    width:4.2rem;
+    height:4.2rem;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--bg);
+    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    box-shadow:0 14px 30px -8px rgba(var(--sari-rgb),0.55);
+    margin-bottom:0.3rem;
+  }
+  .spor-modu-simge svg{ width:1.9rem; height:1.9rem; }
+  .spor-modu-baslik{
+    font-size:1.5rem;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .spor-modu-aciklama{
+    font-size:0.92rem;
+    color:var(--ink-soft);
+    max-width:22rem;
+  }
+  .spor-modu-cikis-link{
+    margin-top:0.6rem;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.8rem;
+    letter-spacing:0.01em;
+    text-decoration:underline;
+    text-underline-offset:0.2rem;
+    cursor:pointer;
+    padding:0.4rem;
+    transition: color 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .spor-modu-cikis-link:hover{ color:var(--yanlis); }
+  }
+  .spor-modu-dock-wrap{
+    flex-shrink:0;
+    display:flex;
+    justify-content:center;
+    padding:0 1.4rem calc(1.4rem + env(safe-area-inset-bottom, 0px));
+  }
+  .spor-modu-dock-wrap .dock{
+    opacity:1;
+    transform:none;
+  }
+  .spor-modu-dock-wrap .dock-highlight{
+    background:rgba(var(--sari-rgb),0.18);
+  }
+  .spor-modu-dock-wrap .dock-btn.active{
+    color:var(--sari);
+  }
+  .spor-modu-dock-wrap .dock-btn.dock-bos{
+    pointer-events:none;
+    visibility:hidden;
+  }
+  #sporNabizKalpGrup{
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+  }
+  #sporNabizKalpGrup.spor-nabiz-pulse{
+    animation: sporNabizPulse 0.45s ease-in-out 2;
+  }
+  @keyframes sporNabizPulse{
+    0%{ transform:scale(1); }
+    50%{ transform:scale(1.08); }
+    100%{ transform:scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #sporNabizKalpGrup.spor-nabiz-pulse{ animation:none; }
+  }
+
+  /* ---- Program (saat+artı) ikonu çizim animasyonu ---- */
+  #sporProgramKolGrup{ transform-box: view-box; transform-origin: 12px 12px; opacity:1; }
+  #sporProgramArtiGrup path{ transform-box: view-box; transform-origin: 19px 19px; }
+  #sporProgramKolGrup.spor-program-oynat{
+    animation: sporProgramKolDon 0.55s cubic-bezier(.34,1.4,.64,1) both;
+  }
+  #sporProgramArti1.spor-program-oynat{
+    animation: sporProgramArtiPop 0.4s cubic-bezier(.34,1.4,.64,1) both;
+  }
+  #sporProgramArti2.spor-program-oynat{
+    animation: sporProgramArtiPop 0.4s cubic-bezier(.34,1.4,.64,1) 0.08s both;
+  }
+  @keyframes sporProgramKolDon{
+    0%{ transform:rotate(-45deg); opacity:0; }
+    60%{ transform:rotate(12deg); opacity:1; }
+    100%{ transform:rotate(0deg); opacity:1; }
+  }
+  @keyframes sporProgramArtiPop{
+    0%{ transform:scale(0); opacity:0; }
+    60%{ transform:scale(1.2); opacity:1; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #sporProgramKolGrup.spor-program-oynat,
+    #sporProgramArti1.spor-program-oynat,
+    #sporProgramArti2.spor-program-oynat{ animation:none; }
+  }
+
+  /* ---- İstatistik (grafik) ikonu çizim animasyonu ---- */
+  #sporIstatistikGrup{ transform-box: view-box; transform-origin: 12px 12px; }
+  #sporIstatistikGrup.spor-istatistik-oynat{
+    animation: sporIstatistikSallan 0.8s cubic-bezier(.25,.1,.25,1) both;
+  }
+  #sporIstatistikBar1, #sporIstatistikBar2, #sporIstatistikBar3,
+  #sporIstatistikBar4, #sporIstatistikBar5{
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+  #sporIstatistikBar1.spor-istatistik-oynat{ animation: sporIstatistikBarSek 0.7s ease-in-out both; }
+  #sporIstatistikBar2.spor-istatistik-oynat{ animation: sporIstatistikBarSek 0.7s ease-in-out 0.06s both; }
+  #sporIstatistikBar3.spor-istatistik-oynat{ animation: sporIstatistikBarSek 0.7s ease-in-out 0.12s both; }
+  #sporIstatistikBar4.spor-istatistik-oynat{ animation: sporIstatistikBarSek 0.7s ease-in-out 0.18s both; }
+  #sporIstatistikBar5.spor-istatistik-oynat{ animation: sporIstatistikBarSek 0.7s ease-in-out 0.24s both; }
+  @keyframes sporIstatistikSallan{
+    0%{ transform:scale(1) rotate(0deg); }
+    40%{ transform:scale(1.04) rotate(-1.5deg); }
+    75%{ transform:scale(0.99) rotate(1deg); }
+    100%{ transform:scale(1) rotate(0deg); }
+  }
+  @keyframes sporIstatistikBarSek{
+    0%{ transform:scaleY(1); opacity:1; }
+    55%{ transform:scaleY(1.4); opacity:1; }
+    80%{ transform:scaleY(0.95); opacity:0.95; }
+    100%{ transform:scaleY(1); opacity:1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #sporIstatistikGrup.spor-istatistik-oynat,
+    #sporIstatistikBar1.spor-istatistik-oynat, #sporIstatistikBar2.spor-istatistik-oynat,
+    #sporIstatistikBar3.spor-istatistik-oynat, #sporIstatistikBar4.spor-istatistik-oynat,
+    #sporIstatistikBar5.spor-istatistik-oynat{ animation:none; }
+  }
+
   .settings-row-text{
     display:flex;
     flex-direction:column;
@@ -4933,7 +5110,7 @@
           <span class="settings-row-sub">Yakında aktif olacak</span>
         </div>
         <button type="button" class="spor-modu-btn" id="sporModuBtn" aria-label="Spor Moduna Geç">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829zM2.5 21.5l1.4-1.4M20.1 3.9l1.4-1.4M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829zM9.6 14.4l4.8-4.8"></path></svg>
           <span>Spor Moduna Geç</span>
         </button>
       </div>
@@ -5605,6 +5782,75 @@
         <button type="button" class="mini-zaman-temizle" id="miniZamanTemizle">Temizle</button>
         <button type="button" class="mini-zaman-tamam" id="miniZamanTamam">Tamam</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= SPOR MODU: ayrı bir uygulama gibi tam ekran ================= -->
+  <div class="spor-modu-overlay" id="sporModuOverlay">
+    <div class="spor-modu-view spor-modu-view-ana active" id="sporModuViewAna">
+      <div class="spor-modu-simge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path></svg>
+      </div>
+      <h2 class="spor-modu-baslik">Spor Modu</h2>
+      <p class="spor-modu-aciklama">Çok yakında burada.</p>
+    </div>
+    <div class="spor-modu-view spor-modu-view-ayarlar" id="sporModuViewAyarlar">
+      <div class="spor-modu-simge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+      </div>
+      <h2 class="spor-modu-baslik">Ayarlar</h2>
+      <p class="spor-modu-aciklama">Spor Modu ayarları çok yakında burada.</p>
+      <button type="button" class="spor-modu-cikis-link" id="sporModuCikisBtn">Spor Modundan Çık</button>
+    </div>
+    <div class="spor-modu-dock-wrap">
+      <nav class="dock spor-modu-dock" aria-label="Spor Modu gezinme">
+        <span class="dock-highlight" id="sporModuDockHighlight"></span>
+        <button class="dock-btn" type="button" id="sporModuNabizBtn" aria-label="Nabız">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <g id="sporNabizKalpGrup">
+              <path id="sporNabizKalpYol" d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path>
+            </g>
+            <path id="sporNabizCizgiYol" d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"></path>
+          </svg>
+          <span class="dock-tip">Nabız</span>
+        </button>
+        <button class="dock-btn" type="button" id="sporModuAntrenmanBtn" aria-label="Antrenman">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>
+          <span class="dock-tip">Antrenman</span>
+        </button>
+        <button class="dock-btn" type="button" id="sporModuKaloriBtn" aria-label="Kalori">
+          <svg viewBox="0 0 256 256" fill="none"><path fill="currentColor" d="M183.89 153.34a57.6 57.6 0 0 1-46.56 46.55a9 9 0 0 1-1.33.11a8 8 0 0 1-1.32-15.89c16.57-2.79 30.63-16.85 33.44-33.45a8 8 0 0 1 15.78 2.68ZM216 144a88 88 0 0 1-176 0c0-27.92 11-56.47 32.66-84.85a8 8 0 0 1 11.93-.89l24.12 23.41l22-60.41a8 8 0 0 1 12.63-3.41C165.21 36 216 84.55 216 144m-16 0c0-46.09-35.79-85.92-58.21-106.33l-22.27 61.07a8 8 0 0 1-13.09 3L80.06 76.16C64.09 99.21 56 122 56 144a72 72 0 0 0 144 0"/></svg>
+          <span class="dock-tip">Kalori</span>
+        </button>
+        <button class="dock-btn" type="button" id="sporModuProgramBtn" aria-label="Program">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path id="sporProgramKadranYol" d="M21.92 13.267a10 10 0 1 0-8.653 8.653"></path>
+            <g id="sporProgramKolGrup"><path d="M12 6v6l3.644 1.822"></path></g>
+            <g id="sporProgramArtiGrup">
+              <path id="sporProgramArti1" d="M16 19h6"></path>
+              <path id="sporProgramArti2" d="M19 16v6"></path>
+            </g>
+          </svg>
+          <span class="dock-tip">Program</span>
+        </button>
+        <button class="dock-btn" type="button" id="sporModuIstatistikBtn" aria-label="İstatistik">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <g id="sporIstatistikGrup">
+              <path id="sporIstatistikBar1" d="M12 16v5"></path>
+              <path id="sporIstatistikBar2" d="M16 14v7"></path>
+              <path id="sporIstatistikBar3" d="M20 10v11"></path>
+              <path id="sporIstatistikCizgiYol" d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"></path>
+              <path id="sporIstatistikBar4" d="M4 18v3"></path>
+              <path id="sporIstatistikBar5" d="M8 14v7"></path>
+            </g>
+          </svg>
+          <span class="dock-tip">İstatistik</span>
+        </button>
+        <button class="dock-btn" type="button" id="sporModuAyarlarBtn" aria-label="Ayarlar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+          <span class="dock-tip">Ayarlar</span>
+        </button>
+      </nav>
     </div>
   </div>
 
@@ -10902,6 +11148,321 @@
     }
   })();
 
+  // ================= SPOR MODU: tam ekran, ayrı bir uygulamaya geçmiş gibi =================
+  (function(){
+    const acBtn = document.getElementById('sporModuBtn');
+    const overlay = document.getElementById('sporModuOverlay');
+    const ayarlarBtn = document.getElementById('sporModuAyarlarBtn');
+    const antrenmanBtn = document.getElementById('sporModuAntrenmanBtn');
+    const nabizBtn = document.getElementById('sporModuNabizBtn');
+    const kaloriBtn = document.getElementById('sporModuKaloriBtn');
+    const programBtn = document.getElementById('sporModuProgramBtn');
+    const istatistikBtn = document.getElementById('sporModuIstatistikBtn');
+    const cikisLinkBtn = document.getElementById('sporModuCikisBtn');
+    const viewAna = document.getElementById('sporModuViewAna');
+    const viewAyarlar = document.getElementById('sporModuViewAyarlar');
+    const dockHighlight = document.getElementById('sporModuDockHighlight');
+    const anaSimge = viewAna ? viewAna.querySelector('.spor-modu-simge') : null;
+    const anaBaslik = viewAna ? viewAna.querySelector('.spor-modu-baslik') : null;
+    const anaAciklama = viewAna ? viewAna.querySelector('.spor-modu-aciklama') : null;
+    const varsayilanSimgeHTML = anaSimge ? anaSimge.innerHTML : '';
+
+    if(!acBtn || !overlay) return;
+
+    const tumDockBtnlar = [antrenmanBtn, nabizBtn, kaloriBtn, programBtn, istatistikBtn, ayarlarBtn].filter(Boolean);
+
+    function sporModuIcGoster(hedefView){
+      [viewAna, viewAyarlar].forEach(function(v){
+        if(v){ v.classList.toggle('active', v === hedefView); }
+      });
+    }
+
+    function sporDockAktifYap(aktifBtn){
+      tumDockBtnlar.forEach(function(b){ b.classList.toggle('active', b === aktifBtn); });
+      if(dockHighlight){
+        if(aktifBtn){
+          dockHighlight.style.left = aktifBtn.offsetLeft + 'px';
+          dockHighlight.style.width = aktifBtn.offsetWidth + 'px';
+          dockHighlight.classList.add('ready');
+        } else {
+          dockHighlight.classList.remove('ready');
+        }
+      }
+    }
+
+    function idsizKopya(svg){
+      const kopya = svg.cloneNode(true);
+      kopya.removeAttribute('id');
+      kopya.querySelectorAll('[id]').forEach(function(el){ el.removeAttribute('id'); });
+      return kopya.outerHTML;
+    }
+
+    function sporYakindaGoster(btn, etiket){
+      const svgEl = btn.querySelector('svg');
+      if(anaSimge){ anaSimge.innerHTML = svgEl ? idsizKopya(svgEl) : varsayilanSimgeHTML; }
+      if(anaBaslik){ anaBaslik.textContent = etiket; }
+      if(anaAciklama){ anaAciklama.textContent = 'Yakında'; }
+      sporModuIcGoster(viewAna);
+      sporDockAktifYap(btn);
+    }
+
+    function sporModunaGec(){
+      if(anaSimge){ anaSimge.innerHTML = varsayilanSimgeHTML; }
+      if(anaBaslik){ anaBaslik.textContent = 'Spor Modu'; }
+      if(anaAciklama){ anaAciklama.textContent = 'Çok yakında burada.'; }
+      sporModuIcGoster(viewAna);
+      sporDockAktifYap(null);
+      overlay.classList.add('active');
+    }
+    function sporModundanCik(){
+      overlay.classList.remove('active');
+    }
+
+    acBtn.addEventListener('click', sporModunaGec);
+    if(ayarlarBtn){
+      ayarlarBtn.addEventListener('click', function(){
+        sporModuIcGoster(viewAyarlar);
+        sporDockAktifYap(ayarlarBtn);
+      });
+    }
+    if(antrenmanBtn){
+      antrenmanBtn.addEventListener('click', function(){
+        sporYakindaGoster(antrenmanBtn, 'Antrenman');
+      });
+    }
+    if(nabizBtn){
+      nabizBtn.addEventListener('click', function(){
+        sporYakindaGoster(nabizBtn, 'Nabız');
+      });
+    }
+    if(kaloriBtn){
+      kaloriBtn.addEventListener('click', function(){
+        sporYakindaGoster(kaloriBtn, 'Kalori');
+      });
+    }
+    if(programBtn){
+      programBtn.addEventListener('click', function(){
+        sporYakindaGoster(programBtn, 'Program');
+      });
+    }
+    if(istatistikBtn){
+      istatistikBtn.addEventListener('click', function(){
+        sporYakindaGoster(istatistikBtn, 'İstatistik');
+      });
+    }
+    if(cikisLinkBtn){ cikisLinkBtn.addEventListener('click', sporModundanCik); }
+  })();
+
+  // ================= SPOR MODU: Nabız ikonu çizim animasyonu =================
+  // Kaynak ikon "lucide-animated" (heart pulse) hover animasyonundan uyarlandı:
+  // önce EKG çizgisi çizilir, sonra kalp konturu çizilir, ardından kalp hafifçe atar.
+  // Dokunmatik cihazlarda hover olmadığı için burada dokunma/tıklama ile tetikleniyor.
+  (function(){
+    const btn = document.getElementById('sporModuNabizBtn');
+    const heartPath = document.getElementById('sporNabizKalpYol');
+    const heartGrup = document.getElementById('sporNabizKalpGrup');
+    const lineElem = document.getElementById('sporNabizCizgiYol');
+    if(!btn || !heartPath || !heartGrup || !lineElem) return;
+
+    const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let calisiyor = false;
+    let uzunluklarHazir = false;
+    let heartLen = 0, lineLen = 0;
+
+    function uzunluklariHazirla(){
+      if(uzunluklarHazir) return;
+      try{
+        heartLen = heartPath.getTotalLength();
+        lineLen = lineElem.getTotalLength();
+        heartPath.style.strokeDasharray = String(heartLen);
+        lineElem.style.strokeDasharray = String(lineLen);
+        heartPath.style.strokeDashoffset = '0';
+        lineElem.style.strokeDashoffset = '0';
+        uzunluklarHazir = true;
+      }catch(e){}
+    }
+
+    btn.addEventListener('click', function(){
+      uzunluklariHazirla();
+      if(!uzunluklarHazir || calisiyor) return;
+
+      if(azaltilmisHareket){
+        heartGrup.classList.remove('spor-nabiz-pulse');
+        void heartGrup.offsetWidth; // reflow, animasyonun baştan tetiklenmesi için
+        heartGrup.classList.add('spor-nabiz-pulse');
+        return;
+      }
+
+      calisiyor = true;
+
+      // 1) Başlangıç: kalbi ve çizgiyi anında gizle
+      heartPath.style.transition = 'none';
+      lineElem.style.transition = 'none';
+      heartPath.style.opacity = '0';
+      heartPath.style.strokeDashoffset = String(heartLen);
+      lineElem.style.opacity = '0';
+      lineElem.style.strokeDashoffset = String(lineLen);
+      heartGrup.classList.remove('spor-nabiz-pulse');
+      void btn.offsetWidth; // reflow zorla
+
+      // 2) Nabız çizgisini çiz
+      requestAnimationFrame(function(){
+        lineElem.style.transition = 'stroke-dashoffset 0.6s linear, opacity 0.1s ease';
+        lineElem.style.opacity = '1';
+        lineElem.style.strokeDashoffset = '0';
+      });
+
+      // 3) Ardından kalbi çiz
+      setTimeout(function(){
+        heartPath.style.transition = 'stroke-dashoffset 0.5s cubic-bezier(.33,1,.68,1), opacity 0.1s ease';
+        heartPath.style.opacity = '1';
+        heartPath.style.strokeDashoffset = '0';
+      }, 600);
+
+      // 4) Kalp hafifçe atsın
+      setTimeout(function(){
+        heartGrup.classList.add('spor-nabiz-pulse');
+      }, 1100);
+
+      // 5) Bitince tekrar dokunulabilir yap
+      setTimeout(function(){
+        calisiyor = false;
+      }, 1100 + 900 + 100);
+    });
+  })();
+
+  // ================= SPOR MODU: Program ikonu çizim animasyonu =================
+  // Kadran çizgisi stroke-dashoffset ile çizilir, akrep/yelkovan kolu döner,
+  // artı işareti son olarak pop ile belirir (animateicons.in ClockPlus'tan uyarlandı).
+  (function(){
+    const btn = document.getElementById('sporModuProgramBtn');
+    const kadranYol = document.getElementById('sporProgramKadranYol');
+    const kolGrup = document.getElementById('sporProgramKolGrup');
+    const arti1 = document.getElementById('sporProgramArti1');
+    const arti2 = document.getElementById('sporProgramArti2');
+    if(!btn || !kadranYol || !kolGrup || !arti1 || !arti2) return;
+
+    const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let calisiyor = false;
+    let uzunlukHazir = false;
+    let kadranLen = 0;
+
+    function uzunlukHazirla(){
+      if(uzunlukHazir) return;
+      try{
+        kadranLen = kadranYol.getTotalLength();
+        kadranYol.style.strokeDasharray = String(kadranLen);
+        kadranYol.style.strokeDashoffset = '0';
+        uzunlukHazir = true;
+      }catch(e){}
+    }
+
+    btn.addEventListener('click', function(){
+      uzunlukHazirla();
+      if(!uzunlukHazir || calisiyor) return;
+      if(azaltilmisHareket) return;
+
+      calisiyor = true;
+
+      // 1) Başlangıç: her şeyi gizle, animasyon sınıflarını sıfırla
+      kadranYol.style.transition = 'none';
+      kadranYol.style.opacity = '0';
+      kadranYol.style.strokeDashoffset = String(kadranLen);
+      [kolGrup, arti1, arti2].forEach(function(el){
+        el.classList.remove('spor-program-oynat');
+      });
+      void btn.offsetWidth; // reflow
+
+      // 2) Kadranı çiz
+      requestAnimationFrame(function(){
+        kadranYol.style.transition = 'stroke-dashoffset 0.6s cubic-bezier(.16,1,.3,1), opacity 0.1s ease';
+        kadranYol.style.opacity = '1';
+        kadranYol.style.strokeDashoffset = '0';
+      });
+
+      // 3) Kol dönsün
+      setTimeout(function(){
+        kolGrup.classList.add('spor-program-oynat');
+      }, 350);
+
+      // 4) Artı işareti pop ile gelsin
+      setTimeout(function(){
+        arti1.classList.add('spor-program-oynat');
+        arti2.classList.add('spor-program-oynat');
+      }, 500);
+
+      // 5) Bitince tekrar dokunulabilir yap
+      setTimeout(function(){
+        calisiyor = false;
+      }, 1000);
+    });
+  })();
+
+  // ================= SPOR MODU: İstatistik ikonu çizim animasyonu =================
+  // Çubuklar sırayla zıplar, trend çizgisi stroke-dashoffset ile çizilir, ikon hafifçe sallanır
+  // (animateicons.in ChartNoAxesCombined'dan uyarlandı).
+  (function(){
+    const btn = document.getElementById('sporModuIstatistikBtn');
+    const grup = document.getElementById('sporIstatistikGrup');
+    const cizgiYol = document.getElementById('sporIstatistikCizgiYol');
+    const barlar = ['sporIstatistikBar1','sporIstatistikBar2','sporIstatistikBar3','sporIstatistikBar4','sporIstatistikBar5']
+      .map(function(id){ return document.getElementById(id); })
+      .filter(Boolean);
+    if(!btn || !grup || !cizgiYol || barlar.length !== 5) return;
+
+    const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let calisiyor = false;
+    let uzunlukHazir = false;
+    let cizgiLen = 0;
+
+    function uzunlukHazirla(){
+      if(uzunlukHazir) return;
+      try{
+        cizgiLen = cizgiYol.getTotalLength();
+        cizgiYol.style.strokeDasharray = String(cizgiLen);
+        cizgiYol.style.strokeDashoffset = '0';
+        uzunlukHazir = true;
+      }catch(e){}
+    }
+
+    btn.addEventListener('click', function(){
+      uzunlukHazirla();
+      if(!uzunlukHazir || calisiyor) return;
+      if(azaltilmisHareket) return;
+
+      calisiyor = true;
+
+      // 1) Başlangıç: çizgiyi gizle, animasyon sınıflarını sıfırla
+      cizgiYol.style.transition = 'none';
+      cizgiYol.style.opacity = '0.6';
+      cizgiYol.style.strokeDashoffset = String(cizgiLen);
+      grup.classList.remove('spor-istatistik-oynat');
+      barlar.forEach(function(bar){ bar.classList.remove('spor-istatistik-oynat'); });
+      void btn.offsetWidth; // reflow
+
+      // 2) Grup hafifçe sallansın, çubuklar zıplasın
+      requestAnimationFrame(function(){
+        grup.classList.add('spor-istatistik-oynat');
+        barlar.forEach(function(bar){ bar.classList.add('spor-istatistik-oynat'); });
+      });
+
+      // 3) Trend çizgisi çizilsin
+      setTimeout(function(){
+        cizgiYol.style.transition = 'stroke-dashoffset 1s ease-in-out, opacity 0.15s ease';
+        cizgiYol.style.opacity = '1';
+        cizgiYol.style.strokeDashoffset = '0';
+      }, 120);
+
+      // 4) Bitince tekrar dokunulabilir yap
+      setTimeout(function(){
+        calisiyor = false;
+      }, 1200);
+    });
+  })();
+
   // ================= DENEMELER: YUMUŞAK KAYDIRMA + HAFİF BOUNCE =================
   (function(){
     const denemelerView = document.getElementById('viewDenemeler');
@@ -11007,7 +11568,7 @@
 
   // ================= ARKA PLAN KİLİDİ: herhangi bir pop-up/kayar pencere açıkken arka plan kaydırılamasın =================
   (function(){
-    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active';
+    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active';
     let kilitliKonum = 0;
     let kilitliMi = false;
 
@@ -11039,7 +11600,7 @@
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
     }
 
-    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay');
+    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay');
     if(izlenecekOverlayler.length){
       const gozlemci = new MutationObserver(durumuKontrolEt);
       izlenecekOverlayler.forEach(function(el){
