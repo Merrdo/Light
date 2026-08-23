@@ -5993,6 +5993,28 @@
     line-height:1.55;
     color:var(--ink-soft);
   }
+  .giris-hesap-onizleme{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.7rem;
+    margin-bottom:0.4rem;
+  }
+  .giris-hesap-onizleme-bilgi{
+    display:flex;
+    flex-direction:column;
+    gap:0.1rem;
+    text-align:left;
+    min-width:0;
+  }
+  .giris-hesap-onizleme-bilgi span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:14rem;
+  }
+  .giris-hesap-onizleme-bilgi span:first-child{ font-size:0.95rem; color:var(--ink); }
+  .giris-hesap-onizleme-bilgi span:last-child{ font-size:0.8rem; color:var(--ink-soft); }
   .giris-google-btn{
     margin-top:2rem;
     width:100%;
@@ -6165,12 +6187,20 @@
   <!-- ================= GİRİŞ / KAYIT EKRANI ================= -->
   <div class="giris-overlay" id="girisEkraniOverlay">
     <div class="giris-box">
-      <h1 class="giris-title">Hoş geldin</h1>
-      <p class="giris-sub">Verilerini korumak ve cihazlar arasında eşleyebilmek için Google hesabınla devam et.</p>
+      <div class="giris-hesap-onizleme" id="girisHesapOnizleme" style="display:none;">
+        <img class="hesap-avatar" id="girisAvatar" alt="" style="display:none;">
+        <div class="hesap-avatar-yer" id="girisAvatarYer"></div>
+        <div class="giris-hesap-onizleme-bilgi">
+          <span id="girisHesapAd"></span>
+          <span id="girisHesapEposta"></span>
+        </div>
+      </div>
+      <h1 class="giris-title" id="girisTitle">Hoş geldin</h1>
+      <p class="giris-sub" id="girisSub">Verilerini korumak ve cihazlar arasında eşleyebilmek için Google hesabınla devam et.</p>
       <button type="button" class="giris-google-btn" id="girisGoogleBtn">
         <span class="giris-google-spin" aria-hidden="true"></span>
         <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4c-7.682 0-14.344 4.337-17.694 10.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
-        <span>Google ile Devam Et</span>
+        <span id="girisGoogleBtnMetin">Google ile Devam Et</span>
       </button>
       <p class="giris-durum" id="girisDurumMetin"></p>
     </div>
@@ -12928,7 +12958,15 @@
 
     const overlay = document.getElementById('girisEkraniOverlay');
     const girisBtn = document.getElementById('girisGoogleBtn');
+    const girisBtnMetinEl = document.getElementById('girisGoogleBtnMetin');
     const durumEl = document.getElementById('girisDurumMetin');
+    const girisTitleEl = document.getElementById('girisTitle');
+    const girisSubEl = document.getElementById('girisSub');
+    const girisOnizlemeEl = document.getElementById('girisHesapOnizleme');
+    const girisAvatarEl = document.getElementById('girisAvatar');
+    const girisAvatarYerEl = document.getElementById('girisAvatarYer');
+    const girisHesapAdEl = document.getElementById('girisHesapAd');
+    const girisHesapEpostaEl = document.getElementById('girisHesapEposta');
     const hesapAdEl = document.getElementById('hesapAdSoyad');
     const hesapEpostaEl = document.getElementById('hesapEposta');
     const hesapAvatarEl = document.getElementById('hesapAvatar');
@@ -13001,26 +13039,42 @@
       return harf ? harf.toUpperCase() : 'G';
     }
 
+    function avatarUygula(imgEl, yerEl, hesap){
+      if(!imgEl || !yerEl) return;
+      yerEl.textContent = hesapBaslangicHarfi(hesap);
+      if(hesap && hesap.picture){
+        imgEl.onerror = function(){
+          imgEl.style.display = 'none';
+          imgEl.onerror = null;
+          yerEl.style.display = '';
+        };
+        imgEl.src = hesap.picture;
+        imgEl.style.display = '';
+        yerEl.style.display = 'none';
+      } else {
+        imgEl.style.display = 'none';
+        yerEl.style.display = '';
+      }
+    }
+
     function hesapBilgisiniUygula(hesap){
       if(!hesap) return;
       if(hesapAdEl){ hesapAdEl.textContent = hesap.name || 'Google Hesabı'; }
       if(hesapEpostaEl){ hesapEpostaEl.textContent = hesap.email || ''; }
-      if(hesapAvatarYerEl){ hesapAvatarYerEl.textContent = hesapBaslangicHarfi(hesap); }
-      if(hesapAvatarEl){
-        if(hesap.picture){
-          hesapAvatarEl.onerror = function(){
-            hesapAvatarEl.style.display = 'none';
-            hesapAvatarEl.onerror = null;
-            if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
-          };
-          hesapAvatarEl.src = hesap.picture;
-          hesapAvatarEl.style.display = '';
-          if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = 'none'; }
-        } else {
-          hesapAvatarEl.style.display = 'none';
-          if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
-        }
-      }
+      avatarUygula(hesapAvatarEl, hesapAvatarYerEl, hesap);
+    }
+
+    // Hesap zaten hatırlanıyorsa (daha önce giriş yapılmışsa) giriş ekranını,
+    // e-postayı yeniden yazmaya gerek kalmadan tek dokunuşla devam edilebilecek
+    // şekilde, bilinen hesabın adı/e-postası/fotoğrafıyla birlikte gösterir.
+    function girisEkraniBilinenHesabaGoreAyarla(hesap){
+      if(girisTitleEl){ girisTitleEl.textContent = 'Tekrar hoş geldin'; }
+      if(girisSubEl){ girisSubEl.textContent = 'En güncel verilerinin hemen gelmesi için hesabınla devam et.'; }
+      if(girisBtnMetinEl){ girisBtnMetinEl.textContent = 'Devam Et'; }
+      if(girisHesapAdEl){ girisHesapAdEl.textContent = hesap.name || ''; }
+      if(girisHesapEpostaEl){ girisHesapEpostaEl.textContent = hesap.email || ''; }
+      avatarUygula(girisAvatarEl, girisAvatarYerEl, hesap);
+      if(girisOnizlemeEl){ girisOnizlemeEl.style.display = ''; }
     }
 
     function standaloneMi(){
@@ -13066,6 +13120,8 @@
     const redirectSonuc = redirectDonusunuIsle();
 
     function girisBaslat(){
+      const bilinenHesap = hesapOku();
+      const ipucuEposta = bilinenHesap && bilinenHesap.email ? bilinenHesap.email : '';
       if(standaloneMi()){
         const url = 'https://accounts.google.com/o/oauth2/v2/auth'
           + '?client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID)
@@ -13073,7 +13129,7 @@
           + '&response_type=token'
           + '&scope=' + encodeURIComponent(HESAP_SCOPE)
           + '&include_granted_scopes=true'
-          + '&prompt=select_account';
+          + (ipucuEposta ? '&login_hint=' + encodeURIComponent(ipucuEposta) : '&prompt=select_account');
         try{ sessionStorage.setItem(BEKLEYEN_ANAHTARI, '1'); }catch(e){}
         window.location.href = url;
         return new Promise(function(){}); // sayfa yönlendiriliyor
@@ -13087,6 +13143,7 @@
           const client = google.accounts.oauth2.initTokenClient({
             client_id: GOOGLE_CLIENT_ID,
             scope: HESAP_SCOPE,
+            hint: ipucuEposta || undefined,
             callback: function(resp){
               if(resp && resp.access_token){ tokenKaydet(resp.access_token, resp.expires_in); resolve(resp.access_token); }
               else{ reject(new Error('Google girişi tamamlanamadı.')); }
@@ -13107,12 +13164,15 @@
     // (3. parti çerezler engelliyse) sessizce başarısız olur.
     function tokenSessizAl(){
       if(standaloneMi()) return Promise.resolve(null);
+      const bilinenHesap = hesapOku();
+      const ipucuEposta = bilinenHesap && bilinenHesap.email ? bilinenHesap.email : '';
       return new Promise(function(resolve){
         if(!window.google || !google.accounts || !google.accounts.oauth2){ resolve(null); return; }
         try{
           const client = google.accounts.oauth2.initTokenClient({
             client_id: GOOGLE_CLIENT_ID,
             scope: HESAP_SCOPE,
+            hint: ipucuEposta || undefined,
             callback: function(resp){
               if(resp && resp.access_token){ tokenKaydet(resp.access_token, resp.expires_in); resolve(resp.access_token); }
               else{ resolve(null); }
@@ -13141,14 +13201,50 @@
       });
     }
 
+    // Google girişi tamamlandıktan hemen sonra çalışır: Drive'da bu cihazın
+    // bilmediği daha yeni bir yedek var mı diye bakar ve varsa indirir. Giriş
+    // ekranı bu kontrol bitene kadar açık kalır; böylece uygulamaya "eski"
+    // verilerle değil, doğrudan en güncel verilerle girilmiş olur.
+    function girisSonrasiVeriKontrolu(token){
+      if(!window.__sessizlikYedegiGeriYukle) return Promise.resolve();
+      senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
+      durumGoster('Verilerin kontrol ediliyor…');
+      return driveDosyaBul(token).then(function(mevcut){
+        if(!mevcut){ sonSenkronZamani = Date.now(); senkronGuncelDurumuGoster(); return; }
+        const bilinen = bilinenModifiedOku();
+        if(bilinen && new Date(mevcut.modifiedTime).getTime() <= new Date(bilinen).getTime()){
+          sonSenkronZamani = Date.now();
+          senkronGuncelDurumuGoster();
+          return;
+        }
+        // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: indirip
+        // uygula, sonra sayfayı tazeleyerek en güncel verilerle aç.
+        durumGoster('Yeni verilerin bulundu, indiriliyor…');
+        return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
+          return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
+            bilinenModifiedYaz(mevcut.modifiedTime);
+            sonSenkronZamani = Date.now();
+            senkronDurumAyarla('ok', 'Yeni veriler bulundu, güncelleniyor…');
+            durumGoster('Yeni verilerin yükleniyor…');
+            setTimeout(function(){ window.location.reload(); }, 600);
+            return new Promise(function(){}); // reload devralana kadar bekle
+          });
+        });
+      }).catch(function(err){
+        console.error('[Sessizlik Senkron] Giriş sonrası kontrol başarısız:', err);
+        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, daha sonra tekrar dene');
+      });
+    }
+
     function girisTamamla(token){
-      durumGoster('Hesap bilgileri alınıyor…');
+      durumGoster('Hesap bilgilerin alınıyor…');
       return kullaniciBilgisiniGetir(token).then(function(hesap){
         hesapYaz(hesap);
         hesapBilgisiniUygula(hesap);
+        return girisSonrasiVeriKontrolu(token);
+      }).then(function(){
         durumGoster('');
         ekraniGizle();
-        ilkSenkronuBaslat();
       }).catch(function(err){
         durumGoster((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
         if(girisBtn){ girisBtn.disabled = false; }
@@ -13317,58 +13413,24 @@
     window.addEventListener('pagehide', function(){ otomatikYukle(); });
     setInterval(otomatikYukle, PERIYODIK_SENKRON_MS);
 
-    // ---- Açılışta: Drive'da bu cihazın bilmediği daha yeni bir sürüm varsa
-    // sessizce indirip geri yükler ----
-    function acilistaKontrolEt(){
-      if(!hesapOku() || !window.__sessizlikYedegiGeriYukle) return;
-      // Açılışta yalnızca hâlihazırda geçerli (süresi dolmamış) bir jeton
-      // varsa kontrol edilir; aksi halde Google'a sessizce yeni jeton
-      // istenmez (bkz. otomatikYukle'daki açıklama) — kullanıcı senkron
-      // butonuna dokunduğunda gerekirse yenilenir.
-      const token = tokenOku();
-      if(!token){ senkronDurumAyarla('', 'Senkronize etmek için dokun'); return; }
-      senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-      driveDosyaBul(token).then(function(mevcut){
-        if(!mevcut){ sonSenkronZamani = Date.now(); senkronGuncelDurumuGoster(); return; }
-        const bilinen = bilinenModifiedOku();
-        if(bilinen && new Date(mevcut.modifiedTime).getTime() <= new Date(bilinen).getTime()){
-          sonSenkronZamani = Date.now();
-          senkronGuncelDurumuGoster();
-          return;
-        }
-        // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
-        return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
-          return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
-            bilinenModifiedYaz(mevcut.modifiedTime);
-            sonSenkronZamani = Date.now();
-            senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-            setTimeout(function(){ window.location.reload(); }, 900);
-          });
-        });
-      }).catch(function(err){
-        console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar dene');
-      });
-    }
-
-    function ilkSenkronuBaslat(){
-      setTimeout(acilistaKontrolEt, 800);
-    }
-
-    // ---- Açılışta durumu belirle ----
+    // ---- Açılışta durumu belirle: hesap hatırlansa bile giriş ekranı her
+    // seferinde gösterilir; bilinen hesabın adı/e-postası/fotoğrafı önceden
+    // dolu geldiği için kullanıcının yapması gereken tek şey butona dokunmak.
+    // Bu sayede uygulama, eski verilerle açılıp arkadan güncellenmek yerine,
+    // en güncel verilerle açılmış olur (bkz. girisSonrasiVeriKontrolu).
     const mevcutHesap = hesapOku();
     if(redirectSonuc){
       let bekleyen = false;
       try{ bekleyen = sessionStorage.getItem(BEKLEYEN_ANAHTARI) === '1'; sessionStorage.removeItem(BEKLEYEN_ANAHTARI); }catch(e){}
       ekraniGoster();
-      durumGoster('Hesap bilgileri alınıyor…');
+      durumGoster('Hesap bilgilerin alınıyor…');
       tokenKaydet(redirectSonuc.token, redirectSonuc.expiresIn);
       girisTamamla(redirectSonuc.token);
     } else if(mevcutHesap){
       hesapBilgisiniUygula(mevcutHesap);
-      ekraniGizle();
-      senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
-      ilkSenkronuBaslat();
+      girisEkraniBilinenHesabaGoreAyarla(mevcutHesap);
+      senkronDurumAyarla('', 'Devam etmek için dokun');
+      ekraniGoster();
     } else {
       ekraniGoster();
     }
