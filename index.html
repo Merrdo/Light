@@ -1344,7 +1344,8 @@
   #antrenmanKartModalOverlay,
   #antrenmanKartSilOnayOverlay,
   #antrenmanEgzersizModalOverlay,
-  #antrenmanEgzersizSilOnayOverlay{
+  #antrenmanEgzersizSilOnayOverlay,
+  #sporSureSecici{
     z-index:10050;
     background:
       radial-gradient(circle at 50% 32%, rgba(var(--sari-rgb),0.14), transparent 55%),
@@ -1474,8 +1475,9 @@
     color:var(--sari);
   }
   .kalori-grup-satir-ikon svg{ width:1.15rem; height:1.15rem; }
-  .kalori-grup-satir-metin{ flex:1; min-width:0; }
+  .kalori-grup-satir-metin{ flex:1; min-width:0; display:flex; flex-direction:column; gap:0.15rem; }
   .kalori-grup-satir-isim{
+    display:block;
     font-size:0.92rem;
     font-weight:600;
     white-space:nowrap;
@@ -1483,10 +1485,10 @@
     text-overflow:ellipsis;
   }
   .kalori-grup-satir-sayi{
+    display:block;
     font-family:"Helvetica Neue",Arial,sans-serif;
     font-size:0.68rem;
     color:var(--ink-soft);
-    margin-top:0.15rem;
   }
   .kalori-grup-satir-onay{
     width:1.3rem;
@@ -1571,52 +1573,57 @@
     color:var(--ink-soft);
   }
 
-  .kalori-hareket-gorsel{
+  .kalori-hareket-blok{
     width:100%;
-    max-width:18rem;
-    aspect-ratio:16/10;
-    border-radius:1rem;
-    background:rgba(var(--sari-rgb),0.1);
     display:flex;
-    align-items:center;
-    justify-content:center;
-    color:var(--sari);
-    overflow:hidden;
+    flex-direction:column;
+    align-items:flex-start;
+    text-align:left;
     flex-shrink:0;
-    margin-top:0.4rem;
   }
-  .kalori-hareket-gorsel svg{ width:2.6rem; height:2.6rem; }
-  .kalori-hareket-gorsel img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
+  @keyframes kaloriHareketGecis{
+    0%{ opacity:0; transform:translateY(12px) scale(0.97); }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .kalori-hareket-blok.kalori-hareket-gecis{
+    animation:kaloriHareketGecis 0.42s cubic-bezier(.22,1,.36,1);
   }
   .kalori-durum-etiket{
-    margin-top:1.1rem;
+    margin-top:0.4rem;
     font-family:"Helvetica Neue",Arial,sans-serif;
-    font-size:0.7rem;
+    font-size:0.72rem;
     font-weight:600;
-    letter-spacing:0.1em;
+    letter-spacing:0.14em;
     text-transform:uppercase;
     color:var(--sari);
   }
   .kalori-pane-calisma.dinlenme-durumu .kalori-durum-etiket{ color:var(--dogru); }
   .kalori-hareket-isim{
-    margin-top:0.3rem;
-    font-size:1.3rem;
+    margin-top:0.25rem;
+    font-size:2.5rem;
+    line-height:1.05;
     font-weight:600;
+    letter-spacing:-0.01em;
     color:var(--ink);
+  }
+  .kalori-hareket-alt{
+    margin-top:0.4rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.75rem;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    min-height:1em;
   }
 
   .kalori-sayac-wrap{
     --kalori-yuzde:100;
-    width:9.5rem;
-    height:9.5rem;
+    width:14rem;
+    height:14rem;
     border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
-    margin:1.3rem 0;
+    margin:2rem 0;
     flex-shrink:0;
     background:conic-gradient(var(--sari) calc(var(--kalori-yuzde) * 1%), rgba(var(--ink-rgb),0.08) 0);
     position:relative;
@@ -1625,7 +1632,7 @@
   .kalori-sayac-wrap::before{
     content:'';
     position:absolute;
-    inset:0.55rem;
+    inset:0.6rem;
     border-radius:50%;
     background:var(--bg);
   }
@@ -1633,7 +1640,7 @@
     position:relative;
     z-index:1;
     font-family:"Helvetica Neue",Arial,sans-serif;
-    font-size:2.5rem;
+    font-size:4.4rem;
     font-weight:700;
     color:var(--ink);
   }
@@ -1641,45 +1648,151 @@
     background:conic-gradient(var(--dogru) calc(var(--kalori-yuzde) * 1%), rgba(var(--ink-rgb),0.08) 0);
   }
 
+  /* ---- Kalori: hazırlık (5-4-3-2-1) geri sayımı — daire olmadan, doğrudan büyük sayı ---- */
+  .kalori-pane-calisma.hazirlik-durumu .kalori-sayac-wrap{
+    width:auto;
+    height:auto;
+    background:none;
+  }
+  .kalori-pane-calisma.hazirlik-durumu .kalori-sayac-wrap::before{
+    content:none;
+  }
+  .kalori-pane-calisma.hazirlik-durumu .kalori-sayac-sayi{
+    font-size:7.5rem;
+    font-weight:800;
+    color:var(--sari);
+    text-shadow:0 8px 30px rgba(var(--sari-rgb),0.45);
+  }
+  @keyframes kaloriHazirlikSayiYakinlas{
+    0%{ opacity:0; transform:scale(0.35); filter:blur(8px); }
+    55%{ opacity:1; transform:scale(1.18); filter:blur(0); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+  .kalori-sayac-sayi.kalori-hazirlik-sayi-anim{
+    animation: kaloriHazirlikSayiYakinlas 0.5s cubic-bezier(.22,1,.36,1);
+  }
+
+  /* ---- Kalori: hazırlık geri sayımını atlama düğmesi ---- */
+  .kalori-hazirlik-atla-btn{
+    display:none;
+    align-items:center;
+    gap:0.35rem;
+    margin:0.6rem auto 0;
+    border:1px solid rgba(var(--sari-rgb),0.4);
+    background:rgba(var(--sari-rgb),0.08);
+    color:var(--sari);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    border-radius:9999px;
+    padding:0.45rem 0.95rem;
+    cursor:pointer;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+  }
+  .kalori-hazirlik-atla-btn svg{ width:0.85rem; height:0.85rem; }
+  .kalori-hazirlik-atla-btn:active{ transform:scale(0.94); opacity:0.8; }
+  .kalori-pane-calisma.hazirlik-durumu .kalori-hazirlik-atla-btn{
+    display:inline-flex;
+  }
+
+  /* ---- Kalori: tekrar (set/tekrar) modu — süresi olmayan egzersizlerde sayaç yerine gösterilir ---- */
+  .kalori-tekrar-wrap{
+    display:none;
+    width:9.5rem;
+    height:9.5rem;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    margin:1.3rem 0;
+    flex-shrink:0;
+    animation:kaloriHareketGecis 0.35s cubic-bezier(.22,1,.36,1);
+  }
+  .kalori-tekrar-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:2.8rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .kalori-tekrar-alt{
+    margin-top:0.25rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.8rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .kalori-pane-calisma.tekrar-durumu .kalori-sayac-wrap{ display:none; }
+  .kalori-pane-calisma.tekrar-durumu .kalori-tekrar-wrap{ display:flex; }
+  .kalori-pane-calisma.tekrar-durumu .kalori-durum-etiket{ color:var(--sari); }
+  .kalori-pane-calisma.tekrar-durumu .kalori-kontrol-btn-buyuk{
+    background:linear-gradient(135deg, var(--dogru), rgba(var(--dogru-rgb),0.78));
+    box-shadow:0 10px 24px -6px rgba(var(--dogru-rgb),0.55);
+  }
+
+  /* ---- Kalori: antrenman başlamadan önceki 5-4-3-2-1 hazırlık geri sayımı ---- */
+  .kalori-pane-calisma.hazirlik-durumu .kalori-kontrol-satir{
+    display:none;
+  }
+
   .kalori-kontrol-satir{
     flex-shrink:0;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:1.1rem;
+    gap:1.5rem;
     margin-top:auto;
-    padding-top:0.6rem;
+    padding:0.6rem 1.6rem;
+    border-radius:9999px;
+    background:rgba(var(--ink-rgb),0.045);
+    border:1px solid var(--line);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
   }
   .kalori-kontrol-btn{
-    width:2.6rem;
-    height:2.6rem;
+    width:3rem;
+    height:3rem;
     border-radius:50%;
-    border:1px solid var(--line);
-    background:rgba(var(--ink-rgb),0.03);
-    color:var(--ink);
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
     padding:0;
-    transition: transform 0.15s ease, background 0.2s ease;
+    transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
   }
-  .kalori-kontrol-btn svg{ width:1.05rem; height:1.05rem; }
-  .kalori-kontrol-btn:active{ transform:scale(0.92); }
+  .kalori-kontrol-btn svg{ width:1.15rem; height:1.15rem; }
+  .kalori-kontrol-btn:active{ transform:scale(0.9); background:rgba(var(--ink-rgb),0.08); }
+  @media (hover:hover) and (pointer:fine){
+    .kalori-kontrol-btn:hover{ color:var(--ink); background:rgba(var(--ink-rgb),0.06); }
+  }
   .kalori-kontrol-btn-buyuk{
-    width:3.6rem;
-    height:3.6rem;
+    width:4.5rem;
+    height:4.5rem;
     background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
-    border-color:transparent;
     color:var(--bg);
-    box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
+    box-shadow:0 14px 32px -8px rgba(var(--sari-rgb),0.6);
   }
-  .kalori-kontrol-btn-buyuk svg{ width:1.3rem; height:1.3rem; }
+  .kalori-kontrol-btn-buyuk:active{ transform:scale(0.94); background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78)); }
+  .kalori-kontrol-btn-buyuk svg{ width:1.5rem; height:1.5rem; }
 
   .kalori-pane-bitis .kalori-baslat-btn{ margin-top:1.6rem; }
 
+  /* ---- Kalori: antrenman çalışırken tam ekran — Spor Modu dock'u gizlenir, tek odak antrenmandır ---- */
+  .spor-modu-overlay.kalori-antrenman-tam-ekran .spor-modu-dock-wrap{
+    display:none;
+  }
+  .spor-modu-overlay.kalori-antrenman-tam-ekran .kalori-kontrol-satir{
+    margin-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  }
+
   @media (prefers-reduced-motion: reduce){
     .kalori-sayac-wrap{ transition:none; }
+    .kalori-hareket-blok.kalori-hareket-gecis,
+    .kalori-tekrar-wrap,
+    .kalori-sayac-sayi.kalori-hazirlik-sayi-anim{ animation:none; }
   }
 
   .settings-row-text{
@@ -1771,6 +1884,53 @@
   .spor-tema-swatch.secili{
     border-color:var(--ink);
     box-shadow:0 0 0 3px rgba(var(--ink-rgb),0.12), 0 2px 6px rgba(var(--shadow-rgb),0.22);
+  }
+
+  .spor-hazirlik-sure-blok{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.75rem;
+    width:100%;
+    max-width:22rem;
+    margin-top:0.7rem;
+    padding:0.9rem 1.1rem;
+    border:1px solid var(--line);
+    border-radius:1.1rem;
+    background:rgba(var(--ink-rgb),0.03);
+  }
+  .spor-hazirlik-sure-etiket{
+    font-size:0.72rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    text-align:left;
+  }
+  .spor-hazirlik-sure-btn{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.3rem;
+    border:none;
+    background:transparent;
+    font-family:inherit;
+    font-size:0.92rem;
+    font-weight:600;
+    color:var(--sari);
+    cursor:pointer;
+    padding:0.25rem 0.15rem;
+    transition: opacity 0.2s ease;
+  }
+  .spor-hazirlik-sure-btn svg{ width:0.85rem; height:0.85rem; color:var(--ink-soft); flex-shrink:0; }
+  .spor-hazirlik-sure-btn:active{ opacity:0.7; }
+  @media (hover:hover) and (pointer:fine){
+    .spor-hazirlik-sure-btn:hover{ opacity:0.8; }
+  }
+  .mini-zaman-birim{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    padding-bottom:0.1rem;
   }
 
   .theme-switch{
@@ -3553,6 +3713,35 @@
     transition: opacity 0.2s ease;
   }
   .mini-zaman-tamam:hover{ opacity:0.75; }
+
+  /* ---- Antrenman Başlangıcı Yapalım: süre seçici (spor temasıyla, dar ve çentikli) ---- */
+  #sporSureSecici .mini-zaman-card{
+    max-width:190px;
+  }
+  #sporSureSecici .mini-zaman-item.secili{
+    background:transparent;
+    color:var(--sari);
+    font-weight:700;
+  }
+  #sporSureSecici .mini-zaman-birim{
+    position:relative;
+    padding-left:0.55rem;
+    color:var(--ink-soft);
+  }
+  #sporSureSecici .mini-zaman-birim::before{
+    content:"";
+    position:absolute;
+    left:-0.15rem;
+    top:50%;
+    transform:translateY(-50%);
+    width:0.4rem;
+    height:2px;
+    border-radius:2px;
+    background:var(--sari);
+  }
+  #sporSureSecici .mini-zaman-tamam{
+    color:var(--sari);
+  }
 
   .view-denemeler{
     position:relative;
@@ -6563,6 +6752,20 @@
     </div>
   </div>
 
+  <div class="mini-zaman" id="sporSureSecici">
+    <div class="mini-zaman-card">
+      <span class="mini-zaman-baslik">Başlangıç Süresi</span>
+      <div class="mini-zaman-kolonlar">
+        <div class="mini-zaman-kolon" id="sporSureKolon" role="listbox" aria-label="Saniye"></div>
+        <span class="mini-zaman-birim">saniye</span>
+      </div>
+      <div class="mini-zaman-aksiyonlar">
+        <button type="button" class="mini-zaman-temizle" id="sporSureVazgecBtn">Vazgeç</button>
+        <button type="button" class="mini-zaman-tamam" id="sporSureTamamBtn">Tamam</button>
+      </div>
+    </div>
+  </div>
+
   <div class="mini-zaman" id="miniZaman">
     <div class="mini-zaman-card">
       <span class="mini-zaman-baslik">Saat seç</span>
@@ -6600,6 +6803,13 @@
           <button type="button" class="spor-tema-swatch" data-spor-renk="turuncu" aria-label="Turuncu"></button>
           <button type="button" class="spor-tema-swatch" data-spor-renk="turkuaz" aria-label="Turkuaz"></button>
         </div>
+      </div>
+      <div class="spor-hazirlik-sure-blok">
+        <span class="spor-hazirlik-sure-etiket">Antrenman Başlangıcı</span>
+        <button type="button" class="spor-hazirlik-sure-btn" id="sporHazirlikSureBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="sporHazirlikSureBtnText">5 saniye</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
       </div>
       <button type="button" class="spor-modu-cikis-link" id="sporModuCikisBtn" aria-label="Spor Modundan Çık">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
@@ -6668,13 +6878,21 @@
           </button>
           <span class="kalori-ilerleme" id="kaloriIlerleme">1 / 6</span>
         </div>
-        <div class="kalori-hareket-gorsel" id="kaloriHareketGorsel">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>
+        <div class="kalori-hareket-blok" id="kaloriHareketBlok">
+          <p class="kalori-durum-etiket" id="kaloriDurumEtiket">HAREKET</p>
+          <h3 class="kalori-hareket-isim" id="kaloriHareketIsim">Egzersiz</h3>
+          <p class="kalori-hareket-alt" id="kaloriHareketAlt"></p>
         </div>
-        <p class="kalori-durum-etiket" id="kaloriDurumEtiket">HAREKET</p>
-        <h3 class="kalori-hareket-isim" id="kaloriHareketIsim">Egzersiz</h3>
         <div class="kalori-sayac-wrap" id="kaloriSayacWrap">
           <span class="kalori-sayac-sayi" id="kaloriSayacSayi">30</span>
+        </div>
+        <button type="button" class="kalori-hazirlik-atla-btn" id="kaloriHazirlikAtlaBtn" aria-label="Hazırlığı atla">
+          Atla
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+        </button>
+        <div class="kalori-tekrar-wrap" id="kaloriTekrarWrap">
+          <span class="kalori-tekrar-sayi" id="kaloriTekrarSayi"></span>
+          <span class="kalori-tekrar-alt" id="kaloriTekrarAlt"></span>
         </div>
         <div class="kalori-kontrol-satir">
           <button type="button" class="kalori-kontrol-btn" id="kaloriGeriBtn" aria-label="Önceki hareket">
@@ -6815,7 +7033,7 @@
         </div>
         <div class="modal-field">
           <label for="antrenmanEgzersizSure">Süre (saniye)</label>
-          <input type="number" id="antrenmanEgzersizSure" name="antrenmanEgzersizSure" min="5" max="600" step="5" value="30" required>
+          <input type="number" id="antrenmanEgzersizSure" name="antrenmanEgzersizSure" min="5" max="600" step="5" placeholder="Boş bırakılırsa set/tekrar kullanılır">
         </div>
         <div style="display:flex; gap:1rem;">
           <div class="modal-field" style="flex:1;">
@@ -9996,6 +10214,8 @@
         }
       }
     }
+    // Diğer modüllerin (ör. Kalori/Spor Modu) aynı basamak-kaydırma animasyonunu kullanabilmesi için dışa aç.
+    window.sayacYaz = sayacYaz;
 
     // ---- Deneme detay görünümü: net takibi, branşlar, kaynaklar ----
     const denemeDetayBack = document.getElementById('denemeDetayBack');
@@ -11970,6 +12190,114 @@
     }
   })();
 
+  // ================= SPOR MODU: ANTRENMAN BAŞLANGIÇ SÜRESİ (iPhone alarm tarzı kaydırmalı seçici) =================
+  (function(){
+    const acBtn = document.getElementById('sporHazirlikSureBtn');
+    const acBtnMetin = document.getElementById('sporHazirlikSureBtnText');
+    const modal = document.getElementById('sporSureSecici');
+    const kolon = document.getElementById('sporSureKolon');
+    const vazgecBtn = document.getElementById('sporSureVazgecBtn');
+    const tamamBtn = document.getElementById('sporSureTamamBtn');
+    if(!acBtn || !modal || !kolon) return;
+
+    const STORAGE_KEY = 'sessizlik-hazirlik-suresi';
+    const SECENEKLER = [3,4,5,6,7,8,9,10,12,15,20,25,30];
+    let secili = 5;
+
+    function kayitliSureAl(){
+      try{
+        const v = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+        if(v && SECENEKLER.indexOf(v) !== -1) return v;
+        if(v && v > 0) return v;
+      }catch(e){}
+      return 5;
+    }
+
+    function btnMetniGuncelle(deger){
+      if(acBtnMetin){ acBtnMetin.textContent = deger + ' saniye'; }
+    }
+
+    function kolonDoldur(seciliDeger){
+      kolon.innerHTML = '';
+      SECENEKLER.forEach(function(deger){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'mini-zaman-item';
+        if(deger === seciliDeger) btn.classList.add('secili');
+        btn.textContent = String(deger);
+        btn.addEventListener('click', function(){
+          kolon.querySelectorAll('.mini-zaman-item').forEach(function(el){ el.classList.remove('secili'); });
+          btn.classList.add('secili');
+          secili = deger;
+          btn.scrollIntoView({ block:'center', behavior:'smooth' });
+        });
+        kolon.appendChild(btn);
+      });
+    }
+
+    function ortadakiOgeyiBul(){
+      const kolonRect = kolon.getBoundingClientRect();
+      const merkezY = kolonRect.top + kolonRect.height / 2;
+      let enYakin = null, enYakinFark = Infinity;
+      kolon.querySelectorAll('.mini-zaman-item').forEach(function(el){
+        const r = el.getBoundingClientRect();
+        const fark = Math.abs((r.top + r.height / 2) - merkezY);
+        if(fark < enYakinFark){ enYakinFark = fark; enYakin = el; }
+      });
+      return enYakin;
+    }
+
+    let kaydirmaTimer = null;
+    kolon.addEventListener('scroll', function(){
+      if(kaydirmaTimer) clearTimeout(kaydirmaTimer);
+      kaydirmaTimer = setTimeout(function(){
+        const oge = ortadakiOgeyiBul();
+        if(!oge) return;
+        kolon.querySelectorAll('.mini-zaman-item').forEach(function(el){ el.classList.remove('secili'); });
+        oge.classList.add('secili');
+        secili = parseInt(oge.textContent, 10);
+      }, 110);
+    }, { passive:true });
+
+    function acSecici(){
+      secili = kayitliSureAl();
+      kolonDoldur(secili);
+      modal.classList.add('acik');
+      acBtn.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(function(){
+        const oge = kolon.querySelector('.secili');
+        if(oge) oge.scrollIntoView({ block:'center' });
+      });
+    }
+    function kapatSecici(){
+      modal.classList.remove('acik');
+      acBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    acBtn.addEventListener('click', function(){
+      if(modal.classList.contains('acik')){ kapatSecici(); }
+      else{ acSecici(); }
+    });
+    if(vazgecBtn){
+      vazgecBtn.addEventListener('click', function(){ kapatSecici(); });
+    }
+    if(tamamBtn){
+      tamamBtn.addEventListener('click', function(){
+        try{ localStorage.setItem(STORAGE_KEY, String(secili)); }catch(e){}
+        btnMetniGuncelle(secili);
+        kapatSecici();
+      });
+    }
+    modal.addEventListener('click', function(e){
+      if(e.target === modal){ kapatSecici(); }
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && modal.classList.contains('acik')){ kapatSecici(); }
+    });
+
+    btnMetniGuncelle(kayitliSureAl());
+  })();
+
   // ================= NAV BAR KONUMU (ÜST / ALT) =================
   (function(){
     const root = document.documentElement;
@@ -12250,11 +12578,16 @@
     }
 
     function sporModunaGec(){
-      if(anaSimge){ anaSimge.innerHTML = varsayilanSimgeHTML; }
-      if(anaBaslik){ anaBaslik.textContent = 'Spor Modu'; }
-      if(anaAciklama){ anaAciklama.textContent = 'Çok yakında burada.'; }
+      if(nabizBtn){
+        const svgEl = nabizBtn.querySelector('svg');
+        if(anaSimge){ anaSimge.innerHTML = svgEl ? idsizKopya(svgEl) : varsayilanSimgeHTML; }
+      } else if(anaSimge){
+        anaSimge.innerHTML = varsayilanSimgeHTML;
+      }
+      if(anaBaslik){ anaBaslik.textContent = 'Nabız'; }
+      if(anaAciklama){ anaAciklama.textContent = 'Yakında'; }
       sporModuIcGoster(viewAna);
-      sporDockAktifYap(null);
+      sporDockAktifYap(nabizBtn || null);
 
       // Azaltılmış hareket tercih edildiyse ya da bir geçiş zaten sürüyorsa: sade aç/kapa
       if(sporGecisAzaltilmisHareket || sporGecisCalisiyor){
@@ -12572,11 +12905,12 @@
         '<span class="antrenman-egzersiz-tutamac" aria-hidden="true">' + EGZERSIZ_TUTAMAC_SVG + '</span>';
 
       satir.querySelector('.antrenman-egzersiz-satir-isim').textContent = eg.isim;
-      const detaylar = [(eg.sure || 30) + ' sn'];
+      const detaylar = [];
+      if(eg.sure){ detaylar.push(eg.sure + ' sn'); }
       if(eg.set && eg.tekrar){ detaylar.push(eg.set + ' set × ' + eg.tekrar + ' tekrar'); }
       else if(eg.set){ detaylar.push(eg.set + ' set'); }
       else if(eg.tekrar){ detaylar.push(eg.tekrar + ' tekrar'); }
-      satir.querySelector('.antrenman-egzersiz-satir-sure').textContent = detaylar.join(' · ');
+      satir.querySelector('.antrenman-egzersiz-satir-sure').textContent = detaylar.length ? detaylar.join(' · ') : '30 sn';
       return satir;
     }
 
@@ -12785,7 +13119,7 @@
       if(!egzersizModalOverlay) return;
       duzenlenenEgzersizId = duzenlenecekEg ? duzenlenecekEg.id : null;
       if(egzersizIsimInput){ egzersizIsimInput.value = duzenlenecekEg ? (duzenlenecekEg.isim || '') : ''; }
-      if(egzersizSureInput){ egzersizSureInput.value = duzenlenecekEg && duzenlenecekEg.sure ? duzenlenecekEg.sure : '30'; }
+      if(egzersizSureInput){ egzersizSureInput.value = duzenlenecekEg && duzenlenecekEg.sure ? duzenlenecekEg.sure : ''; }
       if(egzersizSetInput){ egzersizSetInput.value = duzenlenecekEg && duzenlenecekEg.set ? duzenlenecekEg.set : ''; }
       if(egzersizTekrarInput){ egzersizTekrarInput.value = duzenlenecekEg && duzenlenecekEg.tekrar ? duzenlenecekEg.tekrar : ''; }
       if(egzersizModalEyebrow){ egzersizModalEyebrow.textContent = duzenlenecekEg ? 'Egzersizi Düzenle' : 'Yeni Egzersiz'; }
@@ -12808,12 +13142,15 @@
         if(!kart) return;
         const isim = (egzersizIsimInput.value || '').trim();
         if(!isim) return;
-        let sure = parseInt(egzersizSureInput ? egzersizSureInput.value : '30', 10);
-        if(!Number.isFinite(sure) || sure < 5){ sure = 30; }
+        let sureRaw = egzersizSureInput ? egzersizSureInput.value.trim() : '';
+        let sure = sureRaw === '' ? null : parseInt(sureRaw, 10);
+        if(sure !== null && (!Number.isFinite(sure) || sure < 5)){ sure = null; }
         let set = egzersizSetInput ? parseInt(egzersizSetInput.value, 10) : NaN;
         if(!Number.isFinite(set) || set < 1){ set = null; }
         let tekrar = egzersizTekrarInput ? parseInt(egzersizTekrarInput.value, 10) : NaN;
         if(!Number.isFinite(tekrar) || tekrar < 1){ tekrar = null; }
+        // Süre girilmediyse ve set + tekrar de girilmediyse varsayılan süreyi kullan
+        if(sure === null && !(set && tekrar)){ sure = 30; }
 
         kart.egzersizler = kart.egzersizler || [];
 
@@ -12878,22 +13215,37 @@
     const cikisBtn = document.getElementById('kaloriCikisBtn');
     const kapatBtn = document.getElementById('kaloriKapatBtn');
     const ilerlemeEtiket = document.getElementById('kaloriIlerleme');
+    const hareketBlok = document.getElementById('kaloriHareketBlok');
     const hareketGorsel = document.getElementById('kaloriHareketGorsel');
     const durumEtiket = document.getElementById('kaloriDurumEtiket');
     const hareketIsim = document.getElementById('kaloriHareketIsim');
+    const hareketAlt = document.getElementById('kaloriHareketAlt');
     const sayacWrap = document.getElementById('kaloriSayacWrap');
     const sayacSayi = document.getElementById('kaloriSayacSayi');
+    const tekrarSayi = document.getElementById('kaloriTekrarSayi');
+    const tekrarAlt = document.getElementById('kaloriTekrarAlt');
     const geriBtn = document.getElementById('kaloriGeriBtn');
     const ileriBtn = document.getElementById('kaloriIleriBtn');
     const duraklatBtn = document.getElementById('kaloriDuraklatBtn');
     const duraklatIkon = document.getElementById('kaloriDuraklatIkon');
+    const hazirlikAtlaBtn = document.getElementById('kaloriHazirlikAtlaBtn');
 
     if(!paneSecim || !grupListe) return;
 
     const DEPOLAMA_ANAHTARI = 'sessizlik-antrenman-kartlari';
     const DINLENME_SURESI = 10;
+    const HAZIRLIK_SURESI_ANAHTARI = 'sessizlik-hazirlik-suresi';
+    function hazirlikSuresiAl(){
+      try{
+        const kayitli = parseInt(localStorage.getItem(HAZIRLIK_SURESI_ANAHTARI), 10);
+        if(kayitli && kayitli > 0) return kayitli;
+      }catch(e){}
+      return 5;
+    }
     const VARSAYILAN_IKON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>';
     const ONAY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>';
+    const TAMAM_PATH = '<path d="M20 6 9 17l-5-5"></path>';
+    const DURAKLAT_PATHS = '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>';
 
     let kartlar = [];
     let seciliKartIdler = [];
@@ -12903,6 +13255,7 @@
     let toplamSaniye = 0;
     let dinlenmeModu = false;
     let zamanlayici = null;
+    let aktifBitisFn = null;
 
     function kartlariYukle(){
       try{
@@ -12911,10 +13264,15 @@
       }catch(e){ kartlar = []; }
     }
 
+    const sporModuOverlayEl = document.getElementById('sporModuOverlay');
+
     function paneGoster(pane){
       [paneSecim, paneCalisma, paneBitis].forEach(function(p){
         if(p){ p.classList.toggle('active', p === pane); }
       });
+      if(sporModuOverlayEl){
+        sporModuOverlayEl.classList.toggle('kalori-antrenman-tam-ekran', pane === paneCalisma);
+      }
     }
 
     function secimListesiCiz(){
@@ -12971,6 +13329,7 @@
       kartlariYukle();
       seciliKartIdler = [];
       if(baslatBtn){ baslatBtn.disabled = true; }
+      if(paneCalisma){ paneCalisma.classList.remove('dinlenme-durumu', 'tekrar-durumu', 'hazirlik-durumu'); }
       secimListesiCiz();
       paneGoster(paneSecim);
     };
@@ -12982,10 +13341,14 @@
       kartlar.forEach(function(kart){
         if(seciliKartIdler.indexOf(kart.id) === -1) return;
         (kart.egzersizler || []).forEach(function(eg){
+          const sureVar = eg.sure && eg.sure > 0;
+          const tekrarVar = eg.set && eg.tekrar;
           akisEgzersizleri.push({
             isim: eg.isim,
             gorsel: eg.gorsel,
-            sure: (eg.sure && eg.sure > 0) ? eg.sure : 30
+            sure: sureVar ? eg.sure : (tekrarVar ? null : 30),
+            set: eg.set || null,
+            tekrar: eg.tekrar || null
           });
         });
       });
@@ -12995,8 +13358,30 @@
       if(zamanlayici){ clearInterval(zamanlayici); zamanlayici = null; }
     }
 
+    // Sayaç öğesini normal moddaki basamak-kaydırma (dsayac) yapısından
+    // hazırlık modundaki düz metin + zoom animasyonuna (veya tersine) geçerken temizler.
+    function sayacGosterimSifirla(){
+      if(!sayacSayi) return;
+      sayacSayi.innerHTML = '';
+      sayacSayi.textContent = '';
+      sayacSayi._dsayacParcalar = null;
+      sayacSayi.classList.remove('dsayac', 'kalori-hazirlik-sayi-anim');
+    }
+
     function sayacGuncelle(){
-      if(sayacSayi){ sayacSayi.textContent = String(kalanSaniye); }
+      const hazirlikModu = paneCalisma && paneCalisma.classList.contains('hazirlik-durumu');
+      if(sayacSayi){
+        if(hazirlikModu){
+          sayacSayi.textContent = String(kalanSaniye);
+          sayacSayi.classList.remove('kalori-hazirlik-sayi-anim');
+          void sayacSayi.offsetWidth; // reflow: animasyonu her sayı değişiminde baştan tetikle
+          sayacSayi.classList.add('kalori-hazirlik-sayi-anim');
+        } else if(typeof window.sayacYaz === 'function'){
+          window.sayacYaz(sayacSayi, String(kalanSaniye));
+        } else {
+          sayacSayi.textContent = String(kalanSaniye);
+        }
+      }
       if(sayacWrap){
         const yuzde = toplamSaniye > 0 ? Math.max(0, Math.min(100, (kalanSaniye / toplamSaniye) * 100)) : 0;
         sayacWrap.style.setProperty('--kalori-yuzde', yuzde);
@@ -13006,8 +13391,22 @@
     function duraklatGorseliGuncelle(calisiyorMu){
       if(!duraklatIkon) return;
       duraklatIkon.innerHTML = calisiyorMu
-        ? '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>'
+        ? DURAKLAT_PATHS
         : '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+    }
+
+    // Tekrar (set/tekrar) modunda orta düğme "Yapıldı" onayına dönüşür,
+    // süreli modda ise her zamanki duraklat/oynat simgesini gösterir.
+    function kontrolDugmesiGuncelle(){
+      if(!duraklatIkon) return;
+      const tekrarModuAktif = paneCalisma && paneCalisma.classList.contains('tekrar-durumu');
+      if(tekrarModuAktif){
+        duraklatIkon.innerHTML = '';
+        if(duraklatBtn){ duraklatBtn.setAttribute('aria-label', 'Yapıldı, sıradaki'); }
+        return;
+      }
+      if(duraklatBtn){ duraklatBtn.setAttribute('aria-label', 'Duraklat'); }
+      duraklatGorseliGuncelle(!!zamanlayici);
     }
 
     function hareketiGoster(){
@@ -13015,6 +13414,29 @@
       if(!eg) return;
       if(ilerlemeEtiket){ ilerlemeEtiket.textContent = (akisIndex + 1) + ' / ' + akisEgzersizleri.length; }
       if(hareketIsim){ hareketIsim.textContent = eg.isim; }
+
+      const tekrarModuAktif = paneCalisma && paneCalisma.classList.contains('tekrar-durumu');
+      if(hareketAlt){
+        hareketAlt.textContent = (!tekrarModuAktif && eg.set && eg.tekrar)
+          ? (eg.set + ' set × ' + eg.tekrar + ' tekrar')
+          : '';
+      }
+      if(tekrarSayi && tekrarAlt){
+        if(eg.set && eg.tekrar){
+          tekrarSayi.textContent = eg.set + ' × ' + eg.tekrar;
+          tekrarAlt.textContent = 'set × tekrar';
+        } else if(eg.set){
+          tekrarSayi.textContent = String(eg.set);
+          tekrarAlt.textContent = 'set';
+        } else if(eg.tekrar){
+          tekrarSayi.textContent = String(eg.tekrar);
+          tekrarAlt.textContent = 'tekrar';
+        } else {
+          tekrarSayi.textContent = '—';
+          tekrarAlt.textContent = '';
+        }
+      }
+
       if(hareketGorsel){
         if(eg.gorsel){
           hareketGorsel.innerHTML = '';
@@ -13027,39 +13449,86 @@
           hareketGorsel.innerHTML = VARSAYILAN_IKON;
         }
       }
+
+      // Egzersizler arası geçişte hafif bir animasyon oynat.
+      if(hareketBlok){
+        hareketBlok.classList.remove('kalori-hareket-gecis');
+        void hareketBlok.offsetWidth; // reflow: animasyonu baştan tetikle
+        hareketBlok.classList.add('kalori-hareket-gecis');
+      }
     }
 
-    function zamanlayiciBaslat(){
+    function zamanlayiciBaslat(bitisFn){
       zamanlayiciTemizle();
-      duraklatGorseliGuncelle(true);
+      aktifBitisFn = bitisFn || siradakineGec;
       zamanlayici = setInterval(function(){
         kalanSaniye--;
         if(kalanSaniye <= 0){
           kalanSaniye = 0;
           sayacGuncelle();
-          siradakineGec();
+          aktifBitisFn();
           return;
         }
         sayacGuncelle();
       }, 1000);
+      kontrolDugmesiGuncelle();
     }
 
     function evreyiBaslat(dinlenmeMi){
       dinlenmeModu = dinlenmeMi;
-      if(paneCalisma){ paneCalisma.classList.toggle('dinlenme-durumu', dinlenmeMi); }
       const eg = akisEgzersizleri[akisIndex];
+      const tekrarModu = !dinlenmeMi && !!eg && !eg.sure;
+      const hazirliktanCikiyor = paneCalisma && paneCalisma.classList.contains('hazirlik-durumu');
+      if(paneCalisma){
+        paneCalisma.classList.toggle('dinlenme-durumu', dinlenmeMi);
+        paneCalisma.classList.toggle('tekrar-durumu', tekrarModu);
+        paneCalisma.classList.remove('hazirlik-durumu');
+      }
+      if(hazirliktanCikiyor){ sayacGosterimSifirla(); }
       if(dinlenmeMi){
-        if(durumEtiket){ durumEtiket.textContent = 'DİNLENME · SIRADA: ' + (eg ? eg.isim.toUpperCase() : ''); }
+        if(durumEtiket){ durumEtiket.textContent = 'MOLA'; }
         kalanSaniye = DINLENME_SURESI;
         toplamSaniye = DINLENME_SURESI;
       } else {
         if(durumEtiket){ durumEtiket.textContent = 'HAREKET'; }
-        kalanSaniye = eg ? eg.sure : 30;
-        toplamSaniye = kalanSaniye;
+        kalanSaniye = (eg && eg.sure) ? eg.sure : 0;
+        toplamSaniye = kalanSaniye || 1;
       }
       hareketiGoster();
+      if(dinlenmeMi){
+        if(hareketIsim){ hareketIsim.textContent = ''; }
+        if(hareketAlt){ hareketAlt.textContent = ''; }
+      }
+      if(tekrarModu){
+        zamanlayiciTemizle();
+        sayacGuncelle();
+        kontrolDugmesiGuncelle();
+      } else {
+        sayacGuncelle();
+        zamanlayiciBaslat();
+      }
+    }
+
+    // Antrenman başlamadan önce 5-4-3-2-1 hazırlık geri sayımı gösterir,
+    // süresi bitince ilk egzersizle otomatik başlar.
+    function hazirlikBaslat(){
+      akisIndex = 0;
+      dinlenmeModu = false;
+      if(paneCalisma){
+        paneCalisma.classList.remove('dinlenme-durumu', 'tekrar-durumu');
+        paneCalisma.classList.add('hazirlik-durumu');
+      }
+      sayacGosterimSifirla();
+      if(durumEtiket){ durumEtiket.textContent = 'HAZIRLAN'; }
+      hareketiGoster();
+      const hazirlikSuresi = hazirlikSuresiAl();
+      kalanSaniye = hazirlikSuresi;
+      toplamSaniye = hazirlikSuresi;
       sayacGuncelle();
-      zamanlayiciBaslat();
+      zamanlayiciBaslat(function(){
+        if(paneCalisma){ paneCalisma.classList.remove('hazirlik-durumu'); }
+        evreyiBaslat(false);
+      });
     }
 
     function bitir(){
@@ -13086,24 +13555,35 @@
         if(seciliKartIdler.length === 0) return;
         akisiOlustur();
         if(akisEgzersizleri.length === 0) return;
-        akisIndex = 0;
         paneGoster(paneCalisma);
-        evreyiBaslat(false);
+        hazirlikBaslat();
       });
     }
     if(cikisBtn){
       cikisBtn.addEventListener('click', function(){ window.kaloriSecimPaneGoster(); });
+    }
+    if(hazirlikAtlaBtn){
+      hazirlikAtlaBtn.addEventListener('click', function(){
+        zamanlayiciTemizle();
+        if(paneCalisma){ paneCalisma.classList.remove('hazirlik-durumu'); }
+        evreyiBaslat(false);
+      });
     }
     if(kapatBtn){
       kapatBtn.addEventListener('click', function(){ window.kaloriSecimPaneGoster(); });
     }
     if(duraklatBtn){
       duraklatBtn.addEventListener('click', function(){
+        const tekrarModuAktif = paneCalisma && paneCalisma.classList.contains('tekrar-durumu');
+        if(tekrarModuAktif){
+          siradakineGec();
+          return;
+        }
         if(zamanlayici){
           zamanlayiciTemizle();
-          duraklatGorseliGuncelle(false);
+          kontrolDugmesiGuncelle();
         } else {
-          zamanlayiciBaslat();
+          zamanlayiciBaslat(aktifBitisFn);
         }
       });
     }
