@@ -13364,11 +13364,21 @@
       durumGoster('Hesap bilgileri alınıyor…');
       tokenKaydet(redirectSonuc.token, redirectSonuc.expiresIn);
       girisTamamla(redirectSonuc.token);
-    } else if(mevcutHesap){
+    } else if(mevcutHesap && tokenOku()){
+      // Hesap biliniyor VE bu oturum için hâlâ geçerli bir jeton var:
+      // kullanıcıyı tekrar bekletmeden doğrudan içeri al.
       hesapBilgisiniUygula(mevcutHesap);
       ekraniGizle();
       senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
       ilkSenkronuBaslat();
+    } else if(mevcutHesap){
+      // Hesap biliniyor ama bu oturumda geçerli bir jeton yok (ör. oto
+      // çıkış / jeton süresi dolmuş): senkronu sessizce atlamak yerine,
+      // kullanıcının fark etmeden veri kaybetmemesi için her açılışta
+      // tekrar giriş sayfası gösterilip mailiyle giriş yapması istenir.
+      hesapBilgisiniUygula(mevcutHesap);
+      durumGoster('Devam etmek için Google hesabınla tekrar giriş yapman gerekiyor.');
+      ekraniGoster();
     } else {
       ekraniGoster();
     }
