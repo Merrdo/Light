@@ -13070,12 +13070,23 @@
     }
 
     // ================= DRIVE API YARDIMCILARI =================
+    function hataDetayiOlustur(on, r, govde){
+      return r.text().then(function(metin){
+        const hata = new Error(on + ' (HTTP ' + r.status + '): ' + metin);
+        hata.status = r.status;
+        hata.gövde = govde;
+        return hata;
+      }).catch(function(){
+        return new Error(on + ' (HTTP ' + r.status + ')');
+      });
+    }
+
     function driveDosyaBul(token){
       const q = encodeURIComponent("name = '" + DRIVE_DOSYA_ADI + "' and trashed = false");
       return fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,modifiedTime)&spaces=drive', {
         headers: { 'Authorization': 'Bearer ' + token }
       }).then(function(r){
-        if(!r.ok) throw new Error('Drive listeleme hatası');
+        if(!r.ok) return hataDetayiOlustur('Drive listeleme hatası', r).then(function(h){ throw h; });
         return r.json();
       }).then(function(veri){
         return (veri.files && veri.files[0]) ? veri.files[0] : null;
@@ -13109,7 +13120,7 @@
           body: govde
         });
       }).then(function(r){
-        if(!r.ok) throw new Error('Drive yükleme hatası');
+        if(!r.ok) return hataDetayiOlustur('Drive yükleme hatası', r).then(function(h){ throw h; });
         return r.json();
       });
     }
@@ -13118,7 +13129,7 @@
       return fetch('https://www.googleapis.com/drive/v3/files/' + dosyaId + '?alt=media', {
         headers: { 'Authorization': 'Bearer ' + token }
       }).then(function(r){
-        if(!r.ok) throw new Error('Drive indirme hatası');
+        if(!r.ok) return hataDetayiOlustur('Drive indirme hatası', r).then(function(h){ throw h; });
         return r.text();
       });
     }
@@ -13131,7 +13142,7 @@
       senkronSurmekte = true;
       senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
       return gecerliTokenAl().then(function(token){
-        if(!token){ senkronDurumAyarla('hata', 'Senkronizasyon bekleniyor (yeniden bağlanılacak)'); return; }
+        if(!token){ console.warn('[Sessizlik Senkron] Jeton alınamadı (sessiz yenileme başarısız).'); senkronDurumAyarla('hata', 'Senkronizasyon bekleniyor (yeniden bağlanılacak)'); return; }
         return window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
           return driveDosyaBul(token).then(function(mevcut){
             return driveDosyaYukle(token, dosya, mevcut ? mevcut.id : null);
@@ -13141,7 +13152,8 @@
           sonSenkronZamani = Date.now();
           senkronGuncelDurumuGoster();
         });
-      }).catch(function(){
+      }).catch(function(err){
+        console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
         senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar denenecek');
       }).finally(function(){
         senkronSurmekte = false;
@@ -13199,7 +13211,8 @@
             });
           });
         });
-      }).catch(function(){
+      }).catch(function(err){
+        console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
         senkronDurumAyarla('hata', 'Senkronizasyon başarısız, tekrar denenecek');
       });
     }
