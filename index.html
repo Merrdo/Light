@@ -9759,16 +9759,55 @@
       havuzEkleBtn.addEventListener('click', function(){ havuzGorselInput.click(); });
     }
 
+    // Kameradan/galeriden gelen görseller genelde birkaç MB olabiliyor; bunlar
+    // olduğu gibi saklanıp her senkronda buluta base64 olarak yeniden
+    // yüklenince "havuza ekle" ve "giriş" bekleme süreleri çok uzuyor (hatta
+    // büyük dosyalarda yükleme başarısız olup görsel hiç yedeklenmeyebiliyor).
+    // Bu yüzden kaydetmeden önce görseli makul bir boyuta küçültüp sıkıştırıyoruz.
+    function havuzGorseliSikistir(dosya){
+      return new Promise(function(resolve){
+        if(!dosya || !/^image\//.test(dosya.type) || dosya.type === 'image/gif'){ resolve(dosya); return; }
+        const MAKS_KENAR = 1600;
+        const KUCUK_ESIK_BAYT = 700 * 1024;
+        const url = URL.createObjectURL(dosya);
+        const img = new Image();
+        img.onload = function(){
+          URL.revokeObjectURL(url);
+          const genislik = img.naturalWidth, yukseklik = img.naturalHeight;
+          if(dosya.size <= KUCUK_ESIK_BAYT && genislik <= MAKS_KENAR && yukseklik <= MAKS_KENAR){
+            resolve(dosya); return;
+          }
+          try{
+            const oran = Math.min(1, MAKS_KENAR / Math.max(genislik, yukseklik));
+            const hedefGenislik = Math.max(1, Math.round(genislik * oran));
+            const hedefYukseklik = Math.max(1, Math.round(yukseklik * oran));
+            const canvas = document.createElement('canvas');
+            canvas.width = hedefGenislik;
+            canvas.height = hedefYukseklik;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, hedefGenislik, hedefYukseklik);
+            canvas.toBlob(function(blob){
+              resolve((blob && blob.size < dosya.size) ? blob : dosya);
+            }, 'image/jpeg', 0.78);
+          }catch(e){ resolve(dosya); }
+        };
+        img.onerror = function(){ URL.revokeObjectURL(url); resolve(dosya); };
+        img.src = url;
+      });
+    }
+
     if(havuzGorselInput){
       havuzGorselInput.addEventListener('change', function(){
         const dosya = havuzGorselInput.files && havuzGorselInput.files[0];
         havuzGorselInput.value = '';
         if(!dosya) return;
-        havuzSeciliDosya = dosya;
-        havuzSeciliAlanEkle = 'TYT';
-        havuzSeciliBransEkle = null;
-        havuzSeciliCevapEkle = null;
-        havuzEkleModalAc();
+        havuzGorseliSikistir(dosya).then(function(sikistirilmisDosya){
+          havuzSeciliDosya = sikistirilmisDosya;
+          havuzSeciliAlanEkle = 'TYT';
+          havuzSeciliBransEkle = null;
+          havuzSeciliCevapEkle = null;
+          havuzEkleModalAc();
+        });
       });
     }
 
@@ -9890,7 +9929,8 @@
         if(!havuzSeciliDosya || !havuzSeciliBransEkle) return;
         havuzEkleModalSave.disabled = true;
         const id = havuzSoruIdUret();
-        dosyaKaydet(id, havuzSeciliDosya).then(function(){
+        const kaydetFn = window.__sessizlikDosyaKaydet || dosyaKaydet;
+        kaydetFn(id, havuzSeciliDosya).then(function(){
           if(!Array.isArray(havuzVerileri)) havuzVerileri = [];
           havuzVerileri.push({
             id: id,
@@ -13013,8 +13053,8 @@
     const DRIVE_DOSYA_ADI = 'sessizligin-sesi-yedek.json';
     const TOKEN_ANAHTARI = 'sessizlik-hesap-token';
     const BILINEN_MODIFIED_ANAHTARI = 'sessizlik-drive-bilinen-modified';
-    const OTO_YUKLEME_GECIKME_MS = 4000;
-    const PERIYODIK_SENKRON_MS = 90000;
+    const OTO_YUKLEME_GECIKME_MS = 1200;
+    const PERIYODIK_SENKRON_MS = 60000;
 
     const overlay = document.getElementById('girisEkraniOverlay');
     const girisBtn = document.getElementById('girisGoogleBtn');
@@ -13590,7 +13630,7 @@
             bilinenModifiedYaz(mevcut.modifiedTime);
             sonSenkronZamani = Date.now();
             senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-            setTimeout(function(){ window.location.reload(); }, 900);
+            setTimeout(function(){ window.location.reload(); }, 300);
           });
         });
       }).catch(function(err){
@@ -13601,7 +13641,7 @@
     }
 
     function ilkSenkronuBaslat(){
-      setTimeout(acilistaKontrolEt, 800);
+      setTimeout(acilistaKontrolEt, 200);
     }
 
     // Google ile TAZE giriş yapıldığında (misafirden geçiş değil) kullanılır.
