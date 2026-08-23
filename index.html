@@ -6130,7 +6130,6 @@
       <p class="modal-onay-metin">Tüm verilerini bir dosyaya kaydedebilir ya da daha önce aldığın bir yedeği geri yükleyebilirsin.</p>
       <div class="modal-actions modal-actions-pill" style="margin-top:1.6rem; flex-direction:column; gap:0.7rem;">
         <button type="button" class="modal-btn modal-btn-primary" id="yedekDisaAktarBtn">Dışa Aktar (İndir)</button>
-        <button type="button" class="modal-btn" id="yedekPaylasBtn" style="display:none;">Yedeği Paylaş / Kaydet</button>
         <button type="button" class="modal-btn" id="yedekIceAktarBtn">İçe Aktar (Yükle)</button>
       </div>
       <div class="modal-actions">
@@ -12436,7 +12435,6 @@
     const overlay = document.getElementById('yedekModalOverlay');
     const kapatBtn = document.getElementById('yedekKapatBtn');
     const disaAktarBtn = document.getElementById('yedekDisaAktarBtn');
-    const paylasBtn = document.getElementById('yedekPaylasBtn');
     const iceAktarBtn = document.getElementById('yedekIceAktarBtn');
     const dosyaInput = document.getElementById('yedekDosyaInput');
     const durumMetin = document.getElementById('yedekDurumMetin');
@@ -12483,106 +12481,67 @@
       return new Blob([bayt], { type: mime });
     }
 
-    // ---- Yedek paketini (localStorage + IndexedDB'deki görsel/dosya blob'ları,
-    // base64 olarak) hazırlayıp bir File nesnesi olarak döndürür ----
-    function yedekDosyasiOlustur(){
-      const veri = {};
-      for(let i = 0; i < localStorage.length; i++){
-        const anahtar = localStorage.key(i);
-        veri[anahtar] = localStorage.getItem(anahtar);
-      }
-
-      const dosyalarSozu = window.__sessizlikDosyaTumIcerigiAl
-        ? window.__sessizlikDosyaTumIcerigiAl().catch(function(){ return {}; })
-        : Promise.resolve({});
-
-      return dosyalarSozu.then(function(dosyalar){
-        const idler = Object.keys(dosyalar || {});
-        return Promise.all(idler.map(function(id){
-          const blob = dosyalar[id];
-          return dosyaBlobToBase64(blob).then(function(dataUrl){
-            return { id: id, tip: blob.type || '', veri: dataUrl };
-          }).catch(function(){ return null; });
-        })).then(function(sonuclar){
-          const dosyaPaket = {};
-          sonuclar.forEach(function(s){
-            if(s){ dosyaPaket[s.id] = { tip: s.tip, veri: s.veri }; }
-          });
-          return dosyaPaket;
-        });
-      }).then(function(dosyaPaket){
-        const paket = {
-          uygulama: 'Sessizliğin Sesi',
-          surum: 2,
-          tarih: new Date().toISOString(),
-          veri: veri,
-          dosyalar: dosyaPaket
-        };
-        const blob = new Blob([JSON.stringify(paket)], { type: 'application/json' });
-        const d = new Date();
-        const tarihEtiketi = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-        const dosyaAdi = 'sessizligin-sesi-yedek-' + tarihEtiketi + '.json';
-        return new File([blob], dosyaAdi, { type: 'application/json' });
-      });
-    }
-
-    // ---- Dışa Aktar: yedek dosyasını tarayıcı üzerinden indirir ----
+    // ---- Dışa Aktar: tüm localStorage verilerini VE IndexedDB'de saklanan
+    // görsel/dosya blob'larını (base64 olarak) tek bir JSON dosyası içinde indir ----
     if(disaAktarBtn){
       disaAktarBtn.addEventListener('click', function(){
         disaAktarBtn.disabled = true;
         durumGoster('Yedek hazırlanıyor, görseller de dahil ediliyor…');
 
-        yedekDosyasiOlustur().then(function(dosya){
-          const url = URL.createObjectURL(dosya);
+        const veri = {};
+        try{
+          for(let i = 0; i < localStorage.length; i++){
+            const anahtar = localStorage.key(i);
+            veri[anahtar] = localStorage.getItem(anahtar);
+          }
+        }catch(e){
+          durumGoster('Dışa aktarma sırasında bir sorun oluştu.');
+          disaAktarBtn.disabled = false;
+          return;
+        }
+
+        const dosyalarSozu = window.__sessizlikDosyaTumIcerigiAl
+          ? window.__sessizlikDosyaTumIcerigiAl().catch(function(){ return {}; })
+          : Promise.resolve({});
+
+        dosyalarSozu.then(function(dosyalar){
+          const idler = Object.keys(dosyalar || {});
+          return Promise.all(idler.map(function(id){
+            const blob = dosyalar[id];
+            return dosyaBlobToBase64(blob).then(function(dataUrl){
+              return { id: id, tip: blob.type || '', veri: dataUrl };
+            }).catch(function(){ return null; });
+          })).then(function(sonuclar){
+            const dosyaPaket = {};
+            sonuclar.forEach(function(s){
+              if(s){ dosyaPaket[s.id] = { tip: s.tip, veri: s.veri }; }
+            });
+            return dosyaPaket;
+          });
+        }).then(function(dosyaPaket){
+          const paket = {
+            uygulama: 'Sessizliğin Sesi',
+            surum: 2,
+            tarih: new Date().toISOString(),
+            veri: veri,
+            dosyalar: dosyaPaket
+          };
+          const blob = new Blob([JSON.stringify(paket)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const d = new Date();
+          const tarihEtiketi = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
           const a = document.createElement('a');
           a.href = url;
-          a.download = dosya.name;
+          a.download = 'sessizligin-sesi-yedek-' + tarihEtiketi + '.json';
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-          durumGoster('Yedek dosyan indirildi (görseller dahil). WhatsApp gibi uygulamalar üzerinden gelen dosyaları cihazına kaydetmekte sorun yaşıyorsan, aşağıdaki "Yedeği Paylaş / Kaydet" düğmesini kullanarak dosyayı doğrudan Drive, e-posta veya Dosyalar\'a aktarabilirsin.');
+          durumGoster('Yedek dosyan indirildi (görseller dahil).');
           disaAktarBtn.disabled = false;
         }).catch(function(){
           durumGoster('Dışa aktarma sırasında bir sorun oluştu.');
           disaAktarBtn.disabled = false;
-        });
-      });
-    }
-
-    // ---- Paylaş: cihazın yerel paylaşım menüsünü açar (Drive, e-posta, Dosyalar, AirDrop vb.)
-    // WhatsApp üzerinden gelen dosyaların indirilememesi gibi sorunlarda daha güvenilir bir yol ----
-    if(paylasBtn){
-      // Dosya paylaşımını destekleyen tarayıcılarda düğmeyi göster (çoğu masaüstü tarayıcı desteklemez).
-      try{
-        const testDosya = new File(['test'], 'test.json', { type: 'application/json' });
-        if(navigator.canShare && navigator.canShare({ files: [testDosya] })){
-          paylasBtn.style.display = '';
-        }
-      }catch(e){ /* paylaşım desteklenmiyor, düğme gizli kalır */ }
-
-      paylasBtn.addEventListener('click', function(){
-        paylasBtn.disabled = true;
-        durumGoster('Yedek hazırlanıyor…');
-
-        yedekDosyasiOlustur().then(function(dosya){
-          if(navigator.canShare && navigator.canShare({ files: [dosya] })){
-            return navigator.share({
-              files: [dosya],
-              title: 'Sessizliğin Sesi - Veri Yedeği'
-            }).then(function(){
-              durumGoster('Yedek paylaşıldı.');
-            }).catch(function(err){
-              if(err && err.name === 'AbortError'){ durumGoster(''); if(durumMetin){ durumMetin.style.display = 'none'; } }
-              else{ durumGoster('Paylaşım sırasında bir sorun oluştu.'); }
-            });
-          } else {
-            durumGoster('Bu cihaz dosya paylaşımını desteklemiyor, "İndir" seçeneğini kullan.');
-          }
-        }).catch(function(){
-          durumGoster('Yedek hazırlanırken bir sorun oluştu.');
-        }).then(function(){
-          paylasBtn.disabled = false;
         });
       });
     }
