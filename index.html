@@ -5945,8 +5945,143 @@
   }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  html.giris-bekleniyor body{ overflow:hidden; }
+
+  .giris-overlay{
+    position:fixed;
+    inset:0;
+    z-index:20000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 50% 28%, rgba(var(--accent-rgb),0.16), transparent 55%),
+      var(--bg);
+    padding:6vw;
+    opacity:0;
+  }
+  .giris-overlay.active{
+    display:flex;
+    animation: girisOverlayIn 0.35s ease forwards;
+  }
+  @keyframes girisOverlayIn{ to{ opacity:1; } }
+
+  .giris-box{
+    width:100%;
+    max-width:380px;
+    text-align:center;
+    transform:translateY(14px);
+    opacity:0;
+    animation: girisBoxIn 0.45s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.1s;
+  }
+  @keyframes girisBoxIn{ to{ transform:translateY(0); opacity:1; } }
+
+  .giris-logo{
+    width:2.2rem;
+    height:2.2rem;
+    margin:0 auto 1.2rem;
+    color:var(--accent);
+  }
+  .giris-eyebrow{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .giris-title{
+    margin-top:0.6rem;
+    font-size:1.7rem;
+    font-weight:400;
+    color:var(--ink);
+  }
+  .giris-sub{
+    margin-top:0.7rem;
+    font-size:0.9rem;
+    line-height:1.55;
+    color:var(--ink-soft);
+  }
+  .giris-google-btn{
+    margin-top:2rem;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.6rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.9rem;
+    letter-spacing:0.02em;
+    padding:0.85rem 1.2rem;
+    border-radius:0.5rem;
+    border:1px solid var(--line);
+    background:var(--ink);
+    color:var(--bg);
+    cursor:pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, filter 0.2s ease;
+  }
+  .giris-google-btn:hover{ filter:brightness(1.05); transform:translateY(-1px); }
+  .giris-google-btn:active{ transform:scale(0.98); }
+  .giris-google-btn:disabled{ opacity:0.5; cursor:default; transform:none; }
+  .giris-google-btn svg{ width:1.15rem; height:1.15rem; flex-shrink:0; }
+
+  .giris-durum{
+    margin-top:1rem;
+    font-size:0.8rem;
+    color:var(--ink-soft);
+    display:none;
+  }
+
+  .hesap-satir{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.8rem;
+  }
+  .hesap-satir-bilgi{
+    display:flex;
+    flex-direction:column;
+    gap:0.15rem;
+    min-width:0;
+  }
+  .hesap-satir-bilgi span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .hesap-cikis-btn{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.04em;
+    padding:0.45rem 0.8rem;
+    border-radius:0.4rem;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    white-space:nowrap;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+  .hesap-cikis-btn:hover{ color:var(--ink); border-color:var(--ink-soft); background:rgba(var(--ink-rgb),0.06); }
+</style>
 </head>
 <body>
+
+  <!-- ================= GİRİŞ / KAYIT EKRANI ================= -->
+  <div class="giris-overlay" id="girisEkraniOverlay">
+    <div class="giris-box">
+      <svg class="giris-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+      <span class="giris-eyebrow">Sessizliğin Sesi</span>
+      <h1 class="giris-title">Hoş geldin</h1>
+      <p class="giris-sub">Verilerini korumak ve cihazlar arasında eşleyebilmek için Google hesabınla devam et.</p>
+      <button type="button" class="giris-google-btn" id="girisGoogleBtn">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4c-7.682 0-14.344 4.337-17.694 10.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
+        <span>Google ile Devam Et</span>
+      </button>
+      <p class="giris-durum" id="girisDurumMetin"></p>
+    </div>
+  </div>
 
   <!-- ================= NAVBAR ================= -->
   <div class="nav-wrap" id="navWrap">
@@ -6101,6 +6236,15 @@
           <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
         </div>
       </div>
+      <div class="settings-row" id="hesapRow">
+        <div class="hesap-satir" style="width:100%;">
+          <div class="hesap-satir-bilgi">
+            <span class="settings-row-title" id="hesapAdSoyad">Google Hesabı</span>
+            <span class="settings-row-sub" id="hesapEposta"></span>
+          </div>
+          <button type="button" class="hesap-cikis-btn" id="hesapCikisBtn">Çıkış Yap</button>
+        </div>
+      </div>
       <div class="settings-row" id="yedekRow">
         <div class="settings-row-text">
           <span class="settings-row-title">Verilerini Yedekle</span>
@@ -6130,22 +6274,9 @@
       <h3 class="modal-title">Verilerini Yedekle</h3>
       <p class="modal-onay-metin">Tüm verilerini bir dosyaya kaydedebilir ya da daha önce aldığın bir yedeği geri yükleyebilirsin.</p>
 
-      <div class="settings-row" id="driveOtoSenkronRow" style="margin-top:1.4rem;">
-        <div class="settings-row-text">
-          <span class="settings-row-title">Otomatik Senkronizasyon</span>
-          <span class="settings-row-sub" id="driveOtoSenkronLabel">Kapalı</span>
-        </div>
-        <button type="button" class="theme-switch" id="driveOtoSenkronSwitch" role="switch" aria-checked="false" aria-label="Otomatik Google Drive senkronizasyonu anahtarı">
-          <span class="theme-switch-knob"></span>
-        </button>
-      </div>
-      <p class="modal-onay-metin" style="margin-top:0.5rem; opacity:0.75; font-size:0.82rem;">Açıkken: bir görsel eklediğinde otomatik Drive'a yüklenir, uygulamayı başka bir cihazda açtığında yeni yedek varsa otomatik indirilir.</p>
-
       <div class="modal-actions modal-actions-pill" style="margin-top:1.2rem; flex-direction:column; gap:0.7rem;">
         <button type="button" class="modal-btn modal-btn-primary" id="yedekDisaAktarBtn">Dışa Aktar (İndir)</button>
         <button type="button" class="modal-btn" id="yedekPaylasBtn" style="display:none;">Yedeği Paylaş / Kaydet</button>
-        <button type="button" class="modal-btn" id="yedekDriveYedekleBtn">Google Drive'a Yedekle (Şimdi)</button>
-        <button type="button" class="modal-btn" id="yedekDriveGeriYukleBtn">Google Drive'dan Geri Yükle (Şimdi)</button>
         <button type="button" class="modal-btn" id="yedekIceAktarBtn">İçe Aktar (Yükle)</button>
       </div>
       <div class="modal-actions">
@@ -12671,52 +12802,57 @@
     }
   })();
 
-  // ================= GOOGLE DRIVE İLE YEDEKLEME =================
-  // Popup akışı (masaüstü/normal sekme) ile redirect akışı (ana ekrana eklenmiş
-  // PWA / iOS standalone modu — popup'lar bu modda güvenilir çalışmaz) arasında
-  // otomatik geçiş yapar. Sadece kendi oluşturduğu dosyaya erişen 'drive.file'
-  // kapsamını kullanır; kullanıcının diğer Drive dosyalarına erişilmez.
+  // ================= GİRİŞ / KAYIT: Google Hesabıyla Devam Et =================
+  // Uygulama ilk açıldığında tam ekran bir giriş/kayıt ekranı gösterir; kullanıcı
+  // Google hesabıyla giriş yaptıktan sonra bu tercih cihazda hatırlanır ve bir
+  // daha sorulmaz. Sadece kimlik bilgisi (ad/e-posta) alınır, başka bir izin
+  // istenmez.
   (function(){
     const GOOGLE_CLIENT_ID = '36359397501-hk33hb16brj082mm1s4t4pqo3jev9usp.apps.googleusercontent.com';
-    const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-    const DRIVE_DOSYA_ADI = 'sessizligin-sesi-yedek.json';
+    const HESAP_SCOPE = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
     const REDIRECT_URI = 'https://merrdo.github.io/Light/';
-    const BEKLEYEN_EYLEM_ANAHTARI = 'sessizlik-drive-bekleyen-eylem';
-    const TOKEN_ANAHTARI = 'sessizlik-drive-token';
-    const OTO_SENKRON_ANAHTARI = 'sessizlik-drive-oto-senkron';
-    const BILINEN_MODIFIED_ANAHTARI = 'sessizlik-drive-bilinen-modified';
-    const OTO_YUKLEME_GECIKME_MS = 4000;
+    const BEKLEYEN_ANAHTARI = 'sessizlik-hesap-bekleyen';
+    const HESAP_ANAHTARI = 'sessizlik-hesap-bilgi';
 
-    const driveYedekleBtn = document.getElementById('yedekDriveYedekleBtn');
-    const driveGeriYukleBtn = document.getElementById('yedekDriveGeriYukleBtn');
-    const durumMetin = document.getElementById('yedekDurumMetin');
-    const otoSwitch = document.getElementById('driveOtoSenkronSwitch');
-    const otoLabel = document.getElementById('driveOtoSenkronLabel');
-
-    if(!driveYedekleBtn && !driveGeriYukleBtn) return;
+    const overlay = document.getElementById('girisEkraniOverlay');
+    const girisBtn = document.getElementById('girisGoogleBtn');
+    const durumEl = document.getElementById('girisDurumMetin');
+    const hesapAdEl = document.getElementById('hesapAdSoyad');
+    const hesapEpostaEl = document.getElementById('hesapEposta');
+    const cikisBtn = document.getElementById('hesapCikisBtn');
 
     function durumGoster(metin){
-      if(!durumMetin) return;
-      durumMetin.textContent = metin;
-      durumMetin.style.display = '';
+      if(!durumEl) return;
+      durumEl.textContent = metin || '';
+      durumEl.style.display = metin ? '' : 'none';
     }
 
-    function otoSenkronAcikMi(){
-      try{ return localStorage.getItem(OTO_SENKRON_ANAHTARI) === 'true'; }catch(e){ return false; }
+    function hesapOku(){
+      try{
+        const ham = localStorage.getItem(HESAP_ANAHTARI);
+        return ham ? JSON.parse(ham) : null;
+      }catch(e){ return null; }
     }
-    function otoSenkronAyarla(acik){
-      try{ localStorage.setItem(OTO_SENKRON_ANAHTARI, acik ? 'true' : 'false'); }catch(e){}
-      if(otoSwitch){
-        otoSwitch.classList.toggle('on', !!acik);
-        otoSwitch.setAttribute('aria-checked', acik ? 'true' : 'false');
-      }
-      if(otoLabel){ otoLabel.textContent = acik ? 'Açık' : 'Kapalı'; }
+    function hesapYaz(hesap){
+      try{ localStorage.setItem(HESAP_ANAHTARI, JSON.stringify(hesap)); }catch(e){}
     }
-    function bilinenModifiedOku(){
-      try{ return localStorage.getItem(BILINEN_MODIFIED_ANAHTARI); }catch(e){ return null; }
+    function hesapSil(){
+      try{ localStorage.removeItem(HESAP_ANAHTARI); }catch(e){}
     }
-    function bilinenModifiedYaz(v){
-      try{ localStorage.setItem(BILINEN_MODIFIED_ANAHTARI, v || ''); }catch(e){}
+
+    function ekraniGizle(){
+      if(overlay){ overlay.classList.remove('active'); }
+      document.documentElement.classList.remove('giris-bekleniyor');
+    }
+    function ekraniGoster(){
+      if(overlay){ overlay.classList.add('active'); }
+      document.documentElement.classList.add('giris-bekleniyor');
+    }
+
+    function hesapBilgisiniUygula(hesap){
+      if(!hesap) return;
+      if(hesapAdEl){ hesapAdEl.textContent = hesap.name || 'Google Hesabı'; }
+      if(hesapEpostaEl){ hesapEpostaEl.textContent = hesap.email || ''; }
     }
 
     function standaloneMi(){
@@ -12725,49 +12861,32 @@
       }catch(e){ return false; }
     }
 
-    function tokenKaydet(token, expiresInSec){
-      try{
-        sessionStorage.setItem(TOKEN_ANAHTARI, JSON.stringify({ token: token, exp: Date.now() + ((expiresInSec || 3600) * 1000) }));
-      }catch(e){}
-    }
-    function tokenOku(){
-      try{
-        const ham = sessionStorage.getItem(TOKEN_ANAHTARI);
-        if(!ham) return null;
-        const veri = JSON.parse(ham);
-        if(!veri || !veri.token || Date.now() > veri.exp) return null;
-        return veri.token;
-      }catch(e){ return null; }
-    }
-
     // ---- Redirect dönüşünde URL fragment'ından erişim jetonunu oku ----
     function redirectDonusunuIsle(){
       if(location.hash && location.hash.indexOf('access_token=') !== -1){
         const params = new URLSearchParams(location.hash.slice(1));
         const token = params.get('access_token');
-        const expiresIn = parseInt(params.get('expires_in'), 10) || 3600;
         if(token){
-          tokenKaydet(token, expiresIn);
           history.replaceState(null, '', location.pathname + location.search);
-          return true;
+          return token;
         }
       }
-      return false;
+      return null;
     }
-    const girisDonusuVarMi = redirectDonusunuIsle();
+    const redirectTokeni = redirectDonusunuIsle();
 
-    function girisBaslat(bekleyenEylem){
+    function girisBaslat(){
       if(standaloneMi()){
-        try{ sessionStorage.setItem(BEKLEYEN_EYLEM_ANAHTARI, bekleyenEylem || ''); }catch(e){}
         const url = 'https://accounts.google.com/o/oauth2/v2/auth'
           + '?client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID)
           + '&redirect_uri=' + encodeURIComponent(REDIRECT_URI)
           + '&response_type=token'
-          + '&scope=' + encodeURIComponent(DRIVE_SCOPE)
+          + '&scope=' + encodeURIComponent(HESAP_SCOPE)
           + '&include_granted_scopes=true'
           + '&prompt=select_account';
+        try{ sessionStorage.setItem(BEKLEYEN_ANAHTARI, '1'); }catch(e){}
         window.location.href = url;
-        return new Promise(function(){}); // sayfa yönlendiriliyor, bu promise hiç çözülmeyecek
+        return new Promise(function(){}); // sayfa yönlendiriliyor
       }
       return new Promise(function(resolve, reject){
         if(!window.google || !google.accounts || !google.accounts.oauth2){
@@ -12777,14 +12896,10 @@
         try{
           const client = google.accounts.oauth2.initTokenClient({
             client_id: GOOGLE_CLIENT_ID,
-            scope: DRIVE_SCOPE,
+            scope: HESAP_SCOPE,
             callback: function(resp){
-              if(resp && resp.access_token){
-                tokenKaydet(resp.access_token, resp.expires_in);
-                resolve(resp.access_token);
-              } else {
-                reject(new Error('Google girişi tamamlanamadı.'));
-              }
+              if(resp && resp.access_token){ resolve(resp.access_token); }
+              else{ reject(new Error('Google girişi tamamlanamadı.')); }
             },
             error_callback: function(){
               reject(new Error('Google girişi iptal edildi.'));
@@ -12797,238 +12912,66 @@
       });
     }
 
-    // Kullanıcı etkileşimi olmadan (sayfa açılışında, arka planda) jeton almayı dener.
-    // Daha önce izin verilmişse ve tarayıcı 3. parti çerezleri engellemiyorsa sessizce
-    // çalışır; aksi halde (ör. iOS Safari) sessizce başarısız olur — hata göstermeyiz.
-    function tokenSessizAl(){
-      if(standaloneMi()) return Promise.resolve(null);
-      return new Promise(function(resolve){
-        if(!window.google || !google.accounts || !google.accounts.oauth2){ resolve(null); return; }
-        try{
-          const client = google.accounts.oauth2.initTokenClient({
-            client_id: GOOGLE_CLIENT_ID,
-            scope: DRIVE_SCOPE,
-            callback: function(resp){
-              if(resp && resp.access_token){ tokenKaydet(resp.access_token, resp.expires_in); resolve(resp.access_token); }
-              else{ resolve(null); }
-            },
-            error_callback: function(){ resolve(null); }
-          });
-          client.requestAccessToken({ prompt: '' });
-        }catch(e){ resolve(null); }
-      });
-    }
-
-    function gecerliTokenAl(bekleyenEylem){
-      const mevcut = tokenOku();
-      if(mevcut) return Promise.resolve(mevcut);
-      return girisBaslat(bekleyenEylem);
-    }
-
-    // ---- Drive API yardımcıları ----
-    function driveDosyaBul(token){
-      const q = encodeURIComponent("name = '" + DRIVE_DOSYA_ADI + "' and trashed = false");
-      return fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,modifiedTime)&spaces=drive', {
+    function kullaniciBilgisiniGetir(token){
+      return fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { 'Authorization': 'Bearer ' + token }
       }).then(function(r){
-        if(!r.ok) throw new Error('Drive listeleme hatası');
+        if(!r.ok) throw new Error('Hesap bilgisi alınamadı');
         return r.json();
       }).then(function(veri){
-        return (veri.files && veri.files[0]) ? veri.files[0] : null;
+        return { name: veri.name || veri.given_name || '', email: veri.email || '', picture: veri.picture || '' };
       });
     }
 
-    function driveDosyaYukle(token, dosya, mevcutId){
-      const boundary = '-------sessizlik' + Date.now();
-      return dosya.text().then(function(icerik){
-        const parcalar = [];
-        if(!mevcutId){
-          parcalar.push('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'
-            + JSON.stringify({ name: DRIVE_DOSYA_ADI, mimeType: 'application/json' }) + '\r\n');
-        } else {
-          parcalar.push('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{}\r\n');
-        }
-        parcalar.push('--' + boundary + '\r\nContent-Type: application/json\r\n\r\n' + icerik + '\r\n');
-        parcalar.push('--' + boundary + '--');
-        const govde = parcalar.join('');
-
-        const url = mevcutId
-          ? 'https://www.googleapis.com/upload/drive/v3/files/' + mevcutId + '?uploadType=multipart&fields=id,modifiedTime'
-          : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime';
-
-        return fetch(url, {
-          method: mevcutId ? 'PATCH' : 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'multipart/related; boundary=' + boundary
-          },
-          body: govde
-        });
-      }).then(function(r){
-        if(!r.ok) throw new Error('Drive yükleme hatası');
-        return r.json();
-      });
-    }
-
-    function driveDosyaIndir(token, dosyaId){
-      return fetch('https://www.googleapis.com/drive/v3/files/' + dosyaId + '?alt=media', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      }).then(function(r){
-        if(!r.ok) throw new Error('Drive indirme hatası');
-        return r.text();
-      });
-    }
-
-    // ---- Yedekle (manuel düğme) ----
-    function driveYedekleBaslat(){
-      if(!driveYedekleBtn || !window.__sessizlikYedekDosyasiOlustur) return;
-      driveYedekleBtn.disabled = true;
-      durumGoster('Google hesabına bağlanılıyor…');
-      gecerliTokenAl('yedekle').then(function(token){
-        durumGoster('Yedek hazırlanıyor (görseller dahil)…');
-        return window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
-          durumGoster('Google Drive\'a yükleniyor…');
-          return driveDosyaBul(token).then(function(mevcut){
-            return driveDosyaYukle(token, dosya, mevcut ? mevcut.id : null);
-          });
-        });
-      }).then(function(sonuc){
-        if(sonuc && sonuc.modifiedTime){ bilinenModifiedYaz(sonuc.modifiedTime); }
-        durumGoster('Yedek Google Drive\'ına kaydedildi.');
-        driveYedekleBtn.disabled = false;
+    function girisTamamla(token){
+      durumGoster('Hesap bilgileri alınıyor…');
+      return kullaniciBilgisiniGetir(token).then(function(hesap){
+        hesapYaz(hesap);
+        hesapBilgisiniUygula(hesap);
+        durumGoster('');
+        ekraniGizle();
       }).catch(function(err){
-        durumGoster((err && err.message) ? err.message : 'Drive yedekleme sırasında bir sorun oluştu.');
-        driveYedekleBtn.disabled = false;
+        durumGoster((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
+        if(girisBtn){ girisBtn.disabled = false; }
       });
     }
 
-    // ---- Geri Yükle (manuel düğme) ----
-    function driveGeriYukleBaslat(){
-      if(!driveGeriYukleBtn || !window.__sessizlikYedegiGeriYukle) return;
-      const onay = window.confirm('Google Drive\'daki yedek, bu cihazdaki mevcut verilerinin üzerine yazacak. Devam etmek istiyor musun?');
-      if(!onay) return;
-      driveGeriYukleBtn.disabled = true;
-      durumGoster('Google hesabına bağlanılıyor…');
-      gecerliTokenAl('geri-yukle').then(function(token){
-        durumGoster('Drive\'da yedek aranıyor…');
-        return driveDosyaBul(token).then(function(mevcut){
-          if(!mevcut) throw new Error('Drive\'da henüz bir yedek bulunamadı.');
-          durumGoster('Yedek indiriliyor…');
-          return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
-            return { icerikMetin: icerikMetin, modifiedTime: mevcut.modifiedTime };
-          });
+    if(girisBtn){
+      girisBtn.addEventListener('click', function(){
+        girisBtn.disabled = true;
+        durumGoster('Google hesabına bağlanılıyor…');
+        girisBaslat().then(function(token){
+          if(!token) return; // redirect oldu
+          return girisTamamla(token);
+        }).catch(function(err){
+          durumGoster((err && err.message) ? err.message : 'Google girişi tamamlanamadı.');
+          girisBtn.disabled = false;
         });
-      }).then(function(sonuc){
-        return window.__sessizlikYedegiGeriYukle(sonuc.icerikMetin).then(function(){
-          bilinenModifiedYaz(sonuc.modifiedTime);
-        });
-      }).then(function(){
-        durumGoster('Verilerin geri yüklendi. Sayfa yenileniyor...');
-        setTimeout(function(){ window.location.reload(); }, 900);
-      }).catch(function(err){
-        durumGoster((err && err.message) ? err.message : 'Drive\'dan geri yükleme sırasında bir sorun oluştu.');
-        driveGeriYukleBtn.disabled = false;
       });
     }
 
-    if(driveYedekleBtn){ driveYedekleBtn.addEventListener('click', driveYedekleBaslat); }
-    if(driveGeriYukleBtn){ driveGeriYukleBtn.addEventListener('click', driveGeriYukleBaslat); }
-
-    // ================= OTOMATİK SENKRONİZASYON =================
-
-    // ---- Arka planda sessizce yükle: bir görsel eklendiğinde çağrılır, kullanıcıya
-    // modal açmadan küçük bir durum notu gösterir (modal açıksa) ----
-    let otoYuklemeZamanlayici = null;
-    function otoYuklemeYap(){
-      if(!otoSenkronAcikMi() || !window.__sessizlikYedekDosyasiOlustur) return;
-      tokenSessizAl().then(function(token){
-        if(!token) return; // sessiz giriş başarısız oldu, kullanıcı manuel senkronize edebilir
-        return window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
-          return driveDosyaBul(token).then(function(mevcut){
-            return driveDosyaYukle(token, dosya, mevcut ? mevcut.id : null);
-          });
-        }).then(function(sonuc){
-          if(sonuc && sonuc.modifiedTime){ bilinenModifiedYaz(sonuc.modifiedTime); }
-          durumGoster('Görsel otomatik olarak Google Drive\'a yedeklendi.');
-        });
-      }).catch(function(){ /* arka plan işlemi; sessizce yut */ });
-    }
-    function otoYuklemeZamanla(){
-      if(!otoSenkronAcikMi()) return;
-      if(otoYuklemeZamanlayici){ clearTimeout(otoYuklemeZamanlayici); }
-      otoYuklemeZamanlayici = setTimeout(otoYuklemeYap, OTO_YUKLEME_GECIKME_MS);
-    }
-
-    // dosyaKaydet çağrıldığında (bir görsel/dosya IndexedDB'ye kaydedildiğinde)
-    // otomatik yüklemeyi tetiklemek için mevcut global fonksiyonu sarmalıyoruz.
-    if(window.__sessizlikDosyaKaydet){
-      const orijinalDosyaKaydet = window.__sessizlikDosyaKaydet;
-      window.__sessizlikDosyaKaydet = function(id, blob){
-        return orijinalDosyaKaydet(id, blob).then(function(sonuc){
-          otoYuklemeZamanla();
-          return sonuc;
-        });
-      };
-    }
-
-    // ---- Uygulama açılışında: sessizce jeton almayı dene, Drive'daki yedek bu
-    // cihazın bildiğinden daha yeniyse otomatik indir ----
-    function acilistaKontrolEt(){
-      if(!otoSenkronAcikMi()) return;
-      tokenSessizAl().then(function(token){
-        if(!token) return;
-        return driveDosyaBul(token).then(function(mevcut){
-          if(!mevcut) return;
-          const bilinen = bilinenModifiedOku();
-          if(bilinen && new Date(mevcut.modifiedTime).getTime() <= new Date(bilinen).getTime()) return;
-          // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
-          return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
-            return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
-              bilinenModifiedYaz(mevcut.modifiedTime);
-              durumGoster('Başka bir cihazdan yeni veriler bulundu, otomatik güncelleniyor…');
-              setTimeout(function(){ window.location.reload(); }, 900);
-            });
-          });
-        });
-      }).catch(function(){ /* arka plan kontrolü; sessizce yut */ });
-    }
-
-    // ---- Anahtar tıklandığında aç/kapa ----
-    if(otoSwitch){
-      otoSenkronAyarla(otoSenkronAcikMi());
-      otoSwitch.addEventListener('click', function(){
-        const yeniDurum = !otoSenkronAcikMi();
-        if(yeniDurum){
-          durumGoster('Google hesabına bağlanılıyor…');
-          gecerliTokenAl('').then(function(token){
-            if(!token) return; // redirect oldu
-            otoSenkronAyarla(true);
-            durumGoster('Otomatik senkronizasyon açıldı.');
-            acilistaKontrolEt();
-          }).catch(function(err){
-            durumGoster((err && err.message) ? err.message : 'Google girişi tamamlanamadı.');
-          });
-        } else {
-          otoSenkronAyarla(false);
-          durumGoster('Otomatik senkronizasyon kapatıldı.');
-        }
+    if(cikisBtn){
+      cikisBtn.addEventListener('click', function(){
+        const onay = window.confirm('Hesabından çıkış yapmak istediğine emin misin? Bir sonraki açılışta tekrar giriş yapman istenecek.');
+        if(!onay) return;
+        hesapSil();
+        window.location.reload();
       });
     }
 
-    // ---- Redirect ile giriş dönüşünde: yedekleme modalını aç ve bekleyen eylemi devam ettir ----
-    if(girisDonusuVarMi){
-      let bekleyenEylem = null;
-      try{ bekleyenEylem = sessionStorage.getItem(BEKLEYEN_EYLEM_ANAHTARI); sessionStorage.removeItem(BEKLEYEN_EYLEM_ANAHTARI); }catch(e){}
-      setTimeout(function(){
-        const overlay = document.getElementById('yedekModalOverlay');
-        if(overlay){ overlay.classList.add('active'); }
-        if(bekleyenEylem === 'yedekle'){ driveYedekleBaslat(); }
-        else if(bekleyenEylem === 'geri-yukle'){ driveGeriYukleBaslat(); }
-        else{ otoSenkronAyarla(true); durumGoster('Otomatik senkronizasyon açıldı.'); }
-      }, 300);
+    // ---- Açılışta durumu belirle ----
+    const mevcutHesap = hesapOku();
+    if(redirectTokeni){
+      let bekleyen = false;
+      try{ bekleyen = sessionStorage.getItem(BEKLEYEN_ANAHTARI) === '1'; sessionStorage.removeItem(BEKLEYEN_ANAHTARI); }catch(e){}
+      ekraniGoster();
+      durumGoster('Hesap bilgileri alınıyor…');
+      girisTamamla(redirectTokeni);
+    } else if(mevcutHesap){
+      hesapBilgisiniUygula(mevcutHesap);
+      ekraniGizle();
     } else {
-      // Normal açılış (redirect dönüşü değil): oto-senkron açıksa arka planda kontrol et.
-      setTimeout(acilistaKontrolEt, 1200);
+      ekraniGoster();
     }
   })();
 
