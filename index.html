@@ -924,24 +924,29 @@
     color:var(--ink-soft);
     max-width:22rem;
   }
-  .spor-modu-cikis-link{
-    margin-top:0.6rem;
+  .spor-modu-cikis-satir{
     display:flex;
     align-items:center;
-    justify-content:center;
-    width:2.6rem;
-    height:2.6rem;
-    border:none;
-    border-radius:0.9rem;
-    background:transparent;
-    color:var(--ink-soft);
+    justify-content:space-between;
+    gap:0.75rem;
+    width:100%;
+    max-width:22rem;
+    margin-top:0.7rem;
+    padding:0.9rem 1.1rem;
+    border:1px solid rgba(var(--yanlis-rgb),0.35);
+    border-radius:1.1rem;
+    background:rgba(var(--yanlis-rgb),0.07);
+    font-family:inherit;
+    font-size:0.88rem;
+    font-weight:600;
+    color:var(--yanlis);
     cursor:pointer;
-    padding:0.4rem;
-    transition: color 0.2s ease, background 0.2s ease;
+    transition: opacity 0.2s ease, background 0.2s ease;
   }
-  .spor-modu-cikis-link svg{ width:1.2rem; height:1.2rem; }
+  .spor-modu-cikis-satir svg{ width:1rem; height:1rem; flex-shrink:0; }
+  .spor-modu-cikis-satir:active{ opacity:0.7; }
   @media (hover:hover) and (pointer:fine){
-    .spor-modu-cikis-link:hover{ color:var(--yanlis); background:rgba(var(--yanlis-rgb),0.1); }
+    .spor-modu-cikis-satir:hover{ background:rgba(var(--yanlis-rgb),0.13); }
   }
   .spor-modu-dock-wrap{
     flex-shrink:0;
@@ -1548,6 +1553,15 @@
     justify-content:space-between;
     margin-bottom:0.6rem;
   }
+  .kalori-calisma-orta{
+    width:100%;
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
   .kalori-cikis-btn{
     width:2.2rem;
     height:2.2rem;
@@ -1598,6 +1612,10 @@
     color:var(--sari);
   }
   .kalori-pane-calisma.dinlenme-durumu .kalori-durum-etiket{ color:var(--dogru); }
+  .kalori-pane-calisma.dinlenme-durumu .kalori-kontrol-btn-buyuk{
+    background:linear-gradient(135deg, var(--dogru), rgba(var(--dogru-rgb),0.78));
+    box-shadow:0 10px 24px -6px rgba(var(--dogru-rgb),0.55);
+  }
   .kalori-hareket-isim{
     margin-top:0.25rem;
     font-size:2.5rem;
@@ -1775,7 +1793,7 @@
     color:var(--bg);
     box-shadow:0 14px 32px -8px rgba(var(--sari-rgb),0.6);
   }
-  .kalori-kontrol-btn-buyuk:active{ transform:scale(0.94); background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78)); }
+  .kalori-kontrol-btn-buyuk:active{ transform:scale(0.94); }
   .kalori-kontrol-btn-buyuk svg{ width:1.5rem; height:1.5rem; }
 
   .kalori-pane-bitis .kalori-baslat-btn{ margin-top:1.6rem; }
@@ -1848,6 +1866,8 @@
     flex-direction:column;
     align-items:center;
     gap:0.75rem;
+    width:100%;
+    max-width:22rem;
     margin-top:0.3rem;
     padding:1rem 1.1rem;
     border:1px solid var(--line);
@@ -6811,7 +6831,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
         </button>
       </div>
-      <button type="button" class="spor-modu-cikis-link" id="sporModuCikisBtn" aria-label="Spor Modundan Çık">
+      <button type="button" class="spor-modu-cikis-satir" id="sporModuCikisBtn" aria-label="Spor Modundan Çık">
+        <span>Spor Modundan Çık</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
       </button>
     </div>
@@ -6878,21 +6899,23 @@
           </button>
           <span class="kalori-ilerleme" id="kaloriIlerleme">1 / 6</span>
         </div>
-        <div class="kalori-hareket-blok" id="kaloriHareketBlok">
-          <p class="kalori-durum-etiket" id="kaloriDurumEtiket">HAREKET</p>
-          <h3 class="kalori-hareket-isim" id="kaloriHareketIsim">Egzersiz</h3>
-          <p class="kalori-hareket-alt" id="kaloriHareketAlt"></p>
-        </div>
-        <div class="kalori-sayac-wrap" id="kaloriSayacWrap">
-          <span class="kalori-sayac-sayi" id="kaloriSayacSayi">30</span>
-        </div>
-        <button type="button" class="kalori-hazirlik-atla-btn" id="kaloriHazirlikAtlaBtn" aria-label="Hazırlığı atla">
-          Atla
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-        </button>
-        <div class="kalori-tekrar-wrap" id="kaloriTekrarWrap">
-          <span class="kalori-tekrar-sayi" id="kaloriTekrarSayi"></span>
-          <span class="kalori-tekrar-alt" id="kaloriTekrarAlt"></span>
+        <div class="kalori-calisma-orta" id="kaloriCalismaOrta">
+          <div class="kalori-hareket-blok" id="kaloriHareketBlok">
+            <p class="kalori-durum-etiket" id="kaloriDurumEtiket">HAREKET</p>
+            <h3 class="kalori-hareket-isim" id="kaloriHareketIsim">Egzersiz</h3>
+            <p class="kalori-hareket-alt" id="kaloriHareketAlt"></p>
+          </div>
+          <div class="kalori-sayac-wrap" id="kaloriSayacWrap">
+            <span class="kalori-sayac-sayi" id="kaloriSayacSayi">30</span>
+          </div>
+          <button type="button" class="kalori-hazirlik-atla-btn" id="kaloriHazirlikAtlaBtn" aria-label="Hazırlığı atla">
+            Atla
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+          </button>
+          <div class="kalori-tekrar-wrap" id="kaloriTekrarWrap">
+            <span class="kalori-tekrar-sayi" id="kaloriTekrarSayi"></span>
+            <span class="kalori-tekrar-alt" id="kaloriTekrarAlt"></span>
+          </div>
         </div>
         <div class="kalori-kontrol-satir">
           <button type="button" class="kalori-kontrol-btn" id="kaloriGeriBtn" aria-label="Önceki hareket">
