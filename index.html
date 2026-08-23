@@ -7221,16 +7221,76 @@
         function yenidenCiz(){ if(tur === 'rutin'){ gundelikRutinCiz(); } else { gundelikTodoCiz(); } }
 
         check.addEventListener('click', function(){
-          // ---- Yapılacaklar Listesi: işaretlenince anında listeden kaldır ----
-          // Not: Önceden burada yumuşak bir "daralma" geçiş animasyonu vardı;
-          // hızlı arka arkaya işaretlemelerde uygulamayı hantallaştırdığı için kaldırıldı.
+          // ---- Yapılacaklar Listesi: önce işaretlendiğini göster, sonra
+          // iPhone'daki gibi sola kayarak listeden silinsin ----
           if(tur === 'todo'){
+            if(satir.classList.contains('gundelik-madde-siliniyor')) return;
             const oncekiListe = veriOku();
             const hedefMadde = oncekiListe.find(function(m){ return m.id === madde.id; });
             if(!hedefMadde || hedefMadde.tamam) return;
 
-            veriYaz(oncekiListe.filter(function(m){ return m.id !== madde.id; }));
-            yenidenCiz();
+            // 1) Önce işaretlendiğini göster (yeşil check dolsun)
+            satir.classList.add('gundelik-madde-siliniyor', 'tamam');
+            check.setAttribute('aria-checked', 'true');
+            satir.style.pointerEvents = 'none';
+
+            function kaldir(){
+              veriYaz(veriOku().filter(function(m){ return m.id !== madde.id; }));
+              yenidenCiz();
+            }
+
+            const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if(azaltilmisHareket){
+              setTimeout(kaldir, 450);
+              return;
+            }
+
+            // 2) Kısa bir bekleme sonrası (işaret görülsün diye) sola kaydırarak sil
+            setTimeout(function(){
+              satir.style.transition = 'transform 0.32s cubic-bezier(.4,0,.2,1), opacity 0.32s ease';
+              satir.style.transform = 'translateX(-100%)';
+              satir.style.opacity = '0';
+
+              let daraltmayaBaslandi = false;
+              function daraltmayaBasla(){
+                if(daraltmayaBaslandi) return;
+                daraltmayaBaslandi = true;
+
+                const yukseklik = satir.getBoundingClientRect().height;
+                satir.style.height = yukseklik + 'px';
+                satir.style.overflow = 'hidden';
+                void satir.offsetHeight; // reflow zorla
+
+                requestAnimationFrame(function(){
+                  satir.style.transition =
+                    'height 0.28s cubic-bezier(.4,0,.2,1), margin 0.28s cubic-bezier(.4,0,.2,1), padding 0.28s cubic-bezier(.4,0,.2,1), border-width 0.28s ease';
+                  satir.style.height = '0px';
+                  satir.style.marginTop = '0px';
+                  satir.style.marginBottom = '-0.55rem';
+                  satir.style.paddingTop = '0px';
+                  satir.style.paddingBottom = '0px';
+                  satir.style.borderWidth = '0px';
+                });
+
+                let tamamlandi = false;
+                function bitir(){
+                  if(tamamlandi) return;
+                  tamamlandi = true;
+                  kaldir();
+                }
+                satir.addEventListener('transitionend', function(e){
+                  if(e.target === satir && e.propertyName === 'height'){ bitir(); }
+                });
+                setTimeout(bitir, 360);
+              }
+
+              satir.addEventListener('transitionend', function(e){
+                if(e.target === satir && e.propertyName === 'transform'){ daraltmayaBasla(); }
+              });
+              // Güvenlik ağı: transitionend tetiklenmezse yine de devam et
+              setTimeout(daraltmayaBasla, 400);
+            }, 450);
+
             return;
           }
 
