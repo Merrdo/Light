@@ -13270,6 +13270,18 @@
       });
     }
 
+    // Drive'daki dosyayı indirip cihaza uygular (yerel veriyi tamamen Drive'daki
+    // sürümle değiştirir) ve bilinen-sürüm damgasını günceller.
+    function driveIndirVeUygula(token, dosyaBilgisi){
+      if(!window.__sessizlikYedegiGeriYukle) return Promise.resolve(false);
+      return driveDosyaIndir(token, dosyaBilgisi.id).then(function(icerikMetin){
+        return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
+          bilinenModifiedYaz(dosyaBilgisi.modifiedTime);
+          return true;
+        });
+      });
+    }
+
     // ================= OTOMATİK SENKRONİZASYON (buton yok, tamamen arka planda) =================
     let senkronSurmekte = false;
     function otomatikYukle(manuelMi){
@@ -13291,14 +13303,30 @@
           senkronDurumAyarla(manuelMi ? 'hata' : '', manuelMi ? 'Senkronizasyon başarısız, tekrar dene' : 'Senkronize etmek için dokun');
           return;
         }
-        return window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
-          return driveDosyaBul(token).then(function(mevcut){
+        // Önce Drive'da bu cihazın bilmediği daha yeni bir sürüm var mı diye
+        // bak. Varsa (başka bir cihaz senkron etmiş demektir) önce onu indirip
+        // uygula; yerel veriyi üzerine YAZMA. Böylece iki cihaz aynı anda
+        // senkron denediğinde, en son gerçekten Drive'a yazılmış olan veri
+        // kaybolmaz. Drive'da daha yeni bir şey yoksa yerel veriyi yükle.
+        return driveDosyaBul(token).then(function(mevcut){
+          const bilinen = bilinenModifiedOku();
+          const driveDahaYeni = mevcut && bilinen && new Date(mevcut.modifiedTime).getTime() > new Date(bilinen).getTime();
+          const drivedeYeniKayitVarAmaBilinenYok = mevcut && !bilinen;
+          if(mevcut && (driveDahaYeni || drivedeYeniKayitVarAmaBilinenYok)){
+            senkronDurumAyarla('calisiyor', 'Başka bir cihazdaki veriler alınıyor…');
+            return driveIndirVeUygula(token, mevcut).then(function(){
+              sonSenkronZamani = Date.now();
+              senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
+              setTimeout(function(){ window.location.reload(); }, 900);
+            });
+          }
+          return window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
             return driveDosyaYukle(token, dosya, mevcut ? mevcut.id : null);
+          }).then(function(sonuc){
+            if(sonuc && sonuc.modifiedTime){ bilinenModifiedYaz(sonuc.modifiedTime); }
+            sonSenkronZamani = Date.now();
+            senkronGuncelDurumuGoster();
           });
-        }).then(function(sonuc){
-          if(sonuc && sonuc.modifiedTime){ bilinenModifiedYaz(sonuc.modifiedTime); }
-          sonSenkronZamani = Date.now();
-          senkronGuncelDurumuGoster();
         });
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
@@ -13353,14 +13381,12 @@
           senkronGuncelDurumuGoster();
           return;
         }
-        // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
-        return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
-          return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
-            bilinenModifiedYaz(mevcut.modifiedTime);
-            sonSenkronZamani = Date.now();
-            senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-            setTimeout(function(){ window.location.reload(); }, 900);
-          });
+        // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir
+        // ve yereldeki her ne varsa onun üzerine uygula.
+        return driveIndirVeUygula(token, mevcut).then(function(){
+          sonSenkronZamani = Date.now();
+          senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
+          setTimeout(function(){ window.location.reload(); }, 900);
         });
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
