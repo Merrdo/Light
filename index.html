@@ -55,6 +55,16 @@
     }
   })();
 
+  // Spor Modu tema rengi tercihini stiller çizilmeden önce uygula (yanıp sönmeyi engeller)
+  (function(){
+    try{
+      var sporTemaKayitli = localStorage.getItem('sessizlik-spor-tema');
+      if(sporTemaKayitli && sporTemaKayitli !== 'sari'){
+        document.documentElement.setAttribute('data-spor-tema', sporTemaKayitli);
+      }
+    }catch(e){}
+  })();
+
   // Işık efektleri (huzmeler) aç/kapa tercihini stiller çizilmeden önce uygula
   (function(){
     try{
@@ -137,6 +147,32 @@
   html[data-accent="yesil"][data-theme="dark"]{
     --accent:#A0D1AC;
     --accent-rgb:160,209,172;
+  }
+
+  /* ---- Spor Modu tema renkleri: Sarı (varsayılan), Kırmızı, Turuncu, Turkuaz ---- */
+  html[data-spor-tema="kirmizi"]{
+    --sari:#D6453A;
+    --sari-rgb:214,69,58;
+  }
+  html[data-spor-tema="kirmizi"][data-theme="dark"]{
+    --sari:#FF7A63;
+    --sari-rgb:255,122,99;
+  }
+  html[data-spor-tema="turuncu"]{
+    --sari:#D97B29;
+    --sari-rgb:217,123,41;
+  }
+  html[data-spor-tema="turuncu"][data-theme="dark"]{
+    --sari:#F2A65A;
+    --sari-rgb:242,166,90;
+  }
+  html[data-spor-tema="turkuaz"]{
+    --sari:#2F8F8A;
+    --sari-rgb:47,143,138;
+  }
+  html[data-spor-tema="turkuaz"][data-theme="dark"]{
+    --sari:#5FC9C2;
+    --sari-rgb:95,201,194;
   }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
@@ -1094,29 +1130,175 @@
   }
   .antrenman-kart-ekle .antrenman-kart-isim{ color:var(--ink-soft); font-weight:500; }
 
-  /* Egzersiz kartları: görsel varsa fotoğraf, altında isim şeridi */
-  .antrenman-egzersiz-kart.gorselli{
-    padding:0;
-    justify-content:flex-end;
-    align-items:stretch;
+  /* ---- Egzersiz liste satırı: kart ızgarası yerine sıralı liste ---- */
+  .antrenman-egzersiz-liste{
+    display:flex;
+    flex-direction:column;
+    gap:0.6rem;
+    padding-bottom:0.2rem;
   }
-  .antrenman-egzersiz-thumb{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    object-fit:cover;
-  }
-  .antrenman-egzersiz-kart.gorselli .antrenman-kart-isim{
+  .antrenman-egzersiz-satir{
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    padding:0.7rem 0.85rem;
+    border:1px solid var(--line);
+    border-radius:0.9rem;
+    background:rgba(var(--ink-rgb),0.03);
     position:relative;
-    z-index:1;
-    text-align:left;
-    padding:0.5rem 0.6rem 0.6rem;
-    font-size:0.82rem;
-    color:#fff;
-    text-shadow:0 1px 4px rgba(0,0,0,0.5);
-    background:linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0));
+    user-select:none;
   }
+  .antrenman-egzersiz-satir-ikon{
+    width:2.1rem;
+    height:2.1rem;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(var(--sari-rgb),0.14);
+    color:var(--sari);
+  }
+  .antrenman-egzersiz-satir-ikon svg{ width:1.05rem; height:1.05rem; }
+  .antrenman-egzersiz-satir-metin{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:0.15rem;
+    text-align:left;
+  }
+  .antrenman-egzersiz-satir-isim{
+    font-size:0.9rem;
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .antrenman-egzersiz-satir-sure{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.03em;
+    color:var(--ink-soft);
+  }
+
+  /* Silme rozeti: Denemeler ekranındaki kırmızı "-" ile aynı dil */
+  .antrenman-egzersiz-sil-rozet{
+    width:1.5rem;
+    height:1.5rem;
+    border-radius:50%;
+    border:2px solid var(--bg);
+    background:var(--yanlis);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    box-shadow:0 4px 10px rgba(var(--shadow-rgb),0.25);
+    opacity:0;
+    transform:scale(0.5);
+    pointer-events:none;
+    margin-left:-2.3rem;
+    transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease, background 0.2s ease, margin 0.25s ease;
+  }
+  .antrenman-egzersiz-sil-rozet svg{ width:0.8rem; height:0.8rem; flex-shrink:0; }
+  .antrenman-egzersiz-sil-rozet:hover{ background:#c94940; }
+
+  /* Sürükleme tutamacı: yalnızca düzenleme modunda görünür */
+  .antrenman-egzersiz-tutamac{
+    width:1.7rem;
+    height:1.7rem;
+    flex-shrink:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink-soft);
+    cursor:grab;
+    touch-action:none;
+  }
+  .antrenman-egzersiz-tutamac svg{ width:1.2rem; height:1.2rem; }
+  .antrenman-egzersiz-tutamac:active{ cursor:grabbing; }
+
+  /* Düzenleme modu: satırlar hafifçe titrer, silme rozeti + tutamaç belirir */
+  .antrenman-egzersiz-liste.duzenleme-modu .antrenman-egzersiz-satir{
+    animation: kartTitreme var(--jiggle-suresi, 0.32s) ease-in-out var(--jiggle-gecikme, 0s) infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .antrenman-egzersiz-liste.duzenleme-modu .antrenman-egzersiz-satir{ animation:none; }
+  }
+  .antrenman-egzersiz-liste.duzenleme-modu .antrenman-egzersiz-sil-rozet{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+    margin-left:0;
+  }
+  .antrenman-egzersiz-liste.duzenleme-modu .antrenman-egzersiz-tutamac{
+    display:flex;
+  }
+  /* Sürüklenen satır: titremesi durur, hafif yükselir */
+  .antrenman-egzersiz-satir.surukleniyor{
+    z-index:5;
+    position:relative;
+    box-shadow:0 12px 26px -8px rgba(var(--shadow-rgb),0.35);
+    border-color:var(--sari);
+    background:var(--bg);
+    animation:none !important;
+  }
+
+  /* Yeni egzersiz ekleme: kesikli kenarlı tam genişlik satır */
+  .antrenman-egzersiz-ekle-satir{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.5rem;
+    padding:0.85rem;
+    border:1px dashed var(--line);
+    border-radius:0.9rem;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:0.85rem;
+    font-weight:500;
+    letter-spacing:0.02em;
+    cursor:pointer;
+    flex-shrink:0;
+    margin-top:0.9rem;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .antrenman-egzersiz-ekle-satir svg{ width:1.05rem; height:1.05rem; flex-shrink:0; }
+  @media (hover:hover) and (pointer:fine){
+    .antrenman-egzersiz-ekle-satir:hover{ color:var(--ink); border-color:var(--sari); background:rgba(var(--sari-rgb),0.09); }
+  }
+
+  /* Egzersiz listesini düzenle (kalem/tamam) düğmesi */
+  .antrenman-egzersiz-duzenle-btn{
+    width:2.2rem;
+    height:2.2rem;
+    flex-shrink:0;
+    border:none;
+    border-radius:50%;
+    background:transparent;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .antrenman-egzersiz-duzenle-btn svg{ width:1.05rem; height:1.05rem; }
+  .antrenman-egzersiz-duzenle-btn .icon-tamam{ display:none; }
+  @media (hover:hover) and (pointer:fine){
+    .antrenman-egzersiz-duzenle-btn:hover{ background:rgba(var(--sari-rgb),0.12); color:var(--sari); }
+  }
+  .antrenman-egzersiz-duzenle-btn.aktif{
+    color:var(--sari);
+    background:rgba(var(--sari-rgb),0.14);
+  }
+  .antrenman-egzersiz-duzenle-btn.aktif .icon-duzenle{ display:none; }
+  .antrenman-egzersiz-duzenle-btn.aktif .icon-tamam{ display:block; }
 
   /* Kart detay: üst bar (geri / başlık / sil) */
   .antrenman-detay-ust{
@@ -1157,22 +1339,11 @@
     text-overflow:ellipsis;
   }
 
-  /* Egzersiz Detayı modalındaki görsel */
-  .antrenman-egzersiz-detay-gorsel{
-    display:block;
-    width:100%;
-    max-height:13rem;
-    object-fit:cover;
-    border-radius:0.6rem;
-    margin-top:1.1rem;
-  }
-
   /* Antrenman modalları Spor Modu tam ekranının (z-index:9999) ÜSTÜNDE açılmalı,
      ayrıca sitenin genel (mavi) vurgu rengi yerine Spor Modu'nun sarı temasını kullanmalı */
   #antrenmanKartModalOverlay,
   #antrenmanKartSilOnayOverlay,
   #antrenmanEgzersizModalOverlay,
-  #antrenmanEgzersizDetayOverlay,
   #antrenmanEgzersizSilOnayOverlay{
     z-index:10050;
     background:
@@ -1182,7 +1353,6 @@
   #antrenmanKartModalOverlay .modal-eyebrow,
   #antrenmanKartSilOnayOverlay .modal-eyebrow,
   #antrenmanEgzersizModalOverlay .modal-eyebrow,
-  #antrenmanEgzersizDetayOverlay .modal-eyebrow,
   #antrenmanEgzersizSilOnayOverlay .modal-eyebrow{
     color:var(--sari);
   }
@@ -1191,15 +1361,13 @@
     border-color:var(--sari);
   }
   #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary,
-  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary,
-  #antrenmanEgzersizDetayOverlay .modal-actions-pill .modal-btn-primary{
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary{
     border:1px solid rgba(var(--sari-rgb),0.5);
     background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
     box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
   }
   #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary:hover,
-  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary:hover,
-  #antrenmanEgzersizDetayOverlay .modal-actions-pill .modal-btn-primary:hover{
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary:hover{
     background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
     box-shadow:0 14px 30px -6px rgba(var(--sari-rgb),0.62);
   }
@@ -1239,6 +1407,279 @@
   }
   @media (prefers-reduced-motion: reduce){
     .antrenman-kart-yeni{ animation:none; }
+  }
+
+  /* ---- Kalori: grup seçimi + zamanlayıcılı sirküt ekranı ---- */
+  .spor-modu-view-kalori{
+    justify-content:flex-start;
+    align-items:stretch;
+    text-align:left;
+    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem 1.4rem;
+    gap:0;
+    overflow:hidden;
+  }
+  .kalori-pane{
+    display:none;
+    flex-direction:column;
+    width:100%;
+    max-width:34rem;
+    margin:0 auto;
+    height:100%;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .kalori-pane::-webkit-scrollbar{ display:none; width:0; height:0; }
+  .kalori-pane.active{ display:flex; }
+  .kalori-pane-calisma.active,
+  .kalori-pane-bitis.active{
+    align-items:center;
+    text-align:center;
+    justify-content:flex-start;
+  }
+
+  .kalori-grup-liste{
+    display:flex;
+    flex-direction:column;
+    gap:0.7rem;
+    margin-top:1.3rem;
+  }
+  .kalori-grup-satir{
+    display:flex;
+    align-items:center;
+    gap:0.8rem;
+    padding:0.85rem 1rem;
+    border:1px solid var(--line);
+    border-radius:0.9rem;
+    background:rgba(var(--ink-rgb),0.03);
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:var(--ink);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .kalori-grup-satir.secili{
+    border-color:var(--sari);
+    background:rgba(var(--sari-rgb),0.1);
+  }
+  .kalori-grup-satir-ikon{
+    width:2.3rem;
+    height:2.3rem;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(var(--sari-rgb),0.14);
+    color:var(--sari);
+  }
+  .kalori-grup-satir-ikon svg{ width:1.15rem; height:1.15rem; }
+  .kalori-grup-satir-metin{ flex:1; min-width:0; }
+  .kalori-grup-satir-isim{
+    font-size:0.92rem;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .kalori-grup-satir-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.68rem;
+    color:var(--ink-soft);
+    margin-top:0.15rem;
+  }
+  .kalori-grup-satir-onay{
+    width:1.3rem;
+    height:1.3rem;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:transparent;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .kalori-grup-satir-onay svg{ width:0.8rem; height:0.8rem; }
+  .kalori-grup-satir.secili .kalori-grup-satir-onay{
+    background:var(--sari);
+    border-color:var(--sari);
+    color:var(--bg);
+  }
+  .kalori-bos-uyari{
+    display:none;
+    margin-top:1.3rem;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  .kalori-bos-uyari.active{ display:block; }
+
+  .kalori-baslat-btn{
+    margin-top:auto;
+    flex-shrink:0;
+    width:100%;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.9rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    padding:0.95rem;
+    border-radius:0.9rem;
+    border:1px solid rgba(var(--sari-rgb),0.5);
+    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    color:var(--bg);
+    box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
+    cursor:pointer;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+  }
+  .kalori-baslat-btn:active{ transform:scale(0.98); }
+  .kalori-baslat-btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+
+  .kalori-calisma-ust{
+    width:100%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:0.6rem;
+  }
+  .kalori-cikis-btn{
+    width:2.2rem;
+    height:2.2rem;
+    border:none;
+    border-radius:50%;
+    background:transparent;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .kalori-cikis-btn svg{ width:1.15rem; height:1.15rem; }
+  @media (hover:hover) and (pointer:fine){
+    .kalori-cikis-btn:hover{ background:rgba(var(--yanlis-rgb),0.12); color:var(--yanlis); }
+  }
+  .kalori-ilerleme{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.75rem;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+  }
+
+  .kalori-hareket-gorsel{
+    width:100%;
+    max-width:18rem;
+    aspect-ratio:16/10;
+    border-radius:1rem;
+    background:rgba(var(--sari-rgb),0.1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--sari);
+    overflow:hidden;
+    flex-shrink:0;
+    margin-top:0.4rem;
+  }
+  .kalori-hareket-gorsel svg{ width:2.6rem; height:2.6rem; }
+  .kalori-hareket-gorsel img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .kalori-durum-etiket{
+    margin-top:1.1rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.7rem;
+    font-weight:600;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--sari);
+  }
+  .kalori-pane-calisma.dinlenme-durumu .kalori-durum-etiket{ color:var(--dogru); }
+  .kalori-hareket-isim{
+    margin-top:0.3rem;
+    font-size:1.3rem;
+    font-weight:600;
+    color:var(--ink);
+  }
+
+  .kalori-sayac-wrap{
+    --kalori-yuzde:100;
+    width:9.5rem;
+    height:9.5rem;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:1.3rem 0;
+    flex-shrink:0;
+    background:conic-gradient(var(--sari) calc(var(--kalori-yuzde) * 1%), rgba(var(--ink-rgb),0.08) 0);
+    position:relative;
+    transition: background 0.2s linear;
+  }
+  .kalori-sayac-wrap::before{
+    content:'';
+    position:absolute;
+    inset:0.55rem;
+    border-radius:50%;
+    background:var(--bg);
+  }
+  .kalori-sayac-sayi{
+    position:relative;
+    z-index:1;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:2.5rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .kalori-pane-calisma.dinlenme-durumu .kalori-sayac-wrap{
+    background:conic-gradient(var(--dogru) calc(var(--kalori-yuzde) * 1%), rgba(var(--ink-rgb),0.08) 0);
+  }
+
+  .kalori-kontrol-satir{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:1.1rem;
+    margin-top:auto;
+    padding-top:0.6rem;
+  }
+  .kalori-kontrol-btn{
+    width:2.6rem;
+    height:2.6rem;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:rgba(var(--ink-rgb),0.03);
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .kalori-kontrol-btn svg{ width:1.05rem; height:1.05rem; }
+  .kalori-kontrol-btn:active{ transform:scale(0.92); }
+  .kalori-kontrol-btn-buyuk{
+    width:3.6rem;
+    height:3.6rem;
+    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    border-color:transparent;
+    color:var(--bg);
+    box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
+  }
+  .kalori-kontrol-btn-buyuk svg{ width:1.3rem; height:1.3rem; }
+
+  .kalori-pane-bitis .kalori-baslat-btn{ margin-top:1.6rem; }
+
+  @media (prefers-reduced-motion: reduce){
+    .kalori-sayac-wrap{ transition:none; }
   }
 
   .settings-row-text{
@@ -1284,6 +1725,50 @@
   .renk-swatch:hover{ transform:scale(1.08); }
   .renk-swatch:active{ transform:scale(0.9); }
   .renk-swatch.secili{
+    border-color:var(--ink);
+    box-shadow:0 0 0 3px rgba(var(--ink-rgb),0.12), 0 2px 6px rgba(var(--shadow-rgb),0.22);
+  }
+
+  /* ---- Spor Modu içi: Tema Rengi ayar bloğu ---- */
+  .spor-tema-blok{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.75rem;
+    margin-top:0.3rem;
+    padding:1rem 1.1rem;
+    border:1px solid var(--line);
+    border-radius:1.1rem;
+    background:rgba(var(--ink-rgb),0.03);
+  }
+  .spor-tema-etiket{
+    font-size:0.72rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .spor-tema-swatch-group{
+    display:flex;
+    align-items:center;
+    gap:0.65rem;
+  }
+  .spor-tema-swatch{
+    width:1.9rem;
+    height:1.9rem;
+    border-radius:50%;
+    border:2px solid transparent;
+    padding:0;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(var(--shadow-rgb),0.22);
+    transition:transform 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .spor-tema-swatch[data-spor-renk="sari"]{ background:#D9B76B; }
+  .spor-tema-swatch[data-spor-renk="kirmizi"]{ background:#FF7A63; }
+  .spor-tema-swatch[data-spor-renk="turuncu"]{ background:#F2A65A; }
+  .spor-tema-swatch[data-spor-renk="turkuaz"]{ background:#5FC9C2; }
+  .spor-tema-swatch:hover{ transform:scale(1.08); }
+  .spor-tema-swatch:active{ transform:scale(0.9); }
+  .spor-tema-swatch.secili{
     border-color:var(--ink);
     box-shadow:0 0 0 3px rgba(var(--ink-rgb),0.12), 0 2px 6px rgba(var(--shadow-rgb),0.22);
   }
@@ -2441,6 +2926,35 @@
     border-color:var(--ink);
     color:var(--bg);
     font-weight:600;
+  }
+
+  .kart-ikon-secim{
+    display:flex;
+    gap:0.7rem;
+  }
+  .kart-ikon-btn{
+    width:3rem;
+    height:3rem;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:rgba(var(--ink-rgb),0.03);
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-family:inherit;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .kart-ikon-btn svg{ width:1.3rem; height:1.3rem; }
+  .kart-ikon-btn:active{ transform:scale(0.94); }
+  @media (hover:hover) and (pointer:fine){
+    .kart-ikon-btn:hover{ border-color:var(--sari); color:var(--sari); }
+  }
+  .kart-ikon-btn.secili{
+    background:rgba(var(--sari-rgb),0.16);
+    border-color:var(--sari);
+    color:var(--sari);
   }
 
   .modal-actions{
@@ -6078,6 +6592,15 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
       </div>
       <h2 class="spor-modu-baslik">Ayarlar</h2>
+      <div class="spor-tema-blok">
+        <span class="spor-tema-etiket" id="sporTemaEtiket">Tema Rengi · Sarı</span>
+        <div class="spor-tema-swatch-group" id="sporTemaSwatchGroup" role="group" aria-label="Spor Modu tema rengi seçenekleri">
+          <button type="button" class="spor-tema-swatch secili" data-spor-renk="sari" aria-label="Sarı"></button>
+          <button type="button" class="spor-tema-swatch" data-spor-renk="kirmizi" aria-label="Kırmızı"></button>
+          <button type="button" class="spor-tema-swatch" data-spor-renk="turuncu" aria-label="Turuncu"></button>
+          <button type="button" class="spor-tema-swatch" data-spor-renk="turkuaz" aria-label="Turkuaz"></button>
+        </div>
+      </div>
       <button type="button" class="spor-modu-cikis-link" id="sporModuCikisBtn" aria-label="Spor Modundan Çık">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
       </button>
@@ -6108,18 +6631,72 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
           </button>
           <h2 class="antrenman-detay-baslik" id="antrenmanDetayBaslik">Kart</h2>
+          <button type="button" class="antrenman-egzersiz-duzenle-btn" id="antrenmanEgzersizDuzenleBtn" aria-label="Egzersizleri düzenle" aria-pressed="false">
+            <svg class="icon-duzenle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+            <svg class="icon-tamam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
           <button type="button" class="antrenman-kart-sil-btn" id="antrenmanKartSilBtn" aria-label="Kartı sil">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
           </button>
         </div>
-        <div class="antrenman-kart-izgara" id="antrenmanEgzersizIzgara">
-          <button type="button" class="antrenman-kart antrenman-kart-ekle" id="antrenmanEgzersizEkleBtn">
-            <span class="antrenman-kart-ikon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
-            </span>
-            <span class="antrenman-kart-isim">Yeni Egzersiz</span>
+        <div class="antrenman-egzersiz-liste" id="antrenmanEgzersizListe"></div>
+        <button type="button" class="antrenman-egzersiz-ekle-satir" id="antrenmanEgzersizEkleBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+          <span>Yeni Egzersiz</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Kalori: antrenman grubu seçip zamanlayıcılı sirküt çalıştırma -->
+    <div class="spor-modu-view spor-modu-view-kalori" id="sporModuViewKalori">
+      <!-- Alt görünüm 1: hangi grup(lar) çalıştırılacak -->
+      <div class="kalori-pane kalori-pane-secim active" id="kaloriPaneSecim">
+        <div>
+          <h2 class="spor-modu-baslik antrenman-baslik-sola">Kalori</h2>
+          <p class="spor-modu-aciklama antrenman-aciklama-sola">Başlatmak istediğin antrenman gruplarını seç.</p>
+        </div>
+        <div class="kalori-grup-liste" id="kaloriGrupListe"></div>
+        <p class="kalori-bos-uyari" id="kaloriBosUyari">Önce Antrenman sekmesinden kart ve egzersiz ekle.</p>
+        <button type="button" class="kalori-baslat-btn" id="kaloriBaslatBtn" disabled>Başlat</button>
+      </div>
+
+      <!-- Alt görünüm 2: hareket + geri sayım -->
+      <div class="kalori-pane kalori-pane-calisma" id="kaloriPaneCalisma">
+        <div class="kalori-calisma-ust">
+          <button type="button" class="kalori-cikis-btn" id="kaloriCikisBtn" aria-label="Antrenmanı bitir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+          <span class="kalori-ilerleme" id="kaloriIlerleme">1 / 6</span>
+        </div>
+        <div class="kalori-hareket-gorsel" id="kaloriHareketGorsel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>
+        </div>
+        <p class="kalori-durum-etiket" id="kaloriDurumEtiket">HAREKET</p>
+        <h3 class="kalori-hareket-isim" id="kaloriHareketIsim">Egzersiz</h3>
+        <div class="kalori-sayac-wrap" id="kaloriSayacWrap">
+          <span class="kalori-sayac-sayi" id="kaloriSayacSayi">30</span>
+        </div>
+        <div class="kalori-kontrol-satir">
+          <button type="button" class="kalori-kontrol-btn" id="kaloriGeriBtn" aria-label="Önceki hareket">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+          </button>
+          <button type="button" class="kalori-kontrol-btn kalori-kontrol-btn-buyuk" id="kaloriDuraklatBtn" aria-label="Duraklat">
+            <svg viewBox="0 0 24 24" fill="currentColor" id="kaloriDuraklatIkon"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>
+          </button>
+          <button type="button" class="kalori-kontrol-btn" id="kaloriIleriBtn" aria-label="Sonraki hareket">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
           </button>
         </div>
+      </div>
+
+      <!-- Alt görünüm 3: bitiş -->
+      <div class="kalori-pane kalori-pane-bitis" id="kaloriPaneBitis">
+        <div class="spor-modu-simge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+        </div>
+        <h2 class="spor-modu-baslik">Antrenman Bitti</h2>
+        <p class="spor-modu-aciklama">Tüm hareketleri tamamladın.</p>
+        <button type="button" class="kalori-baslat-btn" id="kaloriKapatBtn">Kapat</button>
       </div>
     </div>
 
@@ -6188,6 +6765,20 @@
           <label for="antrenmanKartIsim">Kart İsmi</label>
           <input type="text" id="antrenmanKartIsim" name="antrenmanKartIsim" placeholder="Örn. Kardiyo" maxlength="30" required>
         </div>
+        <div class="modal-field">
+          <label>Kart İkonu</label>
+          <div class="kart-ikon-secim" id="antrenmanKartIkonSecim">
+            <button type="button" class="kart-ikon-btn secili" data-ikon="halter" aria-label="Halter ikonu" aria-pressed="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>
+            </button>
+            <button type="button" class="kart-ikon-btn" data-ikon="kalp" aria-label="Kalp ikonu" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path><path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"></path></svg>
+            </button>
+            <button type="button" class="kart-ikon-btn" data-ikon="dambil" aria-label="Dambıl ikonu" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829zM2.5 21.5l1.4-1.4M20.1 3.9l1.4-1.4M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829zM9.6 14.4l4.8-4.8"></path></svg>
+            </button>
+          </div>
+        </div>
         <div class="modal-actions modal-actions-pill">
           <button type="button" class="modal-btn" id="antrenmanKartModalCancel">Vazgeç</button>
           <button type="submit" class="modal-btn modal-btn-primary" id="antrenmanKartModalSubmit">Oluştur</button>
@@ -6209,48 +6800,38 @@
     </div>
   </div>
 
-  <!-- Antrenman: Yeni Egzersiz ekleme (isim + görsel + video bağlantısı) -->
+  <!-- Antrenman: Yeni Egzersiz ekleme (isim + süre) -->
   <div class="modal-overlay" id="antrenmanEgzersizModalOverlay">
     <div class="modal-box" style="position:relative;">
       <button class="modal-close" id="antrenmanEgzersizModalClose" type="button" aria-label="Kapat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
       </button>
-      <span class="modal-eyebrow">Yeni Egzersiz</span>
-      <h3 class="modal-title">Egzersiz Ekle</h3>
+      <span class="modal-eyebrow" id="antrenmanEgzersizModalEyebrow">Yeni Egzersiz</span>
+      <h3 class="modal-title" id="antrenmanEgzersizModalBaslik">Egzersiz Ekle</h3>
       <form id="antrenmanEgzersizForm">
         <div class="modal-field">
           <label for="antrenmanEgzersizIsim">Egzersiz İsmi</label>
           <input type="text" id="antrenmanEgzersizIsim" name="antrenmanEgzersizIsim" placeholder="Örn. Jumping Jack" maxlength="40" required>
         </div>
         <div class="modal-field">
-          <label for="antrenmanEgzersizGorsel">Görsel Bağlantısı (opsiyonel)</label>
-          <input type="url" id="antrenmanEgzersizGorsel" name="antrenmanEgzersizGorsel" placeholder="https://...">
+          <label for="antrenmanEgzersizSure">Süre (saniye)</label>
+          <input type="number" id="antrenmanEgzersizSure" name="antrenmanEgzersizSure" min="5" max="600" step="5" value="30" required>
         </div>
-        <div class="modal-field">
-          <label for="antrenmanEgzersizVideo">Video Bağlantısı (opsiyonel)</label>
-          <input type="url" id="antrenmanEgzersizVideo" name="antrenmanEgzersizVideo" placeholder="https://...">
+        <div style="display:flex; gap:1rem;">
+          <div class="modal-field" style="flex:1;">
+            <label for="antrenmanEgzersizSet">Set Sayısı</label>
+            <input type="number" id="antrenmanEgzersizSet" name="antrenmanEgzersizSet" min="1" max="20" step="1" placeholder="Örn. 3">
+          </div>
+          <div class="modal-field" style="flex:1;">
+            <label for="antrenmanEgzersizTekrar">Tekrar (Set Başına)</label>
+            <input type="number" id="antrenmanEgzersizTekrar" name="antrenmanEgzersizTekrar" min="1" max="200" step="1" placeholder="Örn. 12">
+          </div>
         </div>
         <div class="modal-actions modal-actions-pill">
           <button type="button" class="modal-btn" id="antrenmanEgzersizModalCancel">Vazgeç</button>
           <button type="submit" class="modal-btn modal-btn-primary" id="antrenmanEgzersizModalSubmit">Ekle</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Antrenman: Egzersiz detayı (görsel + video bağlantısını aç + sil) -->
-  <div class="modal-overlay" id="antrenmanEgzersizDetayOverlay">
-    <div class="modal-box" style="position:relative;">
-      <button class="modal-close" id="antrenmanEgzersizDetayKapat" type="button" aria-label="Kapat">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
-      </button>
-      <span class="modal-eyebrow">Egzersiz</span>
-      <h3 class="modal-title" id="antrenmanEgzersizDetayIsim">Egzersiz</h3>
-      <img class="antrenman-egzersiz-detay-gorsel" id="antrenmanEgzersizDetayGorsel" alt="" style="display:none">
-      <div class="modal-actions modal-actions-pill" style="margin-top:1.2rem;">
-        <button type="button" class="modal-btn" id="antrenmanEgzersizDetaySilBtn">Sil</button>
-        <button type="button" class="modal-btn modal-btn-primary" id="antrenmanEgzersizDetayVideoBtn" style="display:none">Videoyu Aç</button>
-      </div>
     </div>
   </div>
 
@@ -11351,6 +11932,44 @@
     }
   })();
 
+  // ================= SPOR MODU: TEMA RENGİ =================
+  (function(){
+    const root = document.documentElement;
+    const sporTemaEtiket = document.getElementById('sporTemaEtiket');
+    const sporTemaSwatchGroup = document.getElementById('sporTemaSwatchGroup');
+    const STORAGE_KEY = 'sessizlik-spor-tema';
+    const sporTemaIsimleri = { sari:'Sarı', kirmizi:'Kırmızı', turuncu:'Turuncu', turkuaz:'Turkuaz' };
+
+    function uygula(tema){
+      if(tema && sporTemaIsimleri[tema] && tema !== 'sari'){
+        root.setAttribute('data-spor-tema', tema);
+      } else {
+        root.removeAttribute('data-spor-tema');
+        tema = 'sari';
+      }
+      if(sporTemaEtiket){ sporTemaEtiket.textContent = 'Tema Rengi · ' + sporTemaIsimleri[tema]; }
+      if(sporTemaSwatchGroup){
+        sporTemaSwatchGroup.querySelectorAll('.spor-tema-swatch').forEach(function(btn){
+          btn.classList.toggle('secili', btn.getAttribute('data-spor-renk') === tema);
+        });
+      }
+    }
+
+    let kayitliTema = 'sari';
+    try{ kayitliTema = localStorage.getItem(STORAGE_KEY) || 'sari'; }catch(e){}
+    uygula(kayitliTema);
+
+    if(sporTemaSwatchGroup){
+      sporTemaSwatchGroup.addEventListener('click', function(e){
+        const btn = e.target.closest('.spor-tema-swatch');
+        if(!btn) return;
+        const tema = btn.getAttribute('data-spor-renk');
+        uygula(tema);
+        try{ localStorage.setItem(STORAGE_KEY, tema); }catch(e){}
+      });
+    }
+  })();
+
   // ================= NAV BAR KONUMU (ÜST / ALT) =================
   (function(){
     const root = document.documentElement;
@@ -11575,6 +12194,7 @@
     const viewAna = document.getElementById('sporModuViewAna');
     const viewAyarlar = document.getElementById('sporModuViewAyarlar');
     const viewAntrenman = document.getElementById('sporModuViewAntrenman');
+    const viewKalori = document.getElementById('sporModuViewKalori');
     const dockHighlight = document.getElementById('sporModuDockHighlight');
     const anaSimge = viewAna ? viewAna.querySelector('.spor-modu-simge') : null;
     const anaBaslik = viewAna ? viewAna.querySelector('.spor-modu-baslik') : null;
@@ -11594,7 +12214,8 @@
     }
 
     function sporModuIcGoster(hedefView){
-      [viewAna, viewAyarlar, viewAntrenman].forEach(function(v){
+      if(hedefView !== viewKalori && window.kaloriDurdur){ window.kaloriDurdur(); }
+      [viewAna, viewAyarlar, viewAntrenman, viewKalori].forEach(function(v){
         if(v){ v.classList.toggle('active', v === hedefView); }
       });
     }
@@ -11741,6 +12362,7 @@
     }
 
     function sporModundanCik(){
+      if(window.kaloriDurdur){ window.kaloriDurdur(); }
       if(sporGecisAzaltilmisHareket || sporGecisCalisiyor){
         overlay.classList.remove('active');
         return;
@@ -11792,7 +12414,9 @@
     }
     if(kaloriBtn){
       kaloriBtn.addEventListener('click', function(){
-        sporYakindaGoster(kaloriBtn, 'Kalori');
+        sporModuIcGoster(viewKalori);
+        sporDockAktifYap(kaloriBtn);
+        if(window.kaloriSecimPaneGoster){ window.kaloriSecimPaneGoster(); }
       });
     }
     if(programBtn){
@@ -11814,8 +12438,9 @@
     const paneDetay = document.getElementById('antrenmanPaneDetay');
     const kartIzgara = document.getElementById('antrenmanKartIzgara');
     const kartEkleBtn = document.getElementById('antrenmanKartEkleBtn');
-    const egzersizIzgara = document.getElementById('antrenmanEgzersizIzgara');
+    const egzersizListe = document.getElementById('antrenmanEgzersizListe');
     const egzersizEkleBtn = document.getElementById('antrenmanEgzersizEkleBtn');
+    const egzersizDuzenleBtn = document.getElementById('antrenmanEgzersizDuzenleBtn');
     const geriBtn = document.getElementById('antrenmanGeriBtn');
     const detayBaslik = document.getElementById('antrenmanDetayBaslik');
     const kartSilBtn = document.getElementById('antrenmanKartSilBtn');
@@ -11823,8 +12448,30 @@
     const kartModalOverlay = document.getElementById('antrenmanKartModalOverlay');
     const kartForm = document.getElementById('antrenmanKartForm');
     const kartIsimInput = document.getElementById('antrenmanKartIsim');
+    const kartIkonSecim = document.getElementById('antrenmanKartIkonSecim');
     const kartModalClose = document.getElementById('antrenmanKartModalClose');
     const kartModalCancel = document.getElementById('antrenmanKartModalCancel');
+
+    // Kart oluştururken seçilebilen ikonlar — uygulamanın kendi halter (Antrenman)
+    // ve kalp (Nabız) ikonlarıyla birebir aynı, sadece id'ler çakışmasın diye temizlenmiş.
+    const IKON_SVGLER = {
+      halter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>',
+      kalp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path><path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"></path></svg>',
+      dambil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829zM2.5 21.5l1.4-1.4M20.1 3.9l1.4-1.4M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829zM9.6 14.4l4.8-4.8"></path></svg>'
+    };
+    let kartSeciliIkon = 'halter';
+    if(kartIkonSecim){
+      kartIkonSecim.addEventListener('click', function(e){
+        const btn = e.target.closest('.kart-ikon-btn');
+        if(!btn || !kartIkonSecim.contains(btn)) return;
+        kartSeciliIkon = btn.dataset.ikon || 'halter';
+        kartIkonSecim.querySelectorAll('.kart-ikon-btn').forEach(function(b){
+          const secili = b === btn;
+          b.classList.toggle('secili', secili);
+          b.setAttribute('aria-pressed', secili ? 'true' : 'false');
+        });
+      });
+    }
 
     const kartSilOnayOverlay = document.getElementById('antrenmanKartSilOnayOverlay');
     const kartSilVazgec = document.getElementById('antrenmanKartSilVazgec');
@@ -11833,17 +12480,14 @@
     const egzersizModalOverlay = document.getElementById('antrenmanEgzersizModalOverlay');
     const egzersizForm = document.getElementById('antrenmanEgzersizForm');
     const egzersizIsimInput = document.getElementById('antrenmanEgzersizIsim');
-    const egzersizGorselInput = document.getElementById('antrenmanEgzersizGorsel');
-    const egzersizVideoInput = document.getElementById('antrenmanEgzersizVideo');
+    const egzersizSureInput = document.getElementById('antrenmanEgzersizSure');
+    const egzersizSetInput = document.getElementById('antrenmanEgzersizSet');
+    const egzersizTekrarInput = document.getElementById('antrenmanEgzersizTekrar');
+    const egzersizModalEyebrow = document.getElementById('antrenmanEgzersizModalEyebrow');
+    const egzersizModalBaslik = document.getElementById('antrenmanEgzersizModalBaslik');
+    const egzersizModalSubmit = document.getElementById('antrenmanEgzersizModalSubmit');
     const egzersizModalClose = document.getElementById('antrenmanEgzersizModalClose');
     const egzersizModalCancel = document.getElementById('antrenmanEgzersizModalCancel');
-
-    const egzersizDetayOverlay = document.getElementById('antrenmanEgzersizDetayOverlay');
-    const egzersizDetayIsim = document.getElementById('antrenmanEgzersizDetayIsim');
-    const egzersizDetayGorsel = document.getElementById('antrenmanEgzersizDetayGorsel');
-    const egzersizDetayVideoBtn = document.getElementById('antrenmanEgzersizDetayVideoBtn');
-    const egzersizDetaySilBtn = document.getElementById('antrenmanEgzersizDetaySilBtn');
-    const egzersizDetayKapat = document.getElementById('antrenmanEgzersizDetayKapat');
 
     const egzersizSilOnayOverlay = document.getElementById('antrenmanEgzersizSilOnayOverlay');
     const egzersizSilVazgec = document.getElementById('antrenmanEgzersizSilVazgec');
@@ -11851,10 +12495,11 @@
 
     if(!kartIzgara || !kartEkleBtn) return;
 
-    // { id, isim, egzersizler:[ { id, isim, gorsel, video } ] }
+    // { id, isim, egzersizler:[ { id, isim, sure } ] }
     let kartlar = [];
     let aktifKartId = null;
     let aktifEgzersizId = null;
+    let duzenlenenEgzersizId = null;
 
     const DEPOLAMA_ANAHTARI = 'sessizlik-antrenman-kartlari';
 
@@ -11871,9 +12516,6 @@
     function idUret(){
       return 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
     }
-    function guvenliUrlMi(url){
-      return typeof url === 'string' && /^https?:\/\//i.test(url.trim());
-    }
     function kartBul(id){
       return kartlar.find(function(k){ return k.id === id; }) || null;
     }
@@ -11888,7 +12530,7 @@
 
         const ikon = document.createElement('span');
         ikon.className = 'antrenman-kart-ikon';
-        ikon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.4 9.6 9.6"></path><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"></path><path d="m21.5 21.5-1.4-1.4"></path><path d="M3.9 3.9 2.5 2.5"></path><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"></path></svg>';
+        ikon.innerHTML = IKON_SVGLER[kart.ikon] || IKON_SVGLER.halter;
 
         const isim = document.createElement('span');
         isim.className = 'antrenman-kart-isim';
@@ -11907,41 +12549,159 @@
       });
     }
 
+    let egzersizDuzenlemeModu = false;
+    const EGZERSIZ_IKON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.4 9.6 9.6"></path><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"></path><path d="m21.5 21.5-1.4-1.4"></path><path d="M3.9 3.9 2.5 2.5"></path><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"></path></svg>';
+    const EGZERSIZ_SIL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+    const EGZERSIZ_TUTAMAC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>';
+
+    function egzersizSatirElemaniOlustur(eg, vurgulananId){
+      const satir = document.createElement('div');
+      satir.className = 'antrenman-egzersiz-satir' + (eg.id === vurgulananId ? ' antrenman-kart-yeni' : '');
+      satir.dataset.id = eg.id;
+      satir.style.setProperty('--jiggle-derece', (0.5 + Math.random() * 0.6).toFixed(2) + 'deg');
+      satir.style.setProperty('--jiggle-suresi', (0.24 + Math.random() * 0.14).toFixed(2) + 's');
+      satir.style.setProperty('--jiggle-gecikme', (Math.random() * 0.25).toFixed(2) + 's');
+
+      satir.innerHTML =
+        '<button type="button" class="antrenman-egzersiz-sil-rozet" aria-label="Egzersizi sil">' + EGZERSIZ_SIL_SVG + '</button>' +
+        '<span class="antrenman-egzersiz-satir-ikon">' + EGZERSIZ_IKON_SVG + '</span>' +
+        '<div class="antrenman-egzersiz-satir-metin">' +
+          '<span class="antrenman-egzersiz-satir-isim"></span>' +
+          '<span class="antrenman-egzersiz-satir-sure"></span>' +
+        '</div>' +
+        '<span class="antrenman-egzersiz-tutamac" aria-hidden="true">' + EGZERSIZ_TUTAMAC_SVG + '</span>';
+
+      satir.querySelector('.antrenman-egzersiz-satir-isim').textContent = eg.isim;
+      const detaylar = [(eg.sure || 30) + ' sn'];
+      if(eg.set && eg.tekrar){ detaylar.push(eg.set + ' set × ' + eg.tekrar + ' tekrar'); }
+      else if(eg.set){ detaylar.push(eg.set + ' set'); }
+      else if(eg.tekrar){ detaylar.push(eg.tekrar + ' tekrar'); }
+      satir.querySelector('.antrenman-egzersiz-satir-sure').textContent = detaylar.join(' · ');
+      return satir;
+    }
+
     function egzersizleriRenderEt(vurgulananId){
       const kart = kartBul(aktifKartId);
-      egzersizIzgara.querySelectorAll('.antrenman-kart:not(.antrenman-kart-ekle)').forEach(function(el){ el.remove(); });
+      if(!egzersizListe) return;
+      egzersizListe.innerHTML = '';
       if(!kart) return;
       (kart.egzersizler || []).forEach(function(eg){
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.dataset.id = eg.id;
+        egzersizListe.appendChild(egzersizSatirElemaniOlustur(eg, vurgulananId));
+      });
+    }
 
-        const gorselVar = guvenliUrlMi(eg.gorsel);
-        const yeniMi = eg.id === vurgulananId;
-        btn.className = 'antrenman-kart antrenman-egzersiz-kart' + (gorselVar ? ' gorselli' : '') + (yeniMi ? ' antrenman-kart-yeni' : '');
+    // ---- Egzersizleri Düzenle modu: aynı Denemeler ekranındaki gibi titretip "-" rozeti gösterir ----
+    function egzersizDuzenlemeModunuAyarla(aktif){
+      egzersizDuzenlemeModu = aktif;
+      if(egzersizListe){ egzersizListe.classList.toggle('duzenleme-modu', aktif); }
+      if(egzersizDuzenleBtn){
+        egzersizDuzenleBtn.classList.toggle('aktif', aktif);
+        egzersizDuzenleBtn.setAttribute('aria-pressed', aktif ? 'true' : 'false');
+      }
+    }
+    if(egzersizDuzenleBtn){
+      egzersizDuzenleBtn.addEventListener('click', function(){
+        egzersizDuzenlemeModunuAyarla(!egzersizDuzenlemeModu);
+      });
+    }
 
-        if(gorselVar){
-          const img = document.createElement('img');
-          img.className = 'antrenman-egzersiz-thumb';
-          img.src = eg.gorsel;
-          img.alt = '';
-          img.loading = 'lazy';
-          img.addEventListener('error', function(){ img.remove(); btn.classList.remove('gorselli'); });
-          btn.appendChild(img);
-        } else {
-          const ikon = document.createElement('span');
-          ikon.className = 'antrenman-kart-ikon';
-          ikon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.4 9.6 9.6"></path><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"></path><path d="m21.5 21.5-1.4-1.4"></path><path d="M3.9 3.9 2.5 2.5"></path><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"></path></svg>';
-          btn.appendChild(ikon);
+    // ---- Egzersiz sırasını sürükleyerek değiştirme (Pointer Events; dokunma + fare) ----
+    (function(){
+      if(!egzersizListe) return;
+      let surukleneSatir = null;
+      let baslangicY = 0;
+      let satirYuksekligi = 0;
+      let aktifPointerId = null;
+
+      function siraliIdListesi(){
+        return Array.from(egzersizListe.querySelectorAll('.antrenman-egzersiz-satir')).map(function(s){ return s.dataset.id; });
+      }
+
+      function siraKaydet(){
+        const kart = kartBul(aktifKartId);
+        if(!kart) return;
+        const sirali = siraliIdListesi();
+        const eskiler = kart.egzersizler || [];
+        kart.egzersizler = sirali.map(function(id){
+          return eskiler.find(function(e){ return e.id === id; });
+        }).filter(Boolean);
+        kaydet();
+      }
+
+      function pointerBasla(e){
+        if(!egzersizDuzenlemeModu) return;
+        const tutamac = e.target.closest('.antrenman-egzersiz-tutamac');
+        if(!tutamac) return;
+        const satir = tutamac.closest('.antrenman-egzersiz-satir');
+        if(!satir) return;
+        e.preventDefault();
+        surukleneSatir = satir;
+        aktifPointerId = e.pointerId;
+        baslangicY = e.clientY;
+        satirYuksekligi = satir.offsetHeight + 10; // satır + gap
+        satir.classList.add('surukleniyor');
+        try{ tutamac.setPointerCapture(e.pointerId); }catch(err){}
+        document.addEventListener('pointermove', pointerTasi);
+        document.addEventListener('pointerup', pointerBirak);
+        document.addEventListener('pointercancel', pointerBirak);
+      }
+
+      function pointerTasi(e){
+        if(!surukleneSatir || e.pointerId !== aktifPointerId) return;
+        const fark = e.clientY - baslangicY;
+        surukleneSatir.style.transform = 'translateY(' + fark + 'px)';
+
+        // Sürüklenen satırın üstündeki/altındaki komşuyla yer değiştirme eşiği
+        if(Math.abs(fark) > satirYuksekligi / 2){
+          const yon = fark > 0 ? 'next' : 'previous';
+          const komsu = yon === 'next' ? surukleneSatir.nextElementSibling : surukleneSatir.previousElementSibling;
+          if(komsu){
+            if(yon === 'next'){
+              egzersizListe.insertBefore(komsu, surukleneSatir);
+            } else {
+              egzersizListe.insertBefore(surukleneSatir, komsu);
+            }
+            baslangicY = e.clientY;
+            surukleneSatir.style.transform = 'translateY(0px)';
+          }
         }
+      }
 
-        const isim = document.createElement('span');
-        isim.className = 'antrenman-kart-isim';
-        isim.textContent = eg.isim;
-        btn.appendChild(isim);
+      function pointerBirak(e){
+        if(!surukleneSatir || (aktifPointerId !== null && e.pointerId !== aktifPointerId)) return;
+        surukleneSatir.style.transform = '';
+        surukleneSatir.classList.remove('surukleniyor');
+        surukleneSatir = null;
+        aktifPointerId = null;
+        document.removeEventListener('pointermove', pointerTasi);
+        document.removeEventListener('pointerup', pointerBirak);
+        document.removeEventListener('pointercancel', pointerBirak);
+        siraKaydet();
+      }
 
-        btn.addEventListener('click', function(){ egzersizDetayAc(eg.id); });
-        egzersizIzgara.appendChild(btn);
+      egzersizListe.addEventListener('pointerdown', pointerBasla);
+    })();
+
+    // ---- Egzersiz satırına tıklama: düzenleme modunda "-" rozetiyle silme onayı iste,
+    //      normal modda ise satıra tıklanınca egzersizi düzenleme penceresi açılsın ----
+    if(egzersizListe){
+      egzersizListe.addEventListener('click', function(e){
+        const silBtn = e.target.closest('.antrenman-egzersiz-sil-rozet');
+        if(silBtn){
+          const silSatir = silBtn.closest('.antrenman-egzersiz-satir');
+          if(!silSatir || !silSatir.dataset.id) return;
+          aktifEgzersizId = silSatir.dataset.id;
+          if(egzersizSilOnayOverlay){ egzersizSilOnayOverlay.classList.add('active'); }
+          return;
+        }
+        if(egzersizDuzenlemeModu) return;
+        const satir = e.target.closest('.antrenman-egzersiz-satir');
+        if(!satir || !satir.dataset.id) return;
+        const kart = kartBul(aktifKartId);
+        if(!kart) return;
+        const eg = (kart.egzersizler || []).find(function(x){ return x.id === satir.dataset.id; });
+        if(!eg) return;
+        egzersizModalAc(eg);
       });
     }
 
@@ -11958,6 +12718,7 @@
       if(!kart) return;
       aktifKartId = kartId;
       if(detayBaslik){ detayBaslik.textContent = kart.isim; }
+      egzersizDuzenlemeModunuAyarla(false);
       egzersizleriRenderEt();
       if(paneListe){ paneListe.classList.remove('active'); }
       if(paneDetay){ paneDetay.classList.add('active'); }
@@ -11971,6 +12732,14 @@
     function kartModalAc(){
       if(!kartModalOverlay) return;
       if(kartIsimInput){ kartIsimInput.value = ''; }
+      kartSeciliIkon = 'halter';
+      if(kartIkonSecim){
+        kartIkonSecim.querySelectorAll('.kart-ikon-btn').forEach(function(b){
+          const secili = b.dataset.ikon === 'halter';
+          b.classList.toggle('secili', secili);
+          b.setAttribute('aria-pressed', secili ? 'true' : 'false');
+        });
+      }
       kartModalOverlay.classList.add('active');
       setTimeout(function(){ if(kartIsimInput){ kartIsimInput.focus(); } }, 150);
     }
@@ -11985,7 +12754,7 @@
         e.preventDefault();
         const isim = (kartIsimInput.value || '').trim();
         if(!isim) return;
-        const yeniKart = { id: idUret(), isim: isim, egzersizler: [] };
+        const yeniKart = { id: idUret(), isim: isim, ikon: kartSeciliIkon, egzersizler: [] };
         kartlar.push(yeniKart);
         kaydet();
         kartlariRenderEt(yeniKart.id);
@@ -12011,19 +12780,25 @@
       });
     }
 
-    // ---- Egzersiz ekleme ----
-    function egzersizModalAc(){
+    // ---- Egzersiz ekleme / düzenleme (aynı pencere iki modda da kullanılır) ----
+    function egzersizModalAc(duzenlenecekEg){
       if(!egzersizModalOverlay) return;
-      if(egzersizIsimInput){ egzersizIsimInput.value = ''; }
-      if(egzersizGorselInput){ egzersizGorselInput.value = ''; }
-      if(egzersizVideoInput){ egzersizVideoInput.value = ''; }
+      duzenlenenEgzersizId = duzenlenecekEg ? duzenlenecekEg.id : null;
+      if(egzersizIsimInput){ egzersizIsimInput.value = duzenlenecekEg ? (duzenlenecekEg.isim || '') : ''; }
+      if(egzersizSureInput){ egzersizSureInput.value = duzenlenecekEg && duzenlenecekEg.sure ? duzenlenecekEg.sure : '30'; }
+      if(egzersizSetInput){ egzersizSetInput.value = duzenlenecekEg && duzenlenecekEg.set ? duzenlenecekEg.set : ''; }
+      if(egzersizTekrarInput){ egzersizTekrarInput.value = duzenlenecekEg && duzenlenecekEg.tekrar ? duzenlenecekEg.tekrar : ''; }
+      if(egzersizModalEyebrow){ egzersizModalEyebrow.textContent = duzenlenecekEg ? 'Egzersizi Düzenle' : 'Yeni Egzersiz'; }
+      if(egzersizModalBaslik){ egzersizModalBaslik.textContent = duzenlenecekEg ? 'Egzersizi Düzenle' : 'Egzersiz Ekle'; }
+      if(egzersizModalSubmit){ egzersizModalSubmit.textContent = duzenlenecekEg ? 'Kaydet' : 'Ekle'; }
       egzersizModalOverlay.classList.add('active');
       setTimeout(function(){ if(egzersizIsimInput){ egzersizIsimInput.focus(); } }, 150);
     }
     function egzersizModalKapat(){
       if(egzersizModalOverlay){ egzersizModalOverlay.classList.remove('active'); }
+      duzenlenenEgzersizId = null;
     }
-    if(egzersizEkleBtn){ egzersizEkleBtn.addEventListener('click', egzersizModalAc); }
+    if(egzersizEkleBtn){ egzersizEkleBtn.addEventListener('click', function(){ egzersizModalAc(); }); }
     if(egzersizModalClose){ egzersizModalClose.addEventListener('click', egzersizModalKapat); }
     if(egzersizModalCancel){ egzersizModalCancel.addEventListener('click', egzersizModalKapat); }
     if(egzersizForm){
@@ -12033,14 +12808,35 @@
         if(!kart) return;
         const isim = (egzersizIsimInput.value || '').trim();
         if(!isim) return;
-        const gorsel = (egzersizGorselInput.value || '').trim();
-        const video = (egzersizVideoInput.value || '').trim();
+        let sure = parseInt(egzersizSureInput ? egzersizSureInput.value : '30', 10);
+        if(!Number.isFinite(sure) || sure < 5){ sure = 30; }
+        let set = egzersizSetInput ? parseInt(egzersizSetInput.value, 10) : NaN;
+        if(!Number.isFinite(set) || set < 1){ set = null; }
+        let tekrar = egzersizTekrarInput ? parseInt(egzersizTekrarInput.value, 10) : NaN;
+        if(!Number.isFinite(tekrar) || tekrar < 1){ tekrar = null; }
+
         kart.egzersizler = kart.egzersizler || [];
+
+        if(duzenlenenEgzersizId){
+          const mevcutEg = kart.egzersizler.find(function(x){ return x.id === duzenlenenEgzersizId; });
+          if(mevcutEg){
+            mevcutEg.isim = isim;
+            mevcutEg.sure = sure;
+            mevcutEg.set = set;
+            mevcutEg.tekrar = tekrar;
+            kaydet();
+            egzersizleriRenderEt(mevcutEg.id);
+          }
+          egzersizModalKapat();
+          return;
+        }
+
         const yeniEg = {
           id: idUret(),
           isim: isim,
-          gorsel: guvenliUrlMi(gorsel) ? gorsel : '',
-          video: guvenliUrlMi(video) ? video : ''
+          sure: sure,
+          set: set,
+          tekrar: tekrar
         };
         kart.egzersizler.push(yeniEg);
         kaydet();
@@ -12049,47 +12845,7 @@
       });
     }
 
-    // ---- Egzersiz detayı ----
-    function egzersizDetayAc(egzersizId){
-      const kart = kartBul(aktifKartId);
-      if(!kart) return;
-      const eg = (kart.egzersizler || []).find(function(e){ return e.id === egzersizId; });
-      if(!eg) return;
-      aktifEgzersizId = egzersizId;
-      if(egzersizDetayIsim){ egzersizDetayIsim.textContent = eg.isim; }
-      if(egzersizDetayGorsel){
-        if(guvenliUrlMi(eg.gorsel)){
-          egzersizDetayGorsel.src = eg.gorsel;
-          egzersizDetayGorsel.style.display = 'block';
-        } else {
-          egzersizDetayGorsel.removeAttribute('src');
-          egzersizDetayGorsel.style.display = 'none';
-        }
-      }
-      if(egzersizDetayVideoBtn){
-        egzersizDetayVideoBtn.style.display = guvenliUrlMi(eg.video) ? 'flex' : 'none';
-      }
-      if(egzersizDetayOverlay){ egzersizDetayOverlay.classList.add('active'); }
-    }
-    function egzersizDetayKapatFn(){
-      if(egzersizDetayOverlay){ egzersizDetayOverlay.classList.remove('active'); }
-    }
-    if(egzersizDetayKapat){ egzersizDetayKapat.addEventListener('click', egzersizDetayKapatFn); }
-    if(egzersizDetayVideoBtn){
-      egzersizDetayVideoBtn.addEventListener('click', function(){
-        const kart = kartBul(aktifKartId);
-        const eg = kart ? (kart.egzersizler || []).find(function(e){ return e.id === aktifEgzersizId; }) : null;
-        if(eg && guvenliUrlMi(eg.video)){
-          window.open(eg.video, '_blank', 'noopener');
-        }
-      });
-    }
-    if(egzersizDetaySilBtn){
-      egzersizDetaySilBtn.addEventListener('click', function(){
-        egzersizDetayKapatFn();
-        if(egzersizSilOnayOverlay){ egzersizSilOnayOverlay.classList.add('active'); }
-      });
-    }
+    // ---- Egzersiz silme onayı ----
     if(egzersizSilVazgec){
       egzersizSilVazgec.addEventListener('click', function(){
         if(egzersizSilOnayOverlay){ egzersizSilOnayOverlay.classList.remove('active'); }
@@ -12109,6 +12865,264 @@
 
     yukle();
     kartlariRenderEt();
+  })();
+
+  // ================= KALORI: seçili antrenman gruplarını süreli sirküt olarak çalıştırma =================
+  (function(){
+    const paneSecim = document.getElementById('kaloriPaneSecim');
+    const paneCalisma = document.getElementById('kaloriPaneCalisma');
+    const paneBitis = document.getElementById('kaloriPaneBitis');
+    const grupListe = document.getElementById('kaloriGrupListe');
+    const bosUyari = document.getElementById('kaloriBosUyari');
+    const baslatBtn = document.getElementById('kaloriBaslatBtn');
+    const cikisBtn = document.getElementById('kaloriCikisBtn');
+    const kapatBtn = document.getElementById('kaloriKapatBtn');
+    const ilerlemeEtiket = document.getElementById('kaloriIlerleme');
+    const hareketGorsel = document.getElementById('kaloriHareketGorsel');
+    const durumEtiket = document.getElementById('kaloriDurumEtiket');
+    const hareketIsim = document.getElementById('kaloriHareketIsim');
+    const sayacWrap = document.getElementById('kaloriSayacWrap');
+    const sayacSayi = document.getElementById('kaloriSayacSayi');
+    const geriBtn = document.getElementById('kaloriGeriBtn');
+    const ileriBtn = document.getElementById('kaloriIleriBtn');
+    const duraklatBtn = document.getElementById('kaloriDuraklatBtn');
+    const duraklatIkon = document.getElementById('kaloriDuraklatIkon');
+
+    if(!paneSecim || !grupListe) return;
+
+    const DEPOLAMA_ANAHTARI = 'sessizlik-antrenman-kartlari';
+    const DINLENME_SURESI = 10;
+    const VARSAYILAN_IKON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>';
+    const ONAY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>';
+
+    let kartlar = [];
+    let seciliKartIdler = [];
+    let akisEgzersizleri = [];
+    let akisIndex = 0;
+    let kalanSaniye = 0;
+    let toplamSaniye = 0;
+    let dinlenmeModu = false;
+    let zamanlayici = null;
+
+    function kartlariYukle(){
+      try{
+        const ham = localStorage.getItem(DEPOLAMA_ANAHTARI);
+        kartlar = ham ? (JSON.parse(ham) || []) : [];
+      }catch(e){ kartlar = []; }
+    }
+
+    function paneGoster(pane){
+      [paneSecim, paneCalisma, paneBitis].forEach(function(p){
+        if(p){ p.classList.toggle('active', p === pane); }
+      });
+    }
+
+    function secimListesiCiz(){
+      grupListe.innerHTML = '';
+      const doluKartlar = kartlar.filter(function(k){ return (k.egzersizler || []).length > 0; });
+      if(doluKartlar.length === 0){
+        if(bosUyari){ bosUyari.classList.add('active'); }
+        if(baslatBtn){ baslatBtn.disabled = true; }
+        return;
+      }
+      if(bosUyari){ bosUyari.classList.remove('active'); }
+      doluKartlar.forEach(function(kart){
+        const satir = document.createElement('button');
+        satir.type = 'button';
+        satir.className = 'kalori-grup-satir' + (seciliKartIdler.indexOf(kart.id) !== -1 ? ' secili' : '');
+        satir.dataset.id = kart.id;
+
+        const ikon = document.createElement('span');
+        ikon.className = 'kalori-grup-satir-ikon';
+        ikon.innerHTML = VARSAYILAN_IKON;
+
+        const metin = document.createElement('span');
+        metin.className = 'kalori-grup-satir-metin';
+        const isim = document.createElement('span');
+        isim.className = 'kalori-grup-satir-isim';
+        isim.textContent = kart.isim;
+        const sayi = document.createElement('span');
+        sayi.className = 'kalori-grup-satir-sayi';
+        sayi.textContent = (kart.egzersizler || []).length + ' egzersiz';
+        metin.appendChild(isim);
+        metin.appendChild(sayi);
+
+        const onay = document.createElement('span');
+        onay.className = 'kalori-grup-satir-onay';
+        onay.innerHTML = ONAY_SVG;
+
+        satir.appendChild(ikon);
+        satir.appendChild(metin);
+        satir.appendChild(onay);
+        satir.addEventListener('click', function(){
+          const idx = seciliKartIdler.indexOf(kart.id);
+          if(idx === -1){ seciliKartIdler.push(kart.id); }
+          else { seciliKartIdler.splice(idx, 1); }
+          satir.classList.toggle('secili', idx === -1);
+          if(baslatBtn){ baslatBtn.disabled = seciliKartIdler.length === 0; }
+        });
+        grupListe.appendChild(satir);
+      });
+    }
+
+    // Spor Modu dock'undan her "Kalori" tıklamasında sıfırdan seçim ekranına dön.
+    window.kaloriSecimPaneGoster = function(){
+      zamanlayiciTemizle();
+      kartlariYukle();
+      seciliKartIdler = [];
+      if(baslatBtn){ baslatBtn.disabled = true; }
+      secimListesiCiz();
+      paneGoster(paneSecim);
+    };
+    // Spor Modu tamamen kapatılırken (veya başka sekmeye geçilirken) sayaç arka planda çalışmaya devam etmesin.
+    window.kaloriDurdur = function(){ zamanlayiciTemizle(); };
+
+    function akisiOlustur(){
+      akisEgzersizleri = [];
+      kartlar.forEach(function(kart){
+        if(seciliKartIdler.indexOf(kart.id) === -1) return;
+        (kart.egzersizler || []).forEach(function(eg){
+          akisEgzersizleri.push({
+            isim: eg.isim,
+            gorsel: eg.gorsel,
+            sure: (eg.sure && eg.sure > 0) ? eg.sure : 30
+          });
+        });
+      });
+    }
+
+    function zamanlayiciTemizle(){
+      if(zamanlayici){ clearInterval(zamanlayici); zamanlayici = null; }
+    }
+
+    function sayacGuncelle(){
+      if(sayacSayi){ sayacSayi.textContent = String(kalanSaniye); }
+      if(sayacWrap){
+        const yuzde = toplamSaniye > 0 ? Math.max(0, Math.min(100, (kalanSaniye / toplamSaniye) * 100)) : 0;
+        sayacWrap.style.setProperty('--kalori-yuzde', yuzde);
+      }
+    }
+
+    function duraklatGorseliGuncelle(calisiyorMu){
+      if(!duraklatIkon) return;
+      duraklatIkon.innerHTML = calisiyorMu
+        ? '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>'
+        : '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+    }
+
+    function hareketiGoster(){
+      const eg = akisEgzersizleri[akisIndex];
+      if(!eg) return;
+      if(ilerlemeEtiket){ ilerlemeEtiket.textContent = (akisIndex + 1) + ' / ' + akisEgzersizleri.length; }
+      if(hareketIsim){ hareketIsim.textContent = eg.isim; }
+      if(hareketGorsel){
+        if(eg.gorsel){
+          hareketGorsel.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = eg.gorsel;
+          img.alt = '';
+          img.addEventListener('error', function(){ hareketGorsel.innerHTML = VARSAYILAN_IKON; });
+          hareketGorsel.appendChild(img);
+        } else {
+          hareketGorsel.innerHTML = VARSAYILAN_IKON;
+        }
+      }
+    }
+
+    function zamanlayiciBaslat(){
+      zamanlayiciTemizle();
+      duraklatGorseliGuncelle(true);
+      zamanlayici = setInterval(function(){
+        kalanSaniye--;
+        if(kalanSaniye <= 0){
+          kalanSaniye = 0;
+          sayacGuncelle();
+          siradakineGec();
+          return;
+        }
+        sayacGuncelle();
+      }, 1000);
+    }
+
+    function evreyiBaslat(dinlenmeMi){
+      dinlenmeModu = dinlenmeMi;
+      if(paneCalisma){ paneCalisma.classList.toggle('dinlenme-durumu', dinlenmeMi); }
+      const eg = akisEgzersizleri[akisIndex];
+      if(dinlenmeMi){
+        if(durumEtiket){ durumEtiket.textContent = 'DİNLENME · SIRADA: ' + (eg ? eg.isim.toUpperCase() : ''); }
+        kalanSaniye = DINLENME_SURESI;
+        toplamSaniye = DINLENME_SURESI;
+      } else {
+        if(durumEtiket){ durumEtiket.textContent = 'HAREKET'; }
+        kalanSaniye = eg ? eg.sure : 30;
+        toplamSaniye = kalanSaniye;
+      }
+      hareketiGoster();
+      sayacGuncelle();
+      zamanlayiciBaslat();
+    }
+
+    function bitir(){
+      zamanlayiciTemizle();
+      paneGoster(paneBitis);
+    }
+
+    function siradakineGec(){
+      zamanlayiciTemizle();
+      if(dinlenmeModu){
+        evreyiBaslat(false);
+        return;
+      }
+      akisIndex++;
+      if(akisIndex >= akisEgzersizleri.length){
+        bitir();
+        return;
+      }
+      evreyiBaslat(true);
+    }
+
+    if(baslatBtn){
+      baslatBtn.addEventListener('click', function(){
+        if(seciliKartIdler.length === 0) return;
+        akisiOlustur();
+        if(akisEgzersizleri.length === 0) return;
+        akisIndex = 0;
+        paneGoster(paneCalisma);
+        evreyiBaslat(false);
+      });
+    }
+    if(cikisBtn){
+      cikisBtn.addEventListener('click', function(){ window.kaloriSecimPaneGoster(); });
+    }
+    if(kapatBtn){
+      kapatBtn.addEventListener('click', function(){ window.kaloriSecimPaneGoster(); });
+    }
+    if(duraklatBtn){
+      duraklatBtn.addEventListener('click', function(){
+        if(zamanlayici){
+          zamanlayiciTemizle();
+          duraklatGorseliGuncelle(false);
+        } else {
+          zamanlayiciBaslat();
+        }
+      });
+    }
+    if(ileriBtn){
+      ileriBtn.addEventListener('click', function(){
+        zamanlayiciTemizle();
+        if(dinlenmeModu){ evreyiBaslat(false); return; }
+        akisIndex++;
+        if(akisIndex >= akisEgzersizleri.length){ bitir(); return; }
+        evreyiBaslat(false);
+      });
+    }
+    if(geriBtn){
+      geriBtn.addEventListener('click', function(){
+        zamanlayiciTemizle();
+        if(!dinlenmeModu && akisIndex > 0){ akisIndex--; }
+        evreyiBaslat(false);
+      });
+    }
   })();
 
   // ================= SPOR MODU: Nabız ikonu çizim animasyonu =================
