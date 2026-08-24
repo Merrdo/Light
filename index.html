@@ -567,6 +567,61 @@
     text-align:center;
   }
 
+  /* ---- Ana sayfa: orta-üst kısımdaki gösterişli kronometre ----
+     Arka plandaki ışık huzmesi/yıldız deseniyle bütünleşmesi için
+     rakamların arkasına aynı vurgu renginde, yavaşça nabız gibi atan
+     yumuşak bir ışıma (hâle) yerleştirilir; rakamlara da hafif bir
+     ışıltı (text-shadow) verilir. */
+  .ana-krono-kart{
+    position:fixed;
+    top:calc(6.6rem + env(safe-area-inset-top, 0px));
+    left:50%;
+    transform:translateX(-50%);
+    z-index:10;
+    width:min(94vw, 640px);
+    background:transparent;
+    border:none;
+    padding:1.2rem 1rem;
+    margin:0;
+    cursor:pointer;
+    transition: transform 0.18s cubic-bezier(.22,1,.36,1), opacity 0.2s ease;
+  }
+  .ana-krono-kart::before{
+    content:'';
+    position:absolute;
+    inset:-15% 4%;
+    z-index:-1;
+    background:radial-gradient(ellipse at center,
+      rgba(var(--accent-rgb),0.24) 0%,
+      rgba(var(--accent-rgb),0.1) 40%,
+      rgba(var(--accent-rgb),0) 72%);
+    filter:blur(28px);
+    animation: kronoHaleNabiz 6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes kronoHaleNabiz{
+    0%, 100%{ opacity:0.7; transform:scale(1); }
+    50%{ opacity:1; transform:scale(1.08); }
+  }
+  .ana-krono-kart:hover{ opacity:0.92; }
+  .ana-krono-kart:active{ transform:translateX(-50%) scale(0.97); }
+  .ana-krono-kart .sayac-birim{ padding:0 1rem; }
+  .ana-krono-kart .sayac-sayi{
+    font-size:clamp(2.8rem, 12.5vw, 5rem);
+    text-shadow:0 0 26px rgba(var(--accent-rgb),0.32);
+  }
+  .ana-krono-kart .sayac-ayrac{ height:clamp(2.8rem, 12.5vw, 5rem); }
+  .ana-krono-kart .sayac-birim.sayac-saniye .sayac-sayi{
+    text-shadow:0 0 32px rgba(var(--accent-rgb),0.55);
+  }
+  .ana-krono-kart .sayac-etiket{
+    font-size:0.68rem;
+    letter-spacing:0.22em;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ana-krono-kart::before{ animation:none; opacity:0.85; }
+  }
+
   .eyebrow{
     display:inline-block;
     font-size:0.72rem;
@@ -764,9 +819,6 @@
   #bganimRow.animate{
     animation-delay:1.45s;
   }
-  #hesapRow.animate{
-    animation-delay:1.55s;
-  }
   .settings-row.wrap-row{
     flex-wrap:wrap;
     row-gap:0.9rem;
@@ -848,6 +900,65 @@
   @media (prefers-reduced-motion: reduce){
     .spor-modu-overlay{ transition:opacity 0.15s ease, visibility 0s linear 0.15s; transform:none; }
     .spor-modu-overlay.active{ transition:opacity 0.15s ease, visibility 0s linear 0s; transform:none; }
+  }
+
+  /* ---- Kronometre: tam ekran arayüz (nav bar'ı tamamen örter) ---- */
+  .kronometre-overlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:calc(2rem + env(safe-area-inset-top, 0px)) 2rem calc(2rem + env(safe-area-inset-bottom, 0px));
+    opacity:0;
+    transform:scale(0.94);
+    pointer-events:none;
+    visibility:hidden;
+    transition: opacity 0.32s cubic-bezier(.22,1,.36,1), transform 0.38s cubic-bezier(.22,1,.36,1), visibility 0s linear 0.38s;
+  }
+  .kronometre-overlay.active{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+    visibility:visible;
+    transition: opacity 0.34s cubic-bezier(.22,1,.36,1), transform 0.42s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kronometre-overlay{ transition:opacity 0.15s ease, visibility 0s linear 0.15s; transform:none; }
+    .kronometre-overlay.active{ transition:opacity 0.15s ease, visibility 0s linear 0s; transform:none; }
+  }
+  .kronometre-geri-btn{
+    position:fixed;
+    top:calc(1.6rem + env(safe-area-inset-top, 0px));
+    left:calc(1.6rem + env(safe-area-inset-left, 0px));
+    width:2.3rem;
+    height:2.3rem;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .kronometre-geri-btn:hover{
+    color:var(--ink);
+    border-color:var(--ink-soft);
+    background:rgba(var(--accent-rgb),0.1);
+  }
+  .kronometre-geri-btn:active{ transform:scale(0.94); }
+  .kronometre-geri-btn svg{ width:1.05rem; height:1.05rem; }
+  .kronometre-satir{ margin-top:2.2rem; }
+  .kronometre-aksiyonlar{
+    margin-top:3rem;
+    width:100%;
+    max-width:360px;
   }
 
   /* ---- Spor Modu Geçişi: gerçek bir uygulama açılışı hissi veren ikon-büyütme animasyonu ---- */
@@ -5947,7 +6058,6 @@
     .view-gecis-cikis, .analiz-icerik-cikis{ transition:none !important; opacity:1 !important; transform:none !important; }
   }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   html.giris-bekleniyor body{ overflow:hidden; }
 
@@ -5993,62 +6103,32 @@
     line-height:1.55;
     color:var(--ink-soft);
   }
-  .giris-google-btn{
+  .giris-devam-btn{
     margin-top:2rem;
     width:100%;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:0.7rem;
-    font-family:"Google Sans","Helvetica Neue",Arial,sans-serif;
-    font-size:0.92rem;
-    font-weight:500;
-    letter-spacing:0.01em;
-    padding:0.8rem 1.2rem;
-    border-radius:0.65rem;
-    border:1px solid #dadce0;
-    background:#ffffff;
-    color:#3c4043;
-    cursor:pointer;
-    box-shadow:0 1px 2px rgba(0,0,0,0.14);
-    transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.15s ease;
-  }
-  .giris-google-btn:hover{
-    background:#f8f9fa;
-    box-shadow:0 1px 3px rgba(0,0,0,0.22), 0 4px 10px rgba(0,0,0,0.12);
-    transform:translateY(-1px);
-  }
-  .giris-google-btn:active{ background:#f1f3f4; transform:scale(0.98); box-shadow:0 1px 2px rgba(0,0,0,0.16); }
-  .giris-google-btn:disabled{ opacity:0.6; cursor:default; transform:none; box-shadow:0 1px 2px rgba(0,0,0,0.14); }
-  .giris-google-btn svg{ width:1.2rem; height:1.2rem; flex-shrink:0; }
-  .giris-google-btn .giris-google-spin{
-    width:1.05rem; height:1.05rem; flex-shrink:0;
-    border-radius:50%;
-    border:2px solid #dadce0;
-    border-top-color:#4285F4;
-    animation: girisGoogleSpin 0.7s linear infinite;
-    display:none;
-  }
-  .giris-google-btn:disabled .giris-google-spin{ display:inline-block; }
-  .giris-google-btn:disabled svg{ display:none; }
-  @keyframes girisGoogleSpin{ to{ transform:rotate(360deg); } }
-
-  .giris-misafir-btn{
-    margin-top:0.9rem;
-    width:100%;
-    padding:0.75rem 1.2rem;
-    border-radius:0.65rem;
-    border:1px solid transparent;
-    background:transparent;
-    font-family:inherit;
+    gap:0.6rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
     font-size:0.85rem;
-    letter-spacing:0.01em;
-    color:var(--ink-soft);
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:0.9rem 1.2rem;
+    border-radius:9999px;
+    border:1px solid rgba(var(--accent-rgb),0.5);
+    background:linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb),0.78));
+    color:var(--bg);
     cursor:pointer;
-    transition: color 0.2s ease, background 0.2s ease;
+    box-shadow:0 10px 24px -6px rgba(var(--accent-rgb),0.55);
+    transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s ease, filter 0.2s ease;
   }
-  .giris-misafir-btn:hover{ color:var(--ink); background:rgba(var(--ink-rgb),0.05); }
-  .giris-misafir-btn:active{ transform:scale(0.98); }
+  .giris-devam-btn:hover{
+    transform:translateY(-2px);
+    filter:brightness(1.05);
+  }
+  .giris-devam-btn:active{ transform:scale(0.97); }
 
   .giris-durum{
     margin-top:1rem;
@@ -6183,14 +6263,10 @@
   <div class="giris-overlay" id="girisEkraniOverlay">
     <div class="giris-box">
       <h1 class="giris-title">Hoş geldin</h1>
-      <p class="giris-sub">Verilerini korumak ve cihazlar arasında eşleyebilmek için Google hesabınla devam et.</p>
-      <button type="button" class="giris-google-btn" id="girisGoogleBtn">
-        <span class="giris-google-spin" aria-hidden="true"></span>
-        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4c-7.682 0-14.344 4.337-17.694 10.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
-        <span>Google ile Devam Et</span>
+      <p class="giris-sub">Verilerin yalnızca bu cihazda, tamamen yerel olarak saklanır.</p>
+      <button type="button" class="giris-devam-btn" id="girisDevamBtn">
+        <span>Devam Et</span>
       </button>
-      <button type="button" class="giris-misafir-btn" id="girisMisafirBtn">Misafir Olarak Devam Et</button>
-      <p class="giris-durum" id="girisDurumMetin"></p>
     </div>
   </div>
 
@@ -6281,17 +6357,56 @@
   </div>
 
   <main class="stage" id="viewHome">
-    <span class="eyebrow">Bir Düşünce</span>
-    <div class="rule"></div>
-
-    <h1 id="headline"></h1>
-
-    <p class="sub">Kelimeler yavaş çıkar; ama kalanı, sessizlik taşır.</p>
-
-    <span class="quote-mark">”</span>
-
-    <p class="signature">Kağıt ve Mürekkep</p>
+    <button type="button" class="ana-krono-kart" id="anaKronoWidget" aria-label="Kronometreyi tam ekran aç">
+      <div class="sayac-satir">
+        <div class="sayac-birim">
+          <span class="sayac-sayi" id="anaKronoSaat">00</span>
+          <span class="sayac-etiket">saat</span>
+        </div>
+        <div class="sayac-ayrac"></div>
+        <div class="sayac-birim">
+          <span class="sayac-sayi" id="anaKronoDakika">00</span>
+          <span class="sayac-etiket">dakika</span>
+        </div>
+        <div class="sayac-ayrac"></div>
+        <div class="sayac-birim sayac-saniye">
+          <span class="sayac-sayi" id="anaKronoSaniye">00</span>
+          <span class="sayac-etiket">saniye</span>
+        </div>
+      </div>
+    </button>
   </main>
+
+  <!-- ================= KRONOMETRE: tam ekran arayüz ================= -->
+  <div class="kronometre-overlay" id="kronometreOverlay">
+    <button type="button" class="kronometre-geri-btn" id="kronometreKapatBtn" aria-label="Geri dön">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="sayac-listem-heading">
+      <span class="sayac-listem-eyebrow">Zamanı Tut</span>
+      <h2 class="sayac-listem-title">Kronometre</h2>
+    </div>
+    <div class="sayac-satir kronometre-satir">
+      <div class="sayac-birim">
+        <span class="sayac-sayi" id="kronoSaat">00</span>
+        <span class="sayac-etiket">saat</span>
+      </div>
+      <div class="sayac-ayrac"></div>
+      <div class="sayac-birim">
+        <span class="sayac-sayi" id="kronoDakika">00</span>
+        <span class="sayac-etiket">dakika</span>
+      </div>
+      <div class="sayac-ayrac"></div>
+      <div class="sayac-birim sayac-saniye">
+        <span class="sayac-sayi" id="kronoSaniye">00</span>
+        <span class="sayac-etiket">saniye</span>
+      </div>
+    </div>
+    <div class="modal-actions modal-actions-pill kronometre-aksiyonlar">
+      <button type="button" class="modal-btn" id="kronometreSifirlaBtn">Sıfırla</button>
+      <button type="button" class="modal-btn modal-btn-primary" id="kronometreBaslatBtn">Başlat</button>
+    </div>
+  </div>
 
   <div class="view-empty" id="viewEmpty">
     <div class="empty-inner">
@@ -6347,22 +6462,6 @@
           <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
         </div>
       </div>
-      <div class="settings-row wrap-row" id="hesapRow">
-        <div class="hesap-satir" style="width:100%;">
-          <div class="hesap-satir-sol">
-            <img class="hesap-avatar" id="hesapAvatar" alt="" style="display:none;">
-            <div class="hesap-avatar-yer" id="hesapAvatarYer"></div>
-            <div class="hesap-satir-bilgi">
-              <span class="settings-row-title" id="hesapAdSoyad">Google Hesabı</span>
-              <span class="settings-row-sub" id="hesapEposta"></span>
-            </div>
-          </div>
-          <button type="button" class="hesap-cikis-btn" id="hesapCikisBtn">Çıkış Yap</button>
-        </div>
-        <button type="button" class="senkron-durum" id="senkronDurum" aria-label="Şimdi senkronize et">
-          <span class="senkron-nokta" id="senkronNokta"></span><span id="senkronDurumMetin">Bağlanılıyor…</span>
-        </button>
-      </div>
       <div class="settings-row" id="yedekRow">
         <div class="settings-row-text">
           <span class="settings-row-title">Verilerini Yedekle</span>
@@ -6402,30 +6501,6 @@
       </div>
       <input type="file" id="yedekDosyaInput" accept="application/json,.json" style="display:none;">
       <p class="modal-onay-metin" id="yedekDurumMetin" style="display:none;"></p>
-    </div>
-  </div>
-
-  <!-- Misafirken hesaba giriş yapılırken, hesapta kayıtlı veri bulunursa çıkan uyarı -->
-  <div class="modal-overlay" id="hesapCakismaModalOverlay">
-    <div class="modal-box" style="position:relative;">
-      <span class="modal-eyebrow">Hesap Girişi</span>
-      <h3 class="modal-title">Kayıtlı Verileriniz Bulundu</h3>
-      <p class="modal-onay-metin">Giriş yaptığınız hesapta daha önceden kaydedilmiş verileriniz var. Nasıl devam etmek istersiniz?</p>
-
-      <div class="modal-actions modal-actions-pill" style="margin-top:1.2rem; flex-direction:column; gap:0.7rem;">
-        <button type="button" class="modal-btn modal-btn-primary" id="hesapCakismaBulutBtn">
-          Devam Et
-        </button>
-        <p class="modal-onay-metin" style="margin-top:-0.35rem; font-size:0.72rem; opacity:0.75;">Hesabınızdaki kayıtlı veriler yüklenir, cihazınızdaki mevcut veriler bunların üzerine yazılır.</p>
-        <button type="button" class="modal-btn" id="hesapCakismaYerelBtn">
-          Şu Anki Verilerimi Kullan
-        </button>
-        <p class="modal-onay-metin" style="margin-top:-0.35rem; font-size:0.72rem; opacity:0.75;">Cihazınızdaki mevcut veriler korunur, hesabınızdaki kayıtlı verilerin üzerine yazılır.</p>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="modal-btn" id="hesapCakismaVazgecBtn">Vazgeç</button>
-      </div>
-      <p class="modal-onay-metin" id="hesapCakismaDurumMetin" style="display:none;"></p>
     </div>
   </div>
 
@@ -6808,7 +6883,7 @@
     </div>
   </div>
 
-  <footer id="pageFooter">Sayfayı yeniden yükleyerek animasyonu tekrar izleyebilirsiniz</footer>
+  <footer id="pageFooter"></footer>
 
   <div class="modal-overlay" id="denemeModalOverlay">
     <div class="modal-box" id="denemeModalBox" style="position:relative;">
@@ -7382,57 +7457,89 @@
   </div>
 
 <script>
-  // Başlığı kelime kelime, gecikmeli olarak sahneye koy
-  const text = "Sessizlik de bir dildir.";
-  const h1 = document.getElementById('headline');
-  const words = text.split(' ');
-
-  words.forEach((word, i) => {
-    const span = document.createElement('span');
-    span.className = 'word';
-    span.textContent = word;
-    span.style.animationDelay = (0.7 + i * 0.16) + 's';
-    h1.appendChild(span);
-    if(i < words.length - 1){
-      h1.appendChild(document.createTextNode('\u00A0'));
-    }
-  });
-
-  // ================= ANA SAYFA GİRİŞ ANİMASYONU GÜVENLİK AĞI =================
-  // Uygulama arka plandan dönerken ya da ikinci kez açılırken (bfcache / PWA
-  // yeniden etkinleşmesi) CSS animation-delay zamanlayıcıları bazen hiç
-  // tetiklenmeden takılı kalabiliyor; bu da ana sayfanın eksik (bazı
-  // öğeler görünmeden) açılmasına yol açıyor. Aşağıdaki güvenlik ağı, giriş
-  // animasyonunun normalde tamamlanmış olması gereken süreden sonra hâlâ
-  // görünmeyen bir öğe kalmışsa onu zorla son (görünür) haline getirir.
+  // ================= KRONOMETRE =================
+  // Basit, tamamen istemci tarafında çalışan bir kronometre: ana sayfadaki
+  // küçük önizleme alanı ile tam ekran arayüzdeki büyük gösterim aynı anda
+  // güncellenir. Zaman Date.now() farkına göre hesaplanır, böylece sekme
+  // arka plandayken interval yavaşlasa bile gösterilen süre doğru kalır.
   (function(){
-    function anaSayfaHeroyuGorunurYap(){
-      const hedefler = document.querySelectorAll(
-        '#viewHome .eyebrow, #viewHome .rule, #viewHome h1 .word, #viewHome .sub, #viewHome .quote-mark, #viewHome .signature, #pageFooter'
-      );
-      hedefler.forEach(function(el){
-        el.style.animation = 'none';
-        el.style.opacity = '1';
-        el.style.filter = 'none';
-        el.style.transform = 'none';
-      });
-      const kural = document.querySelector('#viewHome .rule');
-      if(kural){ kural.style.width = '64px'; }
+    const widget = document.getElementById('anaKronoWidget');
+    const overlay = document.getElementById('kronometreOverlay');
+    const kapatBtn = document.getElementById('kronometreKapatBtn');
+    const baslatBtn = document.getElementById('kronometreBaslatBtn');
+    const sifirlaBtn = document.getElementById('kronometreSifirlaBtn');
+
+    const anaSaat = document.getElementById('anaKronoSaat');
+    const anaDakika = document.getElementById('anaKronoDakika');
+    const anaSaniye = document.getElementById('anaKronoSaniye');
+    const kSaat = document.getElementById('kronoSaat');
+    const kDakika = document.getElementById('kronoDakika');
+    const kSaniye = document.getElementById('kronoSaniye');
+
+    let calisiyor = false;
+    let baslangicZamani = 0;
+    let birikenMs = 0;
+    let araTimer = null;
+
+    function ikiHane(n){ return String(n).padStart(2, '0'); }
+
+    function goruntuyuGuncelle(){
+      const gecenMs = calisiyor ? (Date.now() - baslangicZamani) : birikenMs;
+      const toplamSn = Math.floor(gecenMs / 1000);
+      const saat = ikiHane(Math.floor(toplamSn / 3600));
+      const dakika = ikiHane(Math.floor((toplamSn % 3600) / 60));
+      const saniye = ikiHane(toplamSn % 60);
+      if(anaSaat){ anaSaat.textContent = saat; }
+      if(anaDakika){ anaDakika.textContent = dakika; }
+      if(anaSaniye){ anaSaniye.textContent = saniye; }
+      if(kSaat){ kSaat.textContent = saat; }
+      if(kDakika){ kDakika.textContent = dakika; }
+      if(kSaniye){ kSaniye.textContent = saniye; }
     }
 
-    // Sayfa arka plan belleğinden (bfcache) geri geldiğinde animasyonları
-    // beklemeden doğrudan tamamlanmış haline getir.
-    window.addEventListener('pageshow', function(e){
-      if(e.persisted){ anaSayfaHeroyuGorunurYap(); }
-    });
+    function baslat(){
+      if(calisiyor) return;
+      calisiyor = true;
+      baslangicZamani = Date.now() - birikenMs;
+      araTimer = setInterval(goruntuyuGuncelle, 250);
+      if(baslatBtn){ baslatBtn.textContent = 'Duraklat'; }
+      goruntuyuGuncelle();
+    }
+    function duraklat(){
+      if(!calisiyor) return;
+      calisiyor = false;
+      birikenMs = Date.now() - baslangicZamani;
+      if(araTimer){ clearInterval(araTimer); araTimer = null; }
+      if(baslatBtn){ baslatBtn.textContent = 'Başlat'; }
+      goruntuyuGuncelle();
+    }
+    function sifirla(){
+      birikenMs = 0;
+      baslangicZamani = Date.now();
+      goruntuyuGuncelle();
+    }
 
-    // Normal koşullarda giriş animasyonu ~3.5sn içinde biter; bu süre
-    // geçtiğinde hâlâ görünmeyen bir öğe varsa (takılı kalmışsa) zorla
-    // görünür yapılır. Animasyon zaten tamamlanmışsa bu işlemin görsel
-    // bir etkisi olmaz.
-    setTimeout(anaSayfaHeroyuGorunurYap, 3500);
+    if(baslatBtn){
+      baslatBtn.addEventListener('click', function(){
+        if(calisiyor){ duraklat(); } else { baslat(); }
+      });
+    }
+    if(sifirlaBtn){ sifirlaBtn.addEventListener('click', sifirla); }
+
+    function tamEkranAc(){
+      if(overlay){ overlay.classList.add('active'); }
+    }
+    function tamEkranKapat(){
+      if(overlay){ overlay.classList.remove('active'); }
+    }
+    if(widget){ widget.addEventListener('click', tamEkranAc); }
+    if(kapatBtn){ kapatBtn.addEventListener('click', tamEkranKapat); }
+
+    goruntuyuGuncelle();
   })();
+</script>
 
+<script>
   // ================= NAVBAR SCROLL BEHAVIOR =================
   (function(){
     const pill = document.getElementById('navPill');
@@ -7582,21 +7689,8 @@
             db.createObjectStore(DOSYA_STORE_ADI);
           }
         };
-        istek.onsuccess = function(){
-          const db = istek.result;
-          // Not: Ana ekrana eklenmiş (standalone) PWA'larda uygulama arka plana
-          // alınıp geri getirildiğinde iOS/Android bazen bu bağlantıyı sessizce
-          // kapatıyor (hiçbir hata fırlatmadan). Önbellekteki "ölü" bağlantı
-          // tekrar kullanılmaya devam edilirse sonraki transaction'lar sonsuza
-          // kadar asılı kalıyor (ne başarı ne hata). Bu yüzden kapanma/versiyon
-          // değişimi anında önbelleği sıfırlıyoruz ki bir sonraki çağrı taze bir
-          // bağlantı açsın.
-          db.onclose = function(){ dosyaDbSozu = null; };
-          db.onversionchange = function(){ try{ db.close(); }catch(e){} dosyaDbSozu = null; };
-          resolve(db);
-        };
-        istek.onerror = function(){ dosyaDbSozu = null; reject(istek.error); };
-        istek.onblocked = function(){ dosyaDbSozu = null; reject(new Error('IndexedDB açma engellendi')); };
+        istek.onsuccess = function(){ resolve(istek.result); };
+        istek.onerror = function(){ reject(istek.error); };
       });
       return dosyaDbSozu;
     }
@@ -7605,63 +7699,36 @@
       return 'dosya-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
     }
 
-    // Bağlantı bayatlamış olabileceğinden (bkz. yukarıdaki not), her işlemi bir
-    // zaman aşımı ile sarıyoruz. Süre dolarsa önbelleği temizleyip HATA veriyoruz;
-    // böylece arayan taraf (ör. Havuza Ekle butonu) sonsuza kadar asılı kalmak
-    // yerine tekrar denenebilir bir hata alıyor.
-    function dosyaIslemZamanAsimliCalistir(calistir){
+    function dosyaKaydet(id, blob){
       return dosyaDbAc().then(function(db){
         return new Promise(function(resolve, reject){
-          let bitti = false;
-          const zamanAsimi = setTimeout(function(){
-            if(bitti) return;
-            bitti = true;
-            dosyaDbSozu = null; // bağlantı muhtemelen ölü; bir sonraki denemede taze aç
-            reject(new Error('IndexedDB işlemi zaman aşımına uğradı'));
-          }, 6000);
-          function tamamla(fn){
-            return function(arg){
-              if(bitti) return;
-              bitti = true;
-              clearTimeout(zamanAsimi);
-              fn(arg);
-            };
-          }
-          try{
-            calistir(db, tamamla(resolve), tamamla(reject));
-          }catch(e){
-            tamamla(reject)(e);
-          }
+          const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
+          islem.objectStore(DOSYA_STORE_ADI).put(blob, id);
+          islem.oncomplete = function(){ resolve(); };
+          islem.onerror = function(){ reject(islem.error); };
         });
       });
     }
 
-    function dosyaKaydet(id, blob){
-      return dosyaIslemZamanAsimliCalistir(function(db, resolve, reject){
-        const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
-        islem.objectStore(DOSYA_STORE_ADI).put(blob, id);
-        islem.oncomplete = function(){ resolve(); };
-        islem.onerror = function(){ reject(islem.error); };
-        islem.onabort = function(){ reject(islem.error || new Error('IndexedDB işlemi iptal edildi')); };
-      });
-    }
-
     function dosyaOku(id){
-      return dosyaIslemZamanAsimliCalistir(function(db, resolve, reject){
-        const islem = db.transaction(DOSYA_STORE_ADI, 'readonly');
-        const istek = islem.objectStore(DOSYA_STORE_ADI).get(id);
-        istek.onsuccess = function(){ resolve(istek.result || null); };
-        istek.onerror = function(){ reject(istek.error); };
+      return dosyaDbAc().then(function(db){
+        return new Promise(function(resolve, reject){
+          const islem = db.transaction(DOSYA_STORE_ADI, 'readonly');
+          const istek = islem.objectStore(DOSYA_STORE_ADI).get(id);
+          istek.onsuccess = function(){ resolve(istek.result || null); };
+          istek.onerror = function(){ reject(istek.error); };
+        });
       });
     }
 
     function dosyaSil(id){
-      return dosyaIslemZamanAsimliCalistir(function(db, resolve, reject){
-        const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
-        islem.objectStore(DOSYA_STORE_ADI).delete(id);
-        islem.oncomplete = function(){ resolve(); };
-        islem.onerror = function(){ reject(islem.error); };
-        islem.onabort = function(){ reject(islem.error || new Error('IndexedDB işlemi iptal edildi')); };
+      return dosyaDbAc().then(function(db){
+        return new Promise(function(resolve, reject){
+          const islem = db.transaction(DOSYA_STORE_ADI, 'readwrite');
+          islem.objectStore(DOSYA_STORE_ADI).delete(id);
+          islem.oncomplete = function(){ resolve(); };
+          islem.onerror = function(){ reject(islem.error); };
+        });
       });
     }
 
@@ -7897,7 +7964,6 @@
     const bganimRow = document.getElementById('bganimRow');
     const yedekRow = document.getElementById('yedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
-    const hesapRow = document.getElementById('hesapRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
     const denemelerEyebrow = document.getElementById('denemelerEyebrow');
@@ -7983,7 +8049,6 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
-      hesapRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
@@ -8016,7 +8081,6 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
-      hesapRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
@@ -8029,7 +8093,6 @@
       bganimRow.classList.add('animate');
       yedekRow.classList.add('animate');
       sporModuRow.classList.add('animate');
-      hesapRow.classList.add('animate');
       });
     }
 
@@ -9708,13 +9771,9 @@
     function havuzYukle(){
       try{
         const ham = localStorage.getItem(HAVUZ_DEPOLAMA_ANAHTARI);
-        if(ham){
-          const ayristirilmis = JSON.parse(ham);
-          havuzVerileri = Array.isArray(ayristirilmis) ? ayristirilmis : [];
-        }
+        if(ham) havuzVerileri = JSON.parse(ham) || [];
       }catch(e){
         console.log('Soru havuzu okunamadı:', e);
-        havuzVerileri = [];
       }
     }
     havuzYukle();
@@ -9759,55 +9818,16 @@
       havuzEkleBtn.addEventListener('click', function(){ havuzGorselInput.click(); });
     }
 
-    // Kameradan/galeriden gelen görseller genelde birkaç MB olabiliyor; bunlar
-    // olduğu gibi saklanıp her senkronda buluta base64 olarak yeniden
-    // yüklenince "havuza ekle" ve "giriş" bekleme süreleri çok uzuyor (hatta
-    // büyük dosyalarda yükleme başarısız olup görsel hiç yedeklenmeyebiliyor).
-    // Bu yüzden kaydetmeden önce görseli makul bir boyuta küçültüp sıkıştırıyoruz.
-    function havuzGorseliSikistir(dosya){
-      return new Promise(function(resolve){
-        if(!dosya || !/^image\//.test(dosya.type) || dosya.type === 'image/gif'){ resolve(dosya); return; }
-        const MAKS_KENAR = 1600;
-        const KUCUK_ESIK_BAYT = 700 * 1024;
-        const url = URL.createObjectURL(dosya);
-        const img = new Image();
-        img.onload = function(){
-          URL.revokeObjectURL(url);
-          const genislik = img.naturalWidth, yukseklik = img.naturalHeight;
-          if(dosya.size <= KUCUK_ESIK_BAYT && genislik <= MAKS_KENAR && yukseklik <= MAKS_KENAR){
-            resolve(dosya); return;
-          }
-          try{
-            const oran = Math.min(1, MAKS_KENAR / Math.max(genislik, yukseklik));
-            const hedefGenislik = Math.max(1, Math.round(genislik * oran));
-            const hedefYukseklik = Math.max(1, Math.round(yukseklik * oran));
-            const canvas = document.createElement('canvas');
-            canvas.width = hedefGenislik;
-            canvas.height = hedefYukseklik;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, hedefGenislik, hedefYukseklik);
-            canvas.toBlob(function(blob){
-              resolve((blob && blob.size < dosya.size) ? blob : dosya);
-            }, 'image/jpeg', 0.78);
-          }catch(e){ resolve(dosya); }
-        };
-        img.onerror = function(){ URL.revokeObjectURL(url); resolve(dosya); };
-        img.src = url;
-      });
-    }
-
     if(havuzGorselInput){
       havuzGorselInput.addEventListener('change', function(){
         const dosya = havuzGorselInput.files && havuzGorselInput.files[0];
         havuzGorselInput.value = '';
         if(!dosya) return;
-        havuzGorseliSikistir(dosya).then(function(sikistirilmisDosya){
-          havuzSeciliDosya = sikistirilmisDosya;
-          havuzSeciliAlanEkle = 'TYT';
-          havuzSeciliBransEkle = null;
-          havuzSeciliCevapEkle = null;
-          havuzEkleModalAc();
-        });
+        havuzSeciliDosya = dosya;
+        havuzSeciliAlanEkle = 'TYT';
+        havuzSeciliBransEkle = null;
+        havuzSeciliCevapEkle = null;
+        havuzEkleModalAc();
       });
     }
 
@@ -9929,9 +9949,7 @@
         if(!havuzSeciliDosya || !havuzSeciliBransEkle) return;
         havuzEkleModalSave.disabled = true;
         const id = havuzSoruIdUret();
-        const kaydetFn = window.__sessizlikDosyaKaydet || dosyaKaydet;
-        kaydetFn(id, havuzSeciliDosya).then(function(){
-          if(!Array.isArray(havuzVerileri)) havuzVerileri = [];
+        dosyaKaydet(id, havuzSeciliDosya).then(function(){
           havuzVerileri.push({
             id: id,
             alan: havuzSeciliAlanEkle,
@@ -9947,8 +9965,6 @@
         }).catch(function(err){
           console.log('Soru kaydedilemedi:', err);
           havuzEkleModalSave.disabled = false;
-          const detay = (err && (err.name || err.message)) ? ('\n\nTeknik detay: ' + (err.name ? err.name + ' - ' : '') + (err.message || '')) : '';
-          alert('Soru kaydedilemedi, lütfen tekrar dene. (Uygulamayı bir süre arka planda bıraktıysan bu bazen olabilir; "Havuza Ekle" butonuna tekrar basman yeterli.)' + detay);
         });
       });
     }
@@ -13035,121 +13051,16 @@
     }
   })();
 
-  // ================= GİRİŞ / KAYIT + OTOMATİK SUPABASE SENKRONİZASYONU =================
-  // Uygulama ilk açıldığında tam ekran bir giriş/kayıt ekranı gösterir; kullanıcı
-  // Google hesabıyla giriş yaptıktan sonra bu tercih (Supabase Auth oturumu olarak)
-  // cihazda kalıcı şekilde saklanır ve bir daha sorulmaz. Veriler (localStorage +
-  // IndexedDB'deki görsel/dosyalar) arka planda, buton gerektirmeden, Supabase'deki
-  // "yedekler" tablosu ve "dosyalar" storage bucket'ıyla senkronize edilir.
-  // Kullanıcıya Ayarlar'daki hesap satırında küçük bir durum noktası/metniyle
-  // (senkronize ediliyor / güncel / hata) bilgi verilir.
+  // ================= GİRİŞ EKRANI (tamamen yerel, hesap/senkron yok) =================
+  // Uygulama ilk açıldığında tam ekran bir karşılama ekranı gösterir; kullanıcı
+  // "Devam Et" düğmesine bastığında bu tercih yalnızca bu cihazda hatırlanır ve
+  // bir daha sorulmaz. Hiçbir hesap girişi, bulut senkronizasyonu ya da ağ
+  // isteği yoktur — tüm veriler cihazda (localStorage + IndexedDB) kalır.
   (function(){
-    const SUPABASE_URL = 'https://swwxerdzcmuctsdrvkcl.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_S9DKOqViowCoo6VlhEazhQ_NQAU9hdi';
-    const TABLO_ADI = 'yedekler';
-    const DOSYA_BUCKET = 'dosyalar';
-    const MISAFIR_ANAHTARI = 'sessizlik-misafir';
-    const BILINEN_GUNCELLEME_ANAHTARI = 'sessizlik-bilinen-guncelleme';
-    const CIHAZ_KIMLIK_ANAHTARI = 'sessizlik-cihaz-kimlik';
-    const OTO_YUKLEME_GECIKME_MS = 1200;
-    const PERIYODIK_SENKRON_MS = 60000;
-    // Bu anahtarlar saf yerel muhasebe verisidir; buluta senkronize edilecek
-    // "veri" paketine dahil edilmemeli (aksi halde cihazlar birbirinin yerel
-    // durumunu ezmeye çalışır).
-    const HARIC_TUTULAN_ANAHTARLAR = [MISAFIR_ANAHTARI, BILINEN_GUNCELLEME_ANAHTARI, CIHAZ_KIMLIK_ANAHTARI];
-
-    // Her cihaza kalıcı, rastgele bir kimlik veriyoruz. Bu kimlik buluta
-    // yazılan her satıra eklenir; Realtime'dan bir güncelleme geldiğinde
-    // "bu yazmayı biz mi yaptık" sorusu zaman damgası karşılaştırmasına değil
-    // (race koşuluna açık), doğrudan bu kimliğe bakılarak cevaplanır. Böylece
-    // cihazın kendi yazdığı veriyi "başka bir cihazdan geldi" sanıp kendi
-    // kendine sayfayı yenilemesi (self-echo döngüsü) engellenir.
-    function cihazKimligiAl(){
-      try{
-        let kimlik = localStorage.getItem(CIHAZ_KIMLIK_ANAHTARI);
-        if(!kimlik){
-          kimlik = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('cihaz-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-          localStorage.setItem(CIHAZ_KIMLIK_ANAHTARI, kimlik);
-        }
-        return kimlik;
-      }catch(e){
-        return 'cihaz-gecici-' + Math.random().toString(36).slice(2);
-      }
-    }
-    const CIHAZ_KIMLIK = cihazKimligiAl();
-
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.__sessizlikSupabase = sb;
+    const GIRIS_ANAHTARI = 'sessizlik-giris-tamam';
 
     const overlay = document.getElementById('girisEkraniOverlay');
-    const girisBtn = document.getElementById('girisGoogleBtn');
-    const girisMisafirBtn = document.getElementById('girisMisafirBtn');
-    const durumEl = document.getElementById('girisDurumMetin');
-    const hesapAdEl = document.getElementById('hesapAdSoyad');
-    const hesapEpostaEl = document.getElementById('hesapEposta');
-    const hesapAvatarEl = document.getElementById('hesapAvatar');
-    const hesapAvatarYerEl = document.getElementById('hesapAvatarYer');
-    const cikisBtn = document.getElementById('hesapCikisBtn');
-    const senkronDurumBtn = document.getElementById('senkronDurum');
-    const senkronMetinEl = document.getElementById('senkronDurumMetin');
-    const cakismaOverlay = document.getElementById('hesapCakismaModalOverlay');
-    const cakismaBulutBtn = document.getElementById('hesapCakismaBulutBtn');
-    const cakismaYerelBtn = document.getElementById('hesapCakismaYerelBtn');
-    const cakismaVazgecBtn = document.getElementById('hesapCakismaVazgecBtn');
-    const cakismaDurumEl = document.getElementById('hesapCakismaDurumMetin');
-
-    function durumGoster(metin){
-      if(!durumEl) return;
-      durumEl.textContent = metin || '';
-      durumEl.style.display = metin ? '' : 'none';
-    }
-
-    function senkronDurumAyarla(durum, metin){
-      if(senkronDurumBtn){
-        senkronDurumBtn.classList.remove('durum-calisiyor', 'durum-ok', 'durum-hata');
-        if(durum){ senkronDurumBtn.classList.add('durum-' + durum); }
-      }
-      if(senkronMetinEl){ senkronMetinEl.textContent = metin || ''; }
-    }
-
-    function goreliZaman(zamanDamgasi){
-      if(!zamanDamgasi) return null;
-      const farkSn = Math.max(0, Math.round((Date.now() - zamanDamgasi) / 1000));
-      if(farkSn < 30) return 'az önce';
-      if(farkSn < 60) return farkSn + ' sn önce';
-      const farkDk = Math.round(farkSn / 60);
-      if(farkDk < 60) return farkDk + ' dk önce';
-      const farkSaat = Math.round(farkDk / 60);
-      if(farkSaat < 24) return farkSaat + ' sa önce';
-      return Math.round(farkSaat / 24) + ' gün önce';
-    }
-
-    let sonSenkronZamani = null;
-    function senkronGuncelDurumuGoster(){
-      if(sonSenkronZamani){ senkronDurumAyarla('ok', 'Güncel · ' + goreliZaman(sonSenkronZamani) + ' senkronize edildi'); }
-      else{ senkronDurumAyarla('', 'Senkronizasyon bekleniyor'); }
-    }
-    setInterval(function(){ if(sonSenkronZamani) senkronGuncelDurumuGoster(); }, 30000);
-
-    function misafirMi(){
-      try{ return localStorage.getItem(MISAFIR_ANAHTARI) === '1'; }catch(e){ return false; }
-    }
-    function misafirOlarakAyarla(){
-      try{ localStorage.setItem(MISAFIR_ANAHTARI, '1'); }catch(e){}
-    }
-    function misafirlikTemizle(){
-      try{ localStorage.removeItem(MISAFIR_ANAHTARI); }catch(e){}
-    }
-
-    function bilinenGuncellemeOku(){
-      try{ return localStorage.getItem(BILINEN_GUNCELLEME_ANAHTARI); }catch(e){ return null; }
-    }
-    function bilinenGuncellemeYaz(v){
-      try{ localStorage.setItem(BILINEN_GUNCELLEME_ANAHTARI, v || ''); }catch(e){}
-    }
-    function bilinenGuncellemeSil(){
-      try{ localStorage.removeItem(BILINEN_GUNCELLEME_ANAHTARI); }catch(e){}
-    }
+    const devamBtn = document.getElementById('girisDevamBtn');
 
     function ekraniGizle(){
       if(overlay){ overlay.classList.remove('active'); }
@@ -13160,541 +13071,26 @@
       document.documentElement.classList.add('giris-bekleniyor');
     }
 
-    // Hesap bilgisini (Google adı/e-postası/fotoğrafı) ekrana uygular.
-    // user === null ise "Misafir Hesabı" görünümü gösterilir.
-    function hesapBilgisiniUygula(user){
-      if(cikisBtn){ cikisBtn.textContent = user ? 'Çıkış Yap' : 'Giriş Yap'; }
-      if(senkronDurumBtn){ senkronDurumBtn.style.display = user ? '' : 'none'; }
-      if(!user){
-        if(hesapAdEl){ hesapAdEl.textContent = 'Misafir Hesabı'; }
-        if(hesapEpostaEl){ hesapEpostaEl.textContent = 'Senkronizasyon kapalı'; }
-        if(hesapAvatarEl){ hesapAvatarEl.style.display = 'none'; hesapAvatarEl.removeAttribute('src'); }
-        if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; hesapAvatarYerEl.textContent = 'M'; }
-        return;
-      }
-      const meta = user.user_metadata || {};
-      const ad = meta.full_name || meta.name || '';
-      const eposta = user.email || '';
-      const resim = meta.avatar_url || meta.picture || '';
-      if(hesapAdEl){ hesapAdEl.textContent = ad || 'Google Hesabı'; }
-      if(hesapEpostaEl){ hesapEpostaEl.textContent = eposta; }
-      const harfKaynagi = (ad || eposta || '').trim().charAt(0);
-      if(hesapAvatarYerEl){ hesapAvatarYerEl.textContent = harfKaynagi ? harfKaynagi.toUpperCase() : 'G'; }
-      if(hesapAvatarEl){
-        if(resim){
-          hesapAvatarEl.onerror = function(){
-            hesapAvatarEl.style.display = 'none';
-            hesapAvatarEl.onerror = null;
-            if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
-          };
-          hesapAvatarEl.src = resim;
-          hesapAvatarEl.style.display = '';
-          if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = 'none'; }
-        } else {
-          hesapAvatarEl.style.display = 'none';
-          if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
-        }
-      }
+    function girisTamamlandiMi(){
+      try{ return localStorage.getItem(GIRIS_ANAHTARI) === '1'; }catch(e){ return false; }
+    }
+    function girisTamamlandiIsaretle(){
+      try{ localStorage.setItem(GIRIS_ANAHTARI, '1'); }catch(e){}
     }
 
-    // ================= VERİ PAKETİ (localStorage <-> jsonb) =================
-    function veriPaketiOlustur(){
-      const veri = {};
-      for(let i = 0; i < localStorage.length; i++){
-        const anahtar = localStorage.key(i);
-        if(HARIC_TUTULAN_ANAHTARLAR.indexOf(anahtar) !== -1) continue;
-        veri[anahtar] = localStorage.getItem(anahtar);
-      }
-      return veri;
-    }
-    function veriPaketiniUygula(veri){
-      if(!veri || typeof veri !== 'object') return;
-      Object.keys(veri).forEach(function(anahtar){
-        if(HARIC_TUTULAN_ANAHTARLAR.indexOf(anahtar) !== -1) return;
-        const deger = veri[anahtar];
-        try{ localStorage.setItem(anahtar, typeof deger === 'string' ? deger : JSON.stringify(deger)); }catch(e){}
-      });
-    }
-
-    // ================= DOSYA/GÖRSEL SENKRONU (IndexedDB <-> Supabase Storage) =================
-    function dosyalariBulutaYukle(kullaniciId){
-      if(!window.__sessizlikDosyaTumIcerigiAl) return Promise.resolve();
-      return window.__sessizlikDosyaTumIcerigiAl().then(function(dosyalar){
-        const idler = Object.keys(dosyalar || {});
-        return Promise.all(idler.map(function(id){
-          const blob = dosyalar[id];
-          return sb.storage.from(DOSYA_BUCKET).upload(kullaniciId + '/' + id, blob, {
-            upsert: true,
-            contentType: (blob && blob.type) || 'application/octet-stream'
-          }).then(function(sonuc){
-            if(sonuc.error) throw sonuc.error;
-          });
-        }));
-      });
-    }
-    function dosyalariBuluttanIndir(kullaniciId){
-      if(!window.__sessizlikDosyaKaydet) return Promise.resolve();
-      return sb.storage.from(DOSYA_BUCKET).list(kullaniciId, { limit: 1000 }).then(function(sonuc){
-        if(sonuc.error) throw sonuc.error;
-        const liste = sonuc.data || [];
-        return Promise.all(liste.map(function(dosya){
-          return sb.storage.from(DOSYA_BUCKET).download(kullaniciId + '/' + dosya.name).then(function(indirilen){
-            if(indirilen.error || !indirilen.data) return;
-            return window.__sessizlikDosyaKaydet(dosya.name, indirilen.data);
-          }).catch(function(){});
-        }));
-      });
-    }
-
-    // ================= YÜKLE / İNDİR (yedekler tablosu) =================
-    // Anahtar sırasından bağımsız, kararlı bir JSON gösterimi üretir. localStorage
-    // taramasıyla elde edilen anahtar sırası, Supabase'den geri gelen "veri" nesnesinin
-    // anahtar sırasıyla birebir aynı olmayabilir; sıradan etkilenen bir JSON.stringify
-    // karşılaştırması bu yüzden veri gerçekte AYNI olsa bile "değişti" sanabiliyor ve
-    // gereksiz buluta yazmaya, dolayısıyla diğer cihazlarda gereksiz yenilemeye yol açabiliyor.
-    function kararliJSON(nesne){
-      const anahtarlar = Object.keys(nesne || {}).sort();
-      const siraliNesne = {};
-      anahtarlar.forEach(function(k){ siraliNesne[k] = nesne[k]; });
-      return JSON.stringify(siraliNesne);
-    }
-    // Son buluta yazılan veri paketinin anlık görüntüsü (kararlı JSON). Veri
-    // değişmediyse periyodik döngünün gereksiz yere buluta yazıp diğer cihazlarda
-    // "yeni güncelleme var" sinyali doğurmasını (ve dolayısıyla o cihazlarda
-    // gereksiz yenilemeyi) engellemek için kullanılır.
-    let sonBilinenVeriJSON = null;
-    function bulutaYukle(kullaniciId, zorla){
-      const veri = veriPaketiOlustur();
-      const veriJSON = kararliJSON(veri);
-      if(!zorla && sonBilinenVeriJSON !== null && veriJSON === sonBilinenVeriJSON){
-        // Veri son senkrondan beri değişmemiş: ağ isteği yapmaya gerek yok.
-        sonSenkronZamani = Date.now();
-        senkronGuncelDurumuGoster();
-        return Promise.resolve(bilinenGuncellemeOku());
-      }
-      return dosyalariBulutaYukle(kullaniciId).then(function(){
-        return sb.from(TABLO_ADI)
-          .upsert({ user_id: kullaniciId, veri: veri, cihaz_id: CIHAZ_KIMLIK }, { onConflict: 'user_id' })
-          .select('updated_at')
-          .single();
-      }).then(function(sonuc){
-        if(sonuc.error) throw sonuc.error;
-        const guncelleme = sonuc.data ? sonuc.data.updated_at : null;
-        if(guncelleme){ bilinenGuncellemeYaz(guncelleme); }
-        sonBilinenVeriJSON = veriJSON;
-        sonSenkronZamani = Date.now();
-        senkronGuncelDurumuGoster();
-        return guncelleme;
-      });
-    }
-
-    function buluttanSatirGetir(kullaniciId){
-      return sb.from(TABLO_ADI).select('veri,updated_at').eq('user_id', kullaniciId).maybeSingle().then(function(sonuc){
-        if(sonuc.error) throw sonuc.error;
-        return sonuc.data; // null ya da { veri, updated_at }
-      });
-    }
-
-    function buluttanIndir(kullaniciId, satir){
-      veriPaketiniUygula(satir.veri);
-      sonBilinenVeriJSON = kararliJSON(satir.veri || {});
-      return dosyalariBuluttanIndir(kullaniciId).then(function(){
-        bilinenGuncellemeYaz(satir.updated_at);
-        sonSenkronZamani = Date.now();
-      });
-    }
-
-    // ================= OTOMATİK SENKRONİZASYON (buton yok, tamamen arka planda) =================
-    let senkronSurmekte = false;
-    function senkronEt(){
-      return sb.auth.getSession().then(function(sonuc){
-        const oturum = sonuc && sonuc.data && sonuc.data.session;
-        if(!oturum || misafirMi()) return;
-        if(senkronSurmekte) return;
-        senkronSurmekte = true;
-        senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-        return bulutaYukle(oturum.user.id).catch(function(err){
-          console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
-          const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
-          senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
-        }).finally(function(){ senkronSurmekte = false; });
-      });
-    }
-
-    let otoYuklemeZamanlayici = null;
-    function otoYuklemeZamanla(){
-      if(otoYuklemeZamanlayici){ clearTimeout(otoYuklemeZamanlayici); }
-      otoYuklemeZamanlayici = setTimeout(senkronEt, OTO_YUKLEME_GECIKME_MS);
-    }
-
-    // dosyaKaydet çağrıldığında (bir görsel/dosya IndexedDB'ye kaydedildiğinde)
-    // otomatik yüklemeyi tetiklemek için mevcut global fonksiyonu sarmalıyoruz.
-    if(window.__sessizlikDosyaKaydet){
-      const orijinalDosyaKaydet = window.__sessizlikDosyaKaydet;
-      window.__sessizlikDosyaKaydet = function(id, blob){
-        return orijinalDosyaKaydet(id, blob).then(function(sonuc){
-          otoYuklemeZamanla();
-          return sonuc;
-        });
-      };
-    }
-
-    // Uygulama arka plana alındığında / kapatılmadan hemen önce de senkronize et,
-    // böylece kullanıcı manuel bir "yedekle" butonuna hiç ihtiyaç duymaz.
-    document.addEventListener('visibilitychange', function(){
-      if(document.visibilityState === 'hidden'){ senkronEt(); }
-    });
-    window.addEventListener('pagehide', function(){ senkronEt(); });
-    setInterval(senkronEt, PERIYODIK_SENKRON_MS);
-
-    if(senkronDurumBtn){
-      senkronDurumBtn.addEventListener('click', function(){
-        // Sayfa yenileme YALNIZCA bu butona basıldığında olur — otomatik/arka
-        // plan senkronizasyon hiçbir zaman sayfayı yenilemez. Her tıklamada
-        // tam olarak bir kez yenilenir; işlem bitmeden ikinci bir tıklamayla
-        // ikinci bir yenileme tetiklenmesin diye buton geçici olarak kilitlenir.
-        if(senkronDurumBtn.disabled) return;
-        senkronDurumBtn.disabled = true;
-
-        // Bekleyen (başka bir cihazdan gelmiş ama henüz uygulanmamış) bir
-        // güncelleme varsa, butona basıldığında ÖNCE onu uygula.
-        if(bekleyenUzakGuncelleme){
-          const gecis = bekleyenUzakGuncelleme;
-          bekleyenUzakGuncelleme = null;
-          senkronDurumAyarla('calisiyor', 'Güncelleniyor…');
-          buluttanIndir(gecis.kullaniciId, gecis.satir).then(function(){
-            window.location.reload();
-          }).catch(function(err){
-            console.error('[Sessizlik Senkron] Güncelleme uygulanamadı:', err);
-            const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
-            senkronDurumAyarla('hata', 'Güncelleme uygulanamadı' + detay);
-            bekleyenUzakGuncelleme = gecis; // tekrar denenebilsin diye geri koy
-            senkronDurumBtn.disabled = false;
-          });
-          return;
-        }
-
-        // Bekleyen bir güncelleme yoksa: verileri buluta yükle, ardından
-        // sayfayı bir kez yenile.
-        senkronEt().then(function(){
-          window.location.reload();
-        }).catch(function(){
-          senkronDurumBtn.disabled = false;
-        });
-      });
-    }
-
-    // ---- Açılışta: buluttaki bu cihazın bilmediği daha yeni bir sürüm varsa
-    // sessizce indirip geri yükler ----
-    function acilistaKontrolEt(kullaniciId){
-      senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-      buluttanSatirGetir(kullaniciId).then(function(satir){
-        if(!satir){ sonSenkronZamani = Date.now(); senkronGuncelDurumuGoster(); return; }
-        const bilinen = bilinenGuncellemeOku();
-        if(bilinen && new Date(satir.updated_at).getTime() <= new Date(bilinen).getTime()){
-          sonSenkronZamani = Date.now();
-          senkronGuncelDurumuGoster();
-          return;
-        }
-        // Buluttaki bu cihazın bilmediği daha yeni bir sürüm var. Otomatik
-        // olarak indirip sayfayı yenilemek yerine yalnızca bekleyen bir
-        // güncelleme olarak işaretliyoruz; indirme ve yenileme SADECE
-        // kullanıcı Ayarlar'daki senkron butonuna bastığında yapılır.
-        bekleyenUzakGuncelleme = { kullaniciId: kullaniciId, satir: satir };
-        senkronDurumAyarla('bekliyor', 'Başka bir cihazdan yeni veriler var · güncellemek için dokun');
-      }).catch(function(err){
-        console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
-        const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
-      });
-    }
-
-    // ---- Realtime: başka bir cihaz senkron yaptığı anda bu cihaz da haberdar olsun ----
-    // ÖNEMLİ: Burada artık veriyi OTOMATİK indirip uygulamıyoruz. Kullanıcı
-    // uygulamayı aktif kullanırken beklenmedik şekilde sıfırlanmasın diye,
-    // sadece "yeni bir güncelleme var" bilgisini bekletiyoruz. Bu güncelleme
-    // yalnızca (a) kullanıcı Ayarlar'daki senkronizasyon butonuna bastığında
-    // ya da (b) uygulama bir sonraki açılışında (acilistaKontrolEt) uygulanır.
-    let bekleyenUzakGuncelleme = null;
-    let realtimeKanal = null;
-    function realtimeBaslat(kullaniciId){
-      if(realtimeKanal || misafirMi()) return;
-      realtimeKanal = sb.channel('yedekler-degisiklik-' + kullaniciId)
-        .on('postgres_changes', {
-          event: 'UPDATE', schema: 'public', table: TABLO_ADI, filter: 'user_id=eq.' + kullaniciId
-        }, function(payload){
-          const yeniSatir = payload && payload.new;
-          const yeniGuncelleme = yeniSatir && yeniSatir.updated_at;
-          if(!yeniGuncelleme || senkronSurmekte) return;
-          // Self-echo koruması: bu güncellemeyi buluta yazan cihaz kendimizsek
-          // (zaman damgası ne olursa olsun, race koşuluna bakılmaksızın) yok say.
-          if(yeniSatir.cihaz_id && yeniSatir.cihaz_id === CIHAZ_KIMLIK) return;
-          const bilinen = bilinenGuncellemeOku();
-          if(bilinen && new Date(yeniGuncelleme).getTime() <= new Date(bilinen).getTime()) return;
-          // Sadece bekleyen güncelleme olarak işaretle; localStorage'a hiç
-          // dokunulmaz ve sayfa yenilenmez. Kullanıcı senkron butonuna basana
-          // ya da uygulamayı yeniden açana kadar bu şekilde bekler.
-          bekleyenUzakGuncelleme = { kullaniciId: kullaniciId, satir: yeniSatir };
-          senkronDurumAyarla('bekliyor', 'Başka bir cihazdan yeni veriler var · güncellemek için dokun');
-        })
-        .subscribe();
-    }
-
-    // ================= GİRİŞ / MİSAFİR BUTONLARI =================
-    if(girisBtn){
-      girisBtn.addEventListener('click', function(){
-        girisBtn.disabled = true;
-        durumGoster('Google hesabına bağlanılıyor…');
-        sb.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: window.location.origin + window.location.pathname }
-        }).then(function(sonuc){
-          if(sonuc.error){
-            durumGoster(sonuc.error.message || 'Google girişi tamamlanamadı.');
-            girisBtn.disabled = false;
-          }
-          // Başarılıysa sayfa zaten Google'a yönlendiriliyor.
-        }).catch(function(err){
-          durumGoster((err && err.message) ? err.message : 'Google girişi tamamlanamadı.');
-          girisBtn.disabled = false;
-        });
-      });
-    }
-
-    if(girisMisafirBtn){
-      girisMisafirBtn.addEventListener('click', function(){
-        misafirOlarakAyarla();
-        hesapBilgisiniUygula(null);
-        durumGoster('');
+    if(devamBtn){
+      devamBtn.addEventListener('click', function(){
+        girisTamamlandiIsaretle();
         ekraniGizle();
-        // Misafir olarak devam edilince senkronizasyon başlatılmaz; veriler
-        // yalnızca cihazda tutulur, eski usül dışa/içe aktarma çalışmaya devam eder.
       });
     }
 
-    // ================= MİSAFİRDEN HESABA GEÇİŞ: BULUT/YEREL ÇAKIŞMA MODALI =================
-    let bekleyenHesapGecisi = null;
-
-    function cakismaDurumGoster(metin){
-      if(!cakismaDurumEl) return;
-      cakismaDurumEl.textContent = metin || '';
-      cakismaDurumEl.style.display = metin ? '' : 'none';
+    if(girisTamamlandiMi()){
+      ekraniGizle();
+    } else {
+      ekraniGoster();
     }
-    function cakismaBtnDurumu(devreDisi){
-      if(cakismaBulutBtn){ cakismaBulutBtn.disabled = devreDisi; }
-      if(cakismaYerelBtn){ cakismaYerelBtn.disabled = devreDisi; }
-      if(cakismaVazgecBtn){ cakismaVazgecBtn.disabled = devreDisi; }
-    }
-    function cakismaModaluKapat(){
-      if(cakismaOverlay){ cakismaOverlay.classList.remove('active'); }
-      cakismaDurumGoster('');
-      cakismaBtnDurumu(false);
-      bekleyenHesapGecisi = null;
-    }
-
-    if(cakismaBulutBtn){
-      cakismaBulutBtn.addEventListener('click', function(){
-        if(!bekleyenHesapGecisi) return;
-        const gecis = bekleyenHesapGecisi;
-        cakismaBtnDurumu(true);
-        cakismaDurumGoster('Hesabınızdaki veriler yükleniyor…');
-        buluttanIndir(gecis.kullaniciId, gecis.satir).then(function(){
-          misafirlikTemizle();
-          window.location.reload();
-        }).catch(function(err){
-          cakismaDurumGoster((err && err.message) ? err.message : 'Veriler geri yüklenirken bir sorun oluştu.');
-          cakismaBtnDurumu(false);
-        });
-      });
-    }
-    if(cakismaYerelBtn){
-      cakismaYerelBtn.addEventListener('click', function(){
-        if(!bekleyenHesapGecisi) return;
-        const gecis = bekleyenHesapGecisi;
-        cakismaBtnDurumu(true);
-        cakismaDurumGoster('Cihazınızdaki veriler yükleniyor…');
-        bulutaYukle(gecis.kullaniciId).then(function(){
-          misafirlikTemizle();
-          window.location.reload();
-        }).catch(function(err){
-          cakismaDurumGoster((err && err.message) ? err.message : 'Veriler yüklenirken bir sorun oluştu.');
-          cakismaBtnDurumu(false);
-        });
-      });
-    }
-    if(cakismaVazgecBtn){
-      cakismaVazgecBtn.addEventListener('click', function(){
-        cakismaModaluKapat();
-        sb.auth.signOut().catch(function(){});
-      });
-    }
-    if(cakismaOverlay){
-      cakismaOverlay.addEventListener('click', function(e){
-        if(e.target === cakismaOverlay){
-          cakismaModaluKapat();
-          sb.auth.signOut().catch(function(){});
-        }
-      });
-    }
-
-    // ================= ÇIKIŞ / MİSAFİRKEN "GİRİŞ YAP" =================
-    if(cikisBtn){
-      cikisBtn.addEventListener('click', function(){
-        if(misafirMi()){
-          cikisBtn.disabled = true;
-          sb.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.origin + window.location.pathname }
-          }).then(function(sonuc){
-            if(sonuc.error){
-              window.alert(sonuc.error.message || 'Google girişi tamamlanamadı.');
-              cikisBtn.disabled = false;
-            }
-          }).catch(function(err){
-            window.alert((err && err.message) ? err.message : 'Google girişi tamamlanamadı.');
-            cikisBtn.disabled = false;
-          });
-          return;
-        }
-        const onay = window.confirm('Hesabından çıkış yapmak istediğine emin misin? Bir sonraki açılışta tekrar giriş yapman istenecek.');
-        if(!onay) return;
-        if(realtimeKanal){ sb.removeChannel(realtimeKanal); realtimeKanal = null; }
-        sb.auth.signOut().then(function(){
-          bilinenGuncellemeSil();
-          window.location.reload();
-        });
-      });
-    }
-
-    // ================= TAM KAPANIŞ SONRASI YENİDEN GİRİŞ ZORUNLULUĞU =================
-    // Uygulama sadece arka plana alındığında (sekme değişimi, kısa süreliğine
-    // ayrılma, "sessiz yenileme" gibi içeriden gelen reload() çağrıları) tekrar
-    // giriş istemeye GEREK YOK — süreç hâlâ hayattaysa kullanıcı rahatsız
-    // edilmemeli. Ama uygulama komple kapatılıp (işletim sistemi/PWA süreci
-    // sonlandırılıp) yeniden açıldığında, yani gerçekten "taze" bir başlangıçta,
-    // oturumu kapatıp kullanıcıdan tekrar giriş yapmasını istiyoruz. Bu hem
-    // sürekli kendi kendine yenilenme sorununu (hangi sebepten kaynaklanırsa
-    // kaynaklansın) her taze açılışta baştan temizleyerek çözüyor, hem de
-    // girişte veriler buluttan tertemiz şekilde yeniden yükleniyor.
-    //
-    // AYIRT ETME YÖNTEMİ: sessionStorage bir sekmenin/uygulamanın süreci komple
-    // sonlandığında temizlenir; sayfa içi window.location.reload() çağrılarında
-    // ya da arka plan/ön plana geçişlerde (süreç canlı kaldığı sürece) KORUNUR.
-    // Bu yüzden burada bir işaret bırakıyoruz: işaret yoksa bu "taze açılış"tır.
-    const TAZE_ACILIS_ANAHTARI = 'sessizlik-surec-aktif';
-    let tazeAcilisMi = false;
-    try{
-      tazeAcilisMi = !sessionStorage.getItem(TAZE_ACILIS_ANAHTARI);
-      sessionStorage.setItem(TAZE_ACILIS_ANAHTARI, '1');
-    }catch(e){}
-
-    // ================= OTURUM DURUMU DİNLEYİCİSİ =================
-    // 'INITIAL_SESSION': sayfa ilk açıldığında zaten kalıcı bir oturum varsa (ya
-    // da yoksa) bir kez tetiklenir. 'SIGNED_IN': yeni bir giriş tamamlandığında
-    // (Google'dan dönüşte) tetiklenir — misafirden geçiş de dahil.
-    //
-    // ÖNEMLİ: Supabase, 'SIGNED_IN' olayını yalnızca gerçek bir girişte değil,
-    // sekme/uygulama ön plana her geldiğinde ya da erişim jetonu (access token)
-    // arka planda yenilendiğinde de TEKRAR tetikleyebiliyor. Bu olay her
-    // tetiklendiğinde veriyi yeniden indirip sayfayı yenilemek, kullanıcı
-    // uygulamayı her ön plana getirdiğinde beklenmedik bir sıfırlanmaya yol
-    // açıyordu — bu, önceki realtime/otomatik-indirme düzeltmelerinden bağımsız,
-    // ayrı bir kaynaktı. Bu yüzden "taze giriş" akışını yalnızca bu sayfa
-    // yüklemesinde daha önce hiç işlenmemişse çalıştırıyoruz; sonraki tekrar
-    // tetiklenmelerde (aynı kullanıcı için) veri indirme/yenileme yapılmaz.
-    let oturumBaslatildi = false;
-    sb.auth.onAuthStateChange(function(event, session){
-      if(event === 'INITIAL_SESSION'){
-        if(session && session.user && tazeAcilisMi){
-          // Uygulama komple kapatılıp yeniden açılmış: mevcut oturumu kapat,
-          // kullanıcıdan tekrar giriş yapmasını iste. Arka plandan dönüşlerde
-          // bu koşula hiç girilmez (sessionStorage o durumda hâlâ set'lidir).
-          if(realtimeKanal){ sb.removeChannel(realtimeKanal); realtimeKanal = null; }
-          sb.auth.signOut().catch(function(){}).then(function(){
-            bilinenGuncellemeSil();
-            hesapBilgisiniUygula(null);
-            ekraniGoster();
-            durumGoster('Devam etmek için tekrar giriş yapman gerekiyor.');
-          });
-          return;
-        }
-        if(session && session.user){
-          misafirlikTemizle();
-          hesapBilgisiniUygula(session.user);
-          ekraniGizle();
-          senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
-          acilistaKontrolEt(session.user.id);
-          realtimeBaslat(session.user.id);
-          oturumBaslatildi = true;
-        } else if(misafirMi()){
-          hesapBilgisiniUygula(null);
-          ekraniGizle();
-        } else {
-          ekraniGoster();
-        }
-        return;
-      }
-
-      if(event === 'SIGNED_IN' && session && session.user){
-        const kullaniciId = session.user.id;
-
-        // Bu oturum bu sayfa yüklemesinde daha önce zaten başlatıldıysa
-        // (INITIAL_SESSION ya da önceki bir SIGNED_IN ile), bu yalnızca
-        // Supabase'in jeton yenileme/odak sırasında tekrar gönderdiği bir
-        // olay — veriye dokunma, sayfayı yenileme; sadece hesap bilgisini
-        // ve realtime kanalını güncel tut.
-        if(oturumBaslatildi){
-          hesapBilgisiniUygula(session.user);
-          realtimeBaslat(kullaniciId);
-          return;
-        }
-
-        const misafirdenGeliyor = misafirMi();
-        if(!misafirdenGeliyor){ durumGoster('Hesap bilgileri alınıyor…'); }
-        buluttanSatirGetir(kullaniciId).then(function(satir){
-          if(misafirdenGeliyor){
-            if(satir){
-              // Misafirken kayıtlı bir bulut yedeği bulundu: kullanıcıya sor.
-              bekleyenHesapGecisi = { kullaniciId: kullaniciId, satir: satir };
-              cakismaDurumGoster('');
-              cakismaBtnDurumu(false);
-              if(cakismaOverlay){ cakismaOverlay.classList.add('active'); }
-              durumGoster('');
-              hesapBilgisiniUygula(session.user);
-              oturumBaslatildi = true;
-            } else {
-              misafirlikTemizle();
-              hesapBilgisiniUygula(session.user);
-              ekraniGizle();
-              durumGoster('');
-              senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-              bulutaYukle(kullaniciId).then(function(){ realtimeBaslat(kullaniciId); });
-              oturumBaslatildi = true;
-            }
-            return;
-          }
-          // Taze giriş (misafirden geçiş değil).
-          hesapBilgisiniUygula(session.user);
-          if(satir){
-            durumGoster('Verileriniz yükleniyor…');
-            return buluttanIndir(kullaniciId, satir).then(function(){
-              oturumBaslatildi = true;
-              window.location.reload();
-            });
-          }
-          ekraniGizle();
-          durumGoster('');
-          senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-          oturumBaslatildi = true;
-          return bulutaYukle(kullaniciId).then(function(){ realtimeBaslat(kullaniciId); });
-        }).catch(function(err){
-          durumGoster((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
-          if(girisBtn){ girisBtn.disabled = false; }
-        });
-      }
-    });
   })();
-
 
   // ================= SPOR MODU: tam ekran, ayrı bir uygulamaya geçmiş gibi =================
   (function(){
@@ -15110,7 +14506,7 @@
 
   // ================= ARKA PLAN KİLİDİ: herhangi bir pop-up/kayar pencere açıkken arka plan kaydırılamasın =================
   (function(){
-    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active';
+    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-overlay.active';
     let kilitliKonum = 0;
     let kilitliMi = false;
 
@@ -15150,7 +14546,7 @@
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
     }
 
-    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay');
+    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-overlay');
     if(izlenecekOverlayler.length){
       const gozlemci = new MutationObserver(durumuKontrolEt);
       izlenecekOverlayler.forEach(function(el){
