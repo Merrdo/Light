@@ -13050,12 +13050,33 @@
     const DOSYA_BUCKET = 'dosyalar';
     const MISAFIR_ANAHTARI = 'sessizlik-misafir';
     const BILINEN_GUNCELLEME_ANAHTARI = 'sessizlik-bilinen-guncelleme';
+    const CIHAZ_KIMLIK_ANAHTARI = 'sessizlik-cihaz-kimlik';
     const OTO_YUKLEME_GECIKME_MS = 1200;
     const PERIYODIK_SENKRON_MS = 60000;
-    // Bu iki anahtar saf yerel muhasebe verisidir; buluta senkronize edilecek
+    // Bu anahtarlar saf yerel muhasebe verisidir; buluta senkronize edilecek
     // "veri" paketine dahil edilmemeli (aksi halde cihazlar birbirinin yerel
     // durumunu ezmeye çalışır).
-    const HARIC_TUTULAN_ANAHTARLAR = [MISAFIR_ANAHTARI, BILINEN_GUNCELLEME_ANAHTARI];
+    const HARIC_TUTULAN_ANAHTARLAR = [MISAFIR_ANAHTARI, BILINEN_GUNCELLEME_ANAHTARI, CIHAZ_KIMLIK_ANAHTARI];
+
+    // Her cihaza kalıcı, rastgele bir kimlik veriyoruz. Bu kimlik buluta
+    // yazılan her satıra eklenir; Realtime'dan bir güncelleme geldiğinde
+    // "bu yazmayı biz mi yaptık" sorusu zaman damgası karşılaştırmasına değil
+    // (race koşuluna açık), doğrudan bu kimliğe bakılarak cevaplanır. Böylece
+    // cihazın kendi yazdığı veriyi "başka bir cihazdan geldi" sanıp kendi
+    // kendine sayfayı yenilemesi (self-echo döngüsü) engellenir.
+    function cihazKimligiAl(){
+      try{
+        let kimlik = localStorage.getItem(CIHAZ_KIMLIK_ANAHTARI);
+        if(!kimlik){
+          kimlik = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('cihaz-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+          localStorage.setItem(CIHAZ_KIMLIK_ANAHTARI, kimlik);
+        }
+        return kimlik;
+      }catch(e){
+        return 'cihaz-gecici-' + Math.random().toString(36).slice(2);
+      }
+    }
+    const CIHAZ_KIMLIK = cihazKimligiAl();
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window.__sessizlikSupabase = sb;
@@ -13230,7 +13251,7 @@
       const veri = veriPaketiOlustur();
       return dosyalariBulutaYukle(kullaniciId).then(function(){
         return sb.from(TABLO_ADI)
-          .upsert({ user_id: kullaniciId, veri: veri }, { onConflict: 'user_id' })
+          .upsert({ user_id: kullaniciId, veri: veri, cihaz_id: CIHAZ_KIMLIK }, { onConflict: 'user_id' })
           .select('updated_at')
           .single();
       }).then(function(sonuc){
@@ -13340,6 +13361,9 @@
           const yeniSatir = payload && payload.new;
           const yeniGuncelleme = yeniSatir && yeniSatir.updated_at;
           if(!yeniGuncelleme || senkronSurmekte) return;
+          // Self-echo koruması: bu güncellemeyi buluta yazan cihaz kendimizsek
+          // (zaman damgası ne olursa olsun, race koşuluna bakılmaksızın) yok say.
+          if(yeniSatir.cihaz_id && yeniSatir.cihaz_id === CIHAZ_KIMLIK) return;
           const bilinen = bilinenGuncellemeOku();
           if(bilinen && new Date(yeniGuncelleme).getTime() <= new Date(bilinen).getTime()) return;
           senkronDurumAyarla('calisiyor', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
