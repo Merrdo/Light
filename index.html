@@ -13577,6 +13577,17 @@
     // 'INITIAL_SESSION': sayfa ilk açıldığında zaten kalıcı bir oturum varsa (ya
     // da yoksa) bir kez tetiklenir. 'SIGNED_IN': yeni bir giriş tamamlandığında
     // (Google'dan dönüşte) tetiklenir — misafirden geçiş de dahil.
+    //
+    // ÖNEMLİ: Supabase, 'SIGNED_IN' olayını yalnızca gerçek bir girişte değil,
+    // sekme/uygulama ön plana her geldiğinde ya da erişim jetonu (access token)
+    // arka planda yenilendiğinde de TEKRAR tetikleyebiliyor. Bu olay her
+    // tetiklendiğinde veriyi yeniden indirip sayfayı yenilemek, kullanıcı
+    // uygulamayı her ön plana getirdiğinde beklenmedik bir sıfırlanmaya yol
+    // açıyordu — bu, önceki realtime/otomatik-indirme düzeltmelerinden bağımsız,
+    // ayrı bir kaynaktı. Bu yüzden "taze giriş" akışını yalnızca bu sayfa
+    // yüklemesinde daha önce hiç işlenmemişse çalıştırıyoruz; sonraki tekrar
+    // tetiklenmelerde (aynı kullanıcı için) veri indirme/yenileme yapılmaz.
+    let oturumBaslatildi = false;
     sb.auth.onAuthStateChange(function(event, session){
       if(event === 'INITIAL_SESSION'){
         if(session && session.user){
@@ -13586,6 +13597,7 @@
           senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
           acilistaKontrolEt(session.user.id);
           realtimeBaslat(session.user.id);
+          oturumBaslatildi = true;
         } else if(misafirMi()){
           hesapBilgisiniUygula(null);
           ekraniGizle();
@@ -13597,6 +13609,18 @@
 
       if(event === 'SIGNED_IN' && session && session.user){
         const kullaniciId = session.user.id;
+
+        // Bu oturum bu sayfa yüklemesinde daha önce zaten başlatıldıysa
+        // (INITIAL_SESSION ya da önceki bir SIGNED_IN ile), bu yalnızca
+        // Supabase'in jeton yenileme/odak sırasında tekrar gönderdiği bir
+        // olay — veriye dokunma, sayfayı yenileme; sadece hesap bilgisini
+        // ve realtime kanalını güncel tut.
+        if(oturumBaslatildi){
+          hesapBilgisiniUygula(session.user);
+          realtimeBaslat(kullaniciId);
+          return;
+        }
+
         const misafirdenGeliyor = misafirMi();
         if(!misafirdenGeliyor){ durumGoster('Hesap bilgileri alınıyor…'); }
         buluttanSatirGetir(kullaniciId).then(function(satir){
@@ -13609,6 +13633,7 @@
               if(cakismaOverlay){ cakismaOverlay.classList.add('active'); }
               durumGoster('');
               hesapBilgisiniUygula(session.user);
+              oturumBaslatildi = true;
             } else {
               misafirlikTemizle();
               hesapBilgisiniUygula(session.user);
@@ -13616,6 +13641,7 @@
               durumGoster('');
               senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
               bulutaYukle(kullaniciId).then(function(){ realtimeBaslat(kullaniciId); });
+              oturumBaslatildi = true;
             }
             return;
           }
@@ -13624,12 +13650,14 @@
           if(satir){
             durumGoster('Verileriniz yükleniyor…');
             return buluttanIndir(kullaniciId, satir).then(function(){
+              oturumBaslatildi = true;
               window.location.reload();
             });
           }
           ekraniGizle();
           durumGoster('');
           senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
+          oturumBaslatildi = true;
           return bulutaYukle(kullaniciId).then(function(){ realtimeBaslat(kullaniciId); });
         }).catch(function(err){
           durumGoster((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
