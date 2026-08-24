@@ -5,7 +5,7 @@
 
 // Sürüm numarasını her önemli güncellemede artır (örn: 'v2', 'v3'...).
 // Bu, eski önbelleğin temizlenip yeni dosyaların indirilmesini sağlar.
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = 'sessizlik-' + CACHE_VERSION;
 
 // Uygulama kabuğu: ilk yüklemede önbelleğe alınacak dosyalar.
@@ -76,7 +76,12 @@ self.addEventListener('fetch', function(event){
 
   if(isNavigation){
     event.respondWith(
-      fetch(req).then(function(response){
+      // 'reload' modu: tarayıcının/ağ katmanının HTTP önbelleğini es geçip
+      // sunucudan her zaman taze index.html ister. Bunu belirtmezsek, servis
+      // çalışanı "ağdan al" dese bile tarayıcı devreye girip hâlâ eski,
+      // HTTP-önbellekli bir yanıt döndürebiliyor — sürüm numarasını
+      // artırmak bu durumda tek başına yetmiyordu.
+      fetch(req, { cache: 'reload' }).then(function(response){
         // Başarılı ağ yanıtını önbelleğe yaz (bir sonraki çevrimdışı açılış için).
         const clone = response.clone();
         caches.open(CACHE_NAME).then(function(cache){ cache.put(req, clone); });
