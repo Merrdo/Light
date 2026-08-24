@@ -13247,14 +13247,25 @@
     }
 
     // ================= YÜKLE / İNDİR (yedekler tablosu) =================
-    // Son buluta yazılan veri paketinin anlık görüntüsü (JSON). Veri değişmediyse
-    // periyodik döngünün gereksiz yere buluta yazıp diğer cihazlarda "yeni güncelleme
-    // var" sinyali doğurmasını (ve dolayısıyla o cihazlarda gereksiz yenilemeyi)
-    // engellemek için kullanılır.
+    // Anahtar sırasından bağımsız, kararlı bir JSON gösterimi üretir. localStorage
+    // taramasıyla elde edilen anahtar sırası, Supabase'den geri gelen "veri" nesnesinin
+    // anahtar sırasıyla birebir aynı olmayabilir; sıradan etkilenen bir JSON.stringify
+    // karşılaştırması bu yüzden veri gerçekte AYNI olsa bile "değişti" sanabiliyor ve
+    // gereksiz buluta yazmaya, dolayısıyla diğer cihazlarda gereksiz yenilemeye yol açabiliyor.
+    function kararliJSON(nesne){
+      const anahtarlar = Object.keys(nesne || {}).sort();
+      const siraliNesne = {};
+      anahtarlar.forEach(function(k){ siraliNesne[k] = nesne[k]; });
+      return JSON.stringify(siraliNesne);
+    }
+    // Son buluta yazılan veri paketinin anlık görüntüsü (kararlı JSON). Veri
+    // değişmediyse periyodik döngünün gereksiz yere buluta yazıp diğer cihazlarda
+    // "yeni güncelleme var" sinyali doğurmasını (ve dolayısıyla o cihazlarda
+    // gereksiz yenilemeyi) engellemek için kullanılır.
     let sonBilinenVeriJSON = null;
     function bulutaYukle(kullaniciId, zorla){
       const veri = veriPaketiOlustur();
-      const veriJSON = JSON.stringify(veri);
+      const veriJSON = kararliJSON(veri);
       if(!zorla && sonBilinenVeriJSON !== null && veriJSON === sonBilinenVeriJSON){
         // Veri son senkrondan beri değişmemiş: ağ isteği yapmaya gerek yok.
         sonSenkronZamani = Date.now();
@@ -13286,7 +13297,7 @@
 
     function buluttanIndir(kullaniciId, satir){
       veriPaketiniUygula(satir.veri);
-      sonBilinenVeriJSON = JSON.stringify(satir.veri || {});
+      sonBilinenVeriJSON = kararliJSON(satir.veri || {});
       return dosyalariBuluttanIndir(kullaniciId).then(function(){
         bilinenGuncellemeYaz(satir.updated_at);
         sonSenkronZamani = Date.now();
