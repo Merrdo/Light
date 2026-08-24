@@ -5,7 +5,7 @@
 
 // Sürüm numarasını her önemli güncellemede artır (örn: 'v2', 'v3'...).
 // Bu, eski önbelleğin temizlenip yeni dosyaların indirilmesini sağlar.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = 'sessizlik-' + CACHE_VERSION;
 
 // Uygulama kabuğu: ilk yüklemede önbelleğe alınacak dosyalar.
