@@ -13321,27 +13321,6 @@
       });
     }
 
-    // ================= SESSİZ (BÖLMEYEN) YENİLEME =================
-    // Başka bir cihazdan gelen bir güncelleme indirildiğinde, kullanıcı o anda
-    // uygulamayı aktif kullanıyorsa sayfayı hemen yenilemek onu bulunduğu ekrandan
-    // koparıp başa atar. Bunun yerine: veri sessizce indirilir, sayfa görünürken
-    // yenileme ertelenir; kullanıcı sekmeden ayrılıp (başka sekme/uygulama) sayfa
-    // arka plana alındığı an -kullanıcı görmeden- yenileme uygulanır.
-    let bekleyenSessizYenileme = false;
-    function sessizceYenile(){
-      if(document.visibilityState === 'hidden'){
-        window.location.reload();
-      } else {
-        bekleyenSessizYenileme = true;
-      }
-    }
-    document.addEventListener('visibilitychange', function(){
-      if(document.visibilityState === 'hidden' && bekleyenSessizYenileme){
-        bekleyenSessizYenileme = false;
-        window.location.reload();
-      }
-    });
-
     let otoYuklemeZamanlayici = null;
     function otoYuklemeZamanla(){
       if(otoYuklemeZamanlayici){ clearTimeout(otoYuklemeZamanlayici); }
@@ -13370,10 +13349,15 @@
 
     if(senkronDurumBtn){
       senkronDurumBtn.addEventListener('click', function(){
+        // Sayfa yenileme YALNIZCA bu butona basıldığında olur — otomatik/arka
+        // plan senkronizasyon hiçbir zaman sayfayı yenilemez. Her tıklamada
+        // tam olarak bir kez yenilenir; işlem bitmeden ikinci bir tıklamayla
+        // ikinci bir yenileme tetiklenmesin diye buton geçici olarak kilitlenir.
+        if(senkronDurumBtn.disabled) return;
+        senkronDurumBtn.disabled = true;
+
         // Bekleyen (başka bir cihazdan gelmiş ama henüz uygulanmamış) bir
-        // güncelleme varsa, butona basıldığında ÖNCE onu uygula. Bu, kullanıcının
-        // bilerek istediği tek an: artık veri sessizce indirilip uygulanabilir
-        // ve sayfa yenilenebilir, çünkü bunu kendisi tetikledi.
+        // güncelleme varsa, butona basıldığında ÖNCE onu uygula.
         if(bekleyenUzakGuncelleme){
           const gecis = bekleyenUzakGuncelleme;
           bekleyenUzakGuncelleme = null;
@@ -13385,10 +13369,18 @@
             const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
             senkronDurumAyarla('hata', 'Güncelleme uygulanamadı' + detay);
             bekleyenUzakGuncelleme = gecis; // tekrar denenebilsin diye geri koy
+            senkronDurumBtn.disabled = false;
           });
           return;
         }
-        senkronEt();
+
+        // Bekleyen bir güncelleme yoksa: verileri buluta yükle, ardından
+        // sayfayı bir kez yenile.
+        senkronEt().then(function(){
+          window.location.reload();
+        }).catch(function(){
+          senkronDurumBtn.disabled = false;
+        });
       });
     }
 
@@ -13404,11 +13396,12 @@
           senkronGuncelDurumuGoster();
           return;
         }
-        // Buluttaki bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
-        return buluttanIndir(kullaniciId, satir).then(function(){
-          senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-          sessizceYenile();
-        });
+        // Buluttaki bu cihazın bilmediği daha yeni bir sürüm var. Otomatik
+        // olarak indirip sayfayı yenilemek yerine yalnızca bekleyen bir
+        // güncelleme olarak işaretliyoruz; indirme ve yenileme SADECE
+        // kullanıcı Ayarlar'daki senkron butonuna bastığında yapılır.
+        bekleyenUzakGuncelleme = { kullaniciId: kullaniciId, satir: satir };
+        senkronDurumAyarla('bekliyor', 'Başka bir cihazdan yeni veriler var · güncellemek için dokun');
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
         const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
@@ -13573,6 +13566,28 @@
       });
     }
 
+    // ================= TAM KAPANIŞ SONRASI YENİDEN GİRİŞ ZORUNLULUĞU =================
+    // Uygulama sadece arka plana alındığında (sekme değişimi, kısa süreliğine
+    // ayrılma, "sessiz yenileme" gibi içeriden gelen reload() çağrıları) tekrar
+    // giriş istemeye GEREK YOK — süreç hâlâ hayattaysa kullanıcı rahatsız
+    // edilmemeli. Ama uygulama komple kapatılıp (işletim sistemi/PWA süreci
+    // sonlandırılıp) yeniden açıldığında, yani gerçekten "taze" bir başlangıçta,
+    // oturumu kapatıp kullanıcıdan tekrar giriş yapmasını istiyoruz. Bu hem
+    // sürekli kendi kendine yenilenme sorununu (hangi sebepten kaynaklanırsa
+    // kaynaklansın) her taze açılışta baştan temizleyerek çözüyor, hem de
+    // girişte veriler buluttan tertemiz şekilde yeniden yükleniyor.
+    //
+    // AYIRT ETME YÖNTEMİ: sessionStorage bir sekmenin/uygulamanın süreci komple
+    // sonlandığında temizlenir; sayfa içi window.location.reload() çağrılarında
+    // ya da arka plan/ön plana geçişlerde (süreç canlı kaldığı sürece) KORUNUR.
+    // Bu yüzden burada bir işaret bırakıyoruz: işaret yoksa bu "taze açılış"tır.
+    const TAZE_ACILIS_ANAHTARI = 'sessizlik-surec-aktif';
+    let tazeAcilisMi = false;
+    try{
+      tazeAcilisMi = !sessionStorage.getItem(TAZE_ACILIS_ANAHTARI);
+      sessionStorage.setItem(TAZE_ACILIS_ANAHTARI, '1');
+    }catch(e){}
+
     // ================= OTURUM DURUMU DİNLEYİCİSİ =================
     // 'INITIAL_SESSION': sayfa ilk açıldığında zaten kalıcı bir oturum varsa (ya
     // da yoksa) bir kez tetiklenir. 'SIGNED_IN': yeni bir giriş tamamlandığında
@@ -13590,6 +13605,19 @@
     let oturumBaslatildi = false;
     sb.auth.onAuthStateChange(function(event, session){
       if(event === 'INITIAL_SESSION'){
+        if(session && session.user && tazeAcilisMi){
+          // Uygulama komple kapatılıp yeniden açılmış: mevcut oturumu kapat,
+          // kullanıcıdan tekrar giriş yapmasını iste. Arka plandan dönüşlerde
+          // bu koşula hiç girilmez (sessionStorage o durumda hâlâ set'lidir).
+          if(realtimeKanal){ sb.removeChannel(realtimeKanal); realtimeKanal = null; }
+          sb.auth.signOut().catch(function(){}).then(function(){
+            bilinenGuncellemeSil();
+            hesapBilgisiniUygula(null);
+            ekraniGoster();
+            durumGoster('Devam etmek için tekrar giriş yapman gerekiyor.');
+          });
+          return;
+        }
         if(session && session.user){
           misafirlikTemizle();
           hesapBilgisiniUygula(session.user);
