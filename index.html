@@ -5947,7 +5947,7 @@
     .view-gecis-cikis, .analiz-icerik-cikis{ transition:none !important; opacity:1 !important; transform:none !important; }
   }
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   html.giris-bekleniyor body{ overflow:hidden; }
 
@@ -13035,26 +13035,30 @@
     }
   })();
 
-  // ================= GİRİŞ / KAYIT + OTOMATİK GOOGLE DRIVE SENKRONİZASYONU =================
+  // ================= GİRİŞ / KAYIT + OTOMATİK SUPABASE SENKRONİZASYONU =================
   // Uygulama ilk açıldığında tam ekran bir giriş/kayıt ekranı gösterir; kullanıcı
-  // Google hesabıyla giriş yaptıktan sonra bu tercih cihazda hatırlanır ve bir
-  // daha sorulmaz. Aynı girişte alınan jeton (drive.file kapsamı dahil) hem
-  // kimlik bilgisini hem de arka planda, buton gerektirmeden, verilerin Google
-  // Drive'daki (yalnızca bu uygulamanın oluşturduğu) yedek dosyasıyla senkronize
-  // edilmesini sağlar. Kullanıcıya Ayarlar'daki hesap satırında küçük bir
-  // durum noktası/metniyle (senkronize ediliyor / güncel / hata) bilgi verilir.
+  // Google hesabıyla giriş yaptıktan sonra bu tercih (Supabase Auth oturumu olarak)
+  // cihazda kalıcı şekilde saklanır ve bir daha sorulmaz. Veriler (localStorage +
+  // IndexedDB'deki görsel/dosyalar) arka planda, buton gerektirmeden, Supabase'deki
+  // "yedekler" tablosu ve "dosyalar" storage bucket'ıyla senkronize edilir.
+  // Kullanıcıya Ayarlar'daki hesap satırında küçük bir durum noktası/metniyle
+  // (senkronize ediliyor / güncel / hata) bilgi verilir.
   (function(){
-    const GOOGLE_CLIENT_ID = '36359397501-hk33hb16brj082mm1s4t4pqo3jev9usp.apps.googleusercontent.com';
-    const HESAP_SCOPE = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file';
-    const REDIRECT_URI = 'https://merrdo.github.io/Light/';
-    const BEKLEYEN_ANAHTARI = 'sessizlik-hesap-bekleyen';
-    const MISAFIR_GECIS_ANAHTARI = 'sessizlik-hesap-misafir-gecis';
-    const HESAP_ANAHTARI = 'sessizlik-hesap-bilgi';
-    const DRIVE_DOSYA_ADI = 'sessizligin-sesi-yedek.json';
-    const TOKEN_ANAHTARI = 'sessizlik-hesap-token';
-    const BILINEN_MODIFIED_ANAHTARI = 'sessizlik-drive-bilinen-modified';
+    const SUPABASE_URL = 'https://swwxerdzcmuctsdrvkcl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_S9DKOqViowCoo6VlhEazhQ_NQAU9hdi';
+    const TABLO_ADI = 'yedekler';
+    const DOSYA_BUCKET = 'dosyalar';
+    const MISAFIR_ANAHTARI = 'sessizlik-misafir';
+    const BILINEN_GUNCELLEME_ANAHTARI = 'sessizlik-bilinen-guncelleme';
     const OTO_YUKLEME_GECIKME_MS = 1200;
     const PERIYODIK_SENKRON_MS = 60000;
+    // Bu iki anahtar saf yerel muhasebe verisidir; buluta senkronize edilecek
+    // "veri" paketine dahil edilmemeli (aksi halde cihazlar birbirinin yerel
+    // durumunu ezmeye çalışır).
+    const HARIC_TUTULAN_ANAHTARLAR = [MISAFIR_ANAHTARI, BILINEN_GUNCELLEME_ANAHTARI];
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.__sessizlikSupabase = sb;
 
     const overlay = document.getElementById('girisEkraniOverlay');
     const girisBtn = document.getElementById('girisGoogleBtn');
@@ -13066,7 +13070,6 @@
     const hesapAvatarYerEl = document.getElementById('hesapAvatarYer');
     const cikisBtn = document.getElementById('hesapCikisBtn');
     const senkronDurumBtn = document.getElementById('senkronDurum');
-    const senkronNoktaEl = document.getElementById('senkronNokta');
     const senkronMetinEl = document.getElementById('senkronDurumMetin');
     const cakismaOverlay = document.getElementById('hesapCakismaModalOverlay');
     const cakismaBulutBtn = document.getElementById('hesapCakismaBulutBtn');
@@ -13107,19 +13110,24 @@
     }
     setInterval(function(){ if(sonSenkronZamani) senkronGuncelDurumuGoster(); }, 30000);
 
-    function hesapOku(){
-      try{
-        const ham = localStorage.getItem(HESAP_ANAHTARI);
-        return ham ? JSON.parse(ham) : null;
-      }catch(e){ return null; }
+    function misafirMi(){
+      try{ return localStorage.getItem(MISAFIR_ANAHTARI) === '1'; }catch(e){ return false; }
     }
-    function hesapYaz(hesap){
-      try{ localStorage.setItem(HESAP_ANAHTARI, JSON.stringify(hesap)); }catch(e){}
+    function misafirOlarakAyarla(){
+      try{ localStorage.setItem(MISAFIR_ANAHTARI, '1'); }catch(e){}
     }
-    function hesapSil(){
-      try{ localStorage.removeItem(HESAP_ANAHTARI); }catch(e){}
-      try{ sessionStorage.removeItem(TOKEN_ANAHTARI); }catch(e){}
-      try{ localStorage.removeItem(BILINEN_MODIFIED_ANAHTARI); }catch(e){}
+    function misafirlikTemizle(){
+      try{ localStorage.removeItem(MISAFIR_ANAHTARI); }catch(e){}
+    }
+
+    function bilinenGuncellemeOku(){
+      try{ return localStorage.getItem(BILINEN_GUNCELLEME_ANAHTARI); }catch(e){ return null; }
+    }
+    function bilinenGuncellemeYaz(v){
+      try{ localStorage.setItem(BILINEN_GUNCELLEME_ANAHTARI, v || ''); }catch(e){}
+    }
+    function bilinenGuncellemeSil(){
+      try{ localStorage.removeItem(BILINEN_GUNCELLEME_ANAHTARI); }catch(e){}
     }
 
     function ekraniGizle(){
@@ -13131,34 +13139,34 @@
       document.documentElement.classList.add('giris-bekleniyor');
     }
 
-    function hesapBaslangicHarfi(hesap){
-      const kaynak = (hesap && (hesap.name || hesap.email)) || '';
-      const harf = kaynak.trim().charAt(0);
-      return harf ? harf.toUpperCase() : 'G';
-    }
-
-    function hesapBilgisiniUygula(hesap){
-      if(!hesap) return;
-      if(cikisBtn){ cikisBtn.textContent = hesap.misafir ? 'Giriş Yap' : 'Çıkış Yap'; }
-      if(senkronDurumBtn){ senkronDurumBtn.style.display = hesap.misafir ? 'none' : ''; }
-      if(hesap.misafir){
+    // Hesap bilgisini (Google adı/e-postası/fotoğrafı) ekrana uygular.
+    // user === null ise "Misafir Hesabı" görünümü gösterilir.
+    function hesapBilgisiniUygula(user){
+      if(cikisBtn){ cikisBtn.textContent = user ? 'Çıkış Yap' : 'Giriş Yap'; }
+      if(senkronDurumBtn){ senkronDurumBtn.style.display = user ? '' : 'none'; }
+      if(!user){
         if(hesapAdEl){ hesapAdEl.textContent = 'Misafir Hesabı'; }
         if(hesapEpostaEl){ hesapEpostaEl.textContent = 'Senkronizasyon kapalı'; }
         if(hesapAvatarEl){ hesapAvatarEl.style.display = 'none'; hesapAvatarEl.removeAttribute('src'); }
         if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; hesapAvatarYerEl.textContent = 'M'; }
         return;
       }
-      if(hesapAdEl){ hesapAdEl.textContent = hesap.name || 'Google Hesabı'; }
-      if(hesapEpostaEl){ hesapEpostaEl.textContent = hesap.email || ''; }
-      if(hesapAvatarYerEl){ hesapAvatarYerEl.textContent = hesapBaslangicHarfi(hesap); }
+      const meta = user.user_metadata || {};
+      const ad = meta.full_name || meta.name || '';
+      const eposta = user.email || '';
+      const resim = meta.avatar_url || meta.picture || '';
+      if(hesapAdEl){ hesapAdEl.textContent = ad || 'Google Hesabı'; }
+      if(hesapEpostaEl){ hesapEpostaEl.textContent = eposta; }
+      const harfKaynagi = (ad || eposta || '').trim().charAt(0);
+      if(hesapAvatarYerEl){ hesapAvatarYerEl.textContent = harfKaynagi ? harfKaynagi.toUpperCase() : 'G'; }
       if(hesapAvatarEl){
-        if(hesap.picture){
+        if(resim){
           hesapAvatarEl.onerror = function(){
             hesapAvatarEl.style.display = 'none';
             hesapAvatarEl.onerror = null;
             if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = ''; }
           };
-          hesapAvatarEl.src = hesap.picture;
+          hesapAvatarEl.src = resim;
           hesapAvatarEl.style.display = '';
           if(hesapAvatarYerEl){ hesapAvatarYerEl.style.display = 'none'; }
         } else {
@@ -13168,157 +13176,194 @@
       }
     }
 
-    // Hesap misafir değilse ve gerçekten kayıtlıysa true döner; yalnızca bu
-    // durumda otomatik/periyodik senkronizasyon çalışabilir.
-    function hesapSenkroneUygunMu(){
-      const h = hesapOku();
-      return !!(h && !h.misafir);
-    }
-
-    function standaloneMi(){
-      try{
-        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-      }catch(e){ return false; }
-    }
-
-    function tokenKaydet(token, expiresInSec){
-      try{
-        sessionStorage.setItem(TOKEN_ANAHTARI, JSON.stringify({ token: token, exp: Date.now() + ((expiresInSec || 3600) * 1000) }));
-      }catch(e){}
-    }
-    function tokenOku(){
-      try{
-        const ham = sessionStorage.getItem(TOKEN_ANAHTARI);
-        if(!ham) return null;
-        const veri = JSON.parse(ham);
-        if(!veri || !veri.token || Date.now() > veri.exp) return null;
-        return veri.token;
-      }catch(e){ return null; }
-    }
-    function bilinenModifiedOku(){
-      try{ return localStorage.getItem(BILINEN_MODIFIED_ANAHTARI); }catch(e){ return null; }
-    }
-    function bilinenModifiedYaz(v){
-      try{ localStorage.setItem(BILINEN_MODIFIED_ANAHTARI, v || ''); }catch(e){}
-    }
-
-    // ---- Redirect dönüşünde URL fragment'ından erişim jetonunu oku ----
-    function redirectDonusunuIsle(){
-      if(location.hash && location.hash.indexOf('access_token=') !== -1){
-        const params = new URLSearchParams(location.hash.slice(1));
-        const token = params.get('access_token');
-        const expiresIn = parseInt(params.get('expires_in'), 10) || 3600;
-        if(token){
-          history.replaceState(null, '', location.pathname + location.search);
-          return { token: token, expiresIn: expiresIn };
-        }
+    // ================= VERİ PAKETİ (localStorage <-> jsonb) =================
+    function veriPaketiOlustur(){
+      const veri = {};
+      for(let i = 0; i < localStorage.length; i++){
+        const anahtar = localStorage.key(i);
+        if(HARIC_TUTULAN_ANAHTARLAR.indexOf(anahtar) !== -1) continue;
+        veri[anahtar] = localStorage.getItem(anahtar);
       }
-      return null;
+      return veri;
     }
-    const redirectSonuc = redirectDonusunuIsle();
+    function veriPaketiniUygula(veri){
+      if(!veri || typeof veri !== 'object') return;
+      Object.keys(veri).forEach(function(anahtar){
+        if(HARIC_TUTULAN_ANAHTARLAR.indexOf(anahtar) !== -1) return;
+        const deger = veri[anahtar];
+        try{ localStorage.setItem(anahtar, typeof deger === 'string' ? deger : JSON.stringify(deger)); }catch(e){}
+      });
+    }
 
-    function girisBaslat(){
-      if(standaloneMi()){
-        const url = 'https://accounts.google.com/o/oauth2/v2/auth'
-          + '?client_id=' + encodeURIComponent(GOOGLE_CLIENT_ID)
-          + '&redirect_uri=' + encodeURIComponent(REDIRECT_URI)
-          + '&response_type=token'
-          + '&scope=' + encodeURIComponent(HESAP_SCOPE)
-          + '&include_granted_scopes=true'
-          + '&prompt=select_account';
-        try{ sessionStorage.setItem(BEKLEYEN_ANAHTARI, '1'); }catch(e){}
-        window.location.href = url;
-        return new Promise(function(){}); // sayfa yönlendiriliyor
-      }
-      return new Promise(function(resolve, reject){
-        if(!window.google || !google.accounts || !google.accounts.oauth2){
-          reject(new Error('Google giriş kütüphanesi yüklenemedi. İnternet bağlantını kontrol et.'));
+    // ================= DOSYA/GÖRSEL SENKRONU (IndexedDB <-> Supabase Storage) =================
+    function dosyalariBulutaYukle(kullaniciId){
+      if(!window.__sessizlikDosyaTumIcerigiAl) return Promise.resolve();
+      return window.__sessizlikDosyaTumIcerigiAl().then(function(dosyalar){
+        const idler = Object.keys(dosyalar || {});
+        return Promise.all(idler.map(function(id){
+          const blob = dosyalar[id];
+          return sb.storage.from(DOSYA_BUCKET).upload(kullaniciId + '/' + id, blob, {
+            upsert: true,
+            contentType: (blob && blob.type) || 'application/octet-stream'
+          }).then(function(sonuc){
+            if(sonuc.error) throw sonuc.error;
+          });
+        }));
+      });
+    }
+    function dosyalariBuluttanIndir(kullaniciId){
+      if(!window.__sessizlikDosyaKaydet) return Promise.resolve();
+      return sb.storage.from(DOSYA_BUCKET).list(kullaniciId, { limit: 1000 }).then(function(sonuc){
+        if(sonuc.error) throw sonuc.error;
+        const liste = sonuc.data || [];
+        return Promise.all(liste.map(function(dosya){
+          return sb.storage.from(DOSYA_BUCKET).download(kullaniciId + '/' + dosya.name).then(function(indirilen){
+            if(indirilen.error || !indirilen.data) return;
+            return window.__sessizlikDosyaKaydet(dosya.name, indirilen.data);
+          }).catch(function(){});
+        }));
+      });
+    }
+
+    // ================= YÜKLE / İNDİR (yedekler tablosu) =================
+    function bulutaYukle(kullaniciId){
+      const veri = veriPaketiOlustur();
+      return dosyalariBulutaYukle(kullaniciId).then(function(){
+        return sb.from(TABLO_ADI)
+          .upsert({ user_id: kullaniciId, veri: veri }, { onConflict: 'user_id' })
+          .select('updated_at')
+          .single();
+      }).then(function(sonuc){
+        if(sonuc.error) throw sonuc.error;
+        const guncelleme = sonuc.data ? sonuc.data.updated_at : null;
+        if(guncelleme){ bilinenGuncellemeYaz(guncelleme); }
+        sonSenkronZamani = Date.now();
+        senkronGuncelDurumuGoster();
+        return guncelleme;
+      });
+    }
+
+    function buluttanSatirGetir(kullaniciId){
+      return sb.from(TABLO_ADI).select('veri,updated_at').eq('user_id', kullaniciId).maybeSingle().then(function(sonuc){
+        if(sonuc.error) throw sonuc.error;
+        return sonuc.data; // null ya da { veri, updated_at }
+      });
+    }
+
+    function buluttanIndir(kullaniciId, satir){
+      veriPaketiniUygula(satir.veri);
+      return dosyalariBuluttanIndir(kullaniciId).then(function(){
+        bilinenGuncellemeYaz(satir.updated_at);
+        sonSenkronZamani = Date.now();
+      });
+    }
+
+    // ================= OTOMATİK SENKRONİZASYON (buton yok, tamamen arka planda) =================
+    let senkronSurmekte = false;
+    function senkronEt(){
+      return sb.auth.getSession().then(function(sonuc){
+        const oturum = sonuc && sonuc.data && sonuc.data.session;
+        if(!oturum || misafirMi()) return;
+        if(senkronSurmekte) return;
+        senkronSurmekte = true;
+        senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
+        return bulutaYukle(oturum.user.id).catch(function(err){
+          console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
+          const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
+          senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
+        }).finally(function(){ senkronSurmekte = false; });
+      });
+    }
+
+    let otoYuklemeZamanlayici = null;
+    function otoYuklemeZamanla(){
+      if(otoYuklemeZamanlayici){ clearTimeout(otoYuklemeZamanlayici); }
+      otoYuklemeZamanlayici = setTimeout(senkronEt, OTO_YUKLEME_GECIKME_MS);
+    }
+
+    // dosyaKaydet çağrıldığında (bir görsel/dosya IndexedDB'ye kaydedildiğinde)
+    // otomatik yüklemeyi tetiklemek için mevcut global fonksiyonu sarmalıyoruz.
+    if(window.__sessizlikDosyaKaydet){
+      const orijinalDosyaKaydet = window.__sessizlikDosyaKaydet;
+      window.__sessizlikDosyaKaydet = function(id, blob){
+        return orijinalDosyaKaydet(id, blob).then(function(sonuc){
+          otoYuklemeZamanla();
+          return sonuc;
+        });
+      };
+    }
+
+    // Uygulama arka plana alındığında / kapatılmadan hemen önce de senkronize et,
+    // böylece kullanıcı manuel bir "yedekle" butonuna hiç ihtiyaç duymaz.
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState === 'hidden'){ senkronEt(); }
+    });
+    window.addEventListener('pagehide', function(){ senkronEt(); });
+    setInterval(senkronEt, PERIYODIK_SENKRON_MS);
+
+    if(senkronDurumBtn){
+      senkronDurumBtn.addEventListener('click', function(){ senkronEt(); });
+    }
+
+    // ---- Açılışta: buluttaki bu cihazın bilmediği daha yeni bir sürüm varsa
+    // sessizce indirip geri yükler ----
+    function acilistaKontrolEt(kullaniciId){
+      senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
+      buluttanSatirGetir(kullaniciId).then(function(satir){
+        if(!satir){ sonSenkronZamani = Date.now(); senkronGuncelDurumuGoster(); return; }
+        const bilinen = bilinenGuncellemeOku();
+        if(bilinen && new Date(satir.updated_at).getTime() <= new Date(bilinen).getTime()){
+          sonSenkronZamani = Date.now();
+          senkronGuncelDurumuGoster();
           return;
         }
-        try{
-          const client = google.accounts.oauth2.initTokenClient({
-            client_id: GOOGLE_CLIENT_ID,
-            scope: HESAP_SCOPE,
-            callback: function(resp){
-              if(resp && resp.access_token){ tokenKaydet(resp.access_token, resp.expires_in); resolve(resp.access_token); }
-              else{ reject(new Error('Google girişi tamamlanamadı.')); }
-            },
-            error_callback: function(){
-              reject(new Error('Google girişi iptal edildi.'));
-            }
-          });
-          client.requestAccessToken();
-        }catch(e){
-          reject(e);
-        }
-      });
-    }
-
-    // Kullanıcı etkileşimi olmadan sessizce jeton yenilemeyi dener (arka plan
-    // senkronizasyonu için). Daha önce izin verilmişse çalışır; aksi halde
-    // (3. parti çerezler engelliyse) sessizce başarısız olur.
-    function tokenSessizAl(){
-      if(standaloneMi()) return Promise.resolve(null);
-      return new Promise(function(resolve){
-        if(!window.google || !google.accounts || !google.accounts.oauth2){ resolve(null); return; }
-        try{
-          const client = google.accounts.oauth2.initTokenClient({
-            client_id: GOOGLE_CLIENT_ID,
-            scope: HESAP_SCOPE,
-            callback: function(resp){
-              if(resp && resp.access_token){ tokenKaydet(resp.access_token, resp.expires_in); resolve(resp.access_token); }
-              else{ resolve(null); }
-            },
-            error_callback: function(){ resolve(null); }
-          });
-          client.requestAccessToken({ prompt: '' });
-        }catch(e){ resolve(null); }
-      });
-    }
-
-    function gecerliTokenAl(){
-      const mevcut = tokenOku();
-      if(mevcut) return Promise.resolve(mevcut);
-      return tokenSessizAl();
-    }
-
-    function kullaniciBilgisiniGetir(token){
-      return fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      }).then(function(r){
-        if(!r.ok) throw new Error('Hesap bilgisi alınamadı');
-        return r.json();
-      }).then(function(veri){
-        return { name: veri.name || veri.given_name || '', email: veri.email || '', picture: veri.picture || '' };
-      });
-    }
-
-    function girisTamamla(token){
-      durumGoster('Hesap bilgileri alınıyor…');
-      return kullaniciBilgisiniGetir(token).then(function(hesap){
-        hesapYaz(hesap);
-        hesapBilgisiniUygula(hesap);
-        durumGoster('Verileriniz yükleniyor…');
-        return girisSonrasiVeriYukle(token);
-      }).then(function(){
-        // Buraya ulaşıldıysa (yani sayfa yenilenmediyse) ya yedek yoktu ya
-        // da zaten günceldik: veriler hazır, artık uygulamayı açabiliriz.
-        durumGoster('');
-        ekraniGizle();
-        senkronGuncelDurumuGoster();
+        // Buluttaki bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
+        return buluttanIndir(kullaniciId, satir).then(function(){
+          senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
+          setTimeout(function(){ window.location.reload(); }, 300);
+        });
       }).catch(function(err){
-        durumGoster((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
-        if(girisBtn){ girisBtn.disabled = false; }
+        console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
+        const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
+        senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
       });
     }
 
+    // ---- Realtime: başka bir cihaz senkron yaptığı anda bu cihaz da haberdar olsun ----
+    let realtimeKanal = null;
+    function realtimeBaslat(kullaniciId){
+      if(realtimeKanal || misafirMi()) return;
+      realtimeKanal = sb.channel('yedekler-degisiklik-' + kullaniciId)
+        .on('postgres_changes', {
+          event: 'UPDATE', schema: 'public', table: TABLO_ADI, filter: 'user_id=eq.' + kullaniciId
+        }, function(payload){
+          const yeniSatir = payload && payload.new;
+          const yeniGuncelleme = yeniSatir && yeniSatir.updated_at;
+          if(!yeniGuncelleme || senkronSurmekte) return;
+          const bilinen = bilinenGuncellemeOku();
+          if(bilinen && new Date(yeniGuncelleme).getTime() <= new Date(bilinen).getTime()) return;
+          senkronDurumAyarla('calisiyor', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
+          buluttanIndir(kullaniciId, yeniSatir).then(function(){
+            window.location.reload();
+          }).catch(function(){});
+        })
+        .subscribe();
+    }
+
+    // ================= GİRİŞ / MİSAFİR BUTONLARI =================
     if(girisBtn){
       girisBtn.addEventListener('click', function(){
         girisBtn.disabled = true;
         durumGoster('Google hesabına bağlanılıyor…');
-        girisBaslat().then(function(token){
-          if(!token) return; // redirect oldu
-          return girisTamamla(token);
+        sb.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin + window.location.pathname }
+        }).then(function(sonuc){
+          if(sonuc.error){
+            durumGoster(sonuc.error.message || 'Google girişi tamamlanamadı.');
+            girisBtn.disabled = false;
+          }
+          // Başarılıysa sayfa zaten Google'a yönlendiriliyor.
         }).catch(function(err){
           durumGoster((err && err.message) ? err.message : 'Google girişi tamamlanamadı.');
           girisBtn.disabled = false;
@@ -13328,9 +13373,8 @@
 
     if(girisMisafirBtn){
       girisMisafirBtn.addEventListener('click', function(){
-        const hesap = { misafir: true, name: 'Misafir Hesabı', email: '', picture: '' };
-        hesapYaz(hesap);
-        hesapBilgisiniUygula(hesap);
+        misafirOlarakAyarla();
+        hesapBilgisiniUygula(null);
         durumGoster('');
         ekraniGizle();
         // Misafir olarak devam edilince senkronizasyon başlatılmaz; veriler
@@ -13338,8 +13382,7 @@
       });
     }
 
-    // Misafirken hesaba giriş yapılırken bulutta kayıtlı bir yedek bulunursa
-    // gösterilen uyarı penceresini yönetir.
+    // ================= MİSAFİRDEN HESABA GEÇİŞ: BULUT/YEREL ÇAKIŞMA MODALI =================
     let bekleyenHesapGecisi = null;
 
     function cakismaDurumGoster(metin){
@@ -13359,37 +13402,14 @@
       bekleyenHesapGecisi = null;
     }
 
-    // Misafirden hesaba geçişte bulutta kayıtlı veri olup olmadığını denetler.
-    // Kayıt yoksa direkt hesaba geçilip cihazdaki (misafir) veriler ilk yedek
-    // olarak yüklenir; kayıt varsa kullanıcıya seçim sorulur.
-    function misafirdenGecisiIsle(token, hesap){
-      return driveDosyaBul(token).then(function(dosya){
-        if(dosya){
-          bekleyenHesapGecisi = { token: token, hesap: hesap, dosya: dosya };
-          cakismaDurumGoster('');
-          cakismaBtnDurumu(false);
-          if(cakismaOverlay){ cakismaOverlay.classList.add('active'); }
-        } else {
-          hesapYaz(hesap);
-          hesapBilgisiniUygula(hesap);
-          ekraniGizle();
-          senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-          otomatikYukle(true);
-        }
-      });
-    }
-
     if(cakismaBulutBtn){
       cakismaBulutBtn.addEventListener('click', function(){
         if(!bekleyenHesapGecisi) return;
         const gecis = bekleyenHesapGecisi;
         cakismaBtnDurumu(true);
         cakismaDurumGoster('Hesabınızdaki veriler yükleniyor…');
-        driveDosyaIndir(gecis.token, gecis.dosya.id).then(function(icerikMetin){
-          return window.__sessizlikYedegiGeriYukle(icerikMetin);
-        }).then(function(){
-          hesapYaz(gecis.hesap);
-          bilinenModifiedYaz(gecis.dosya.modifiedTime);
+        buluttanIndir(gecis.kullaniciId, gecis.satir).then(function(){
+          misafirlikTemizle();
           window.location.reload();
         }).catch(function(err){
           cakismaDurumGoster((err && err.message) ? err.message : 'Veriler geri yüklenirken bir sorun oluştu.');
@@ -13403,12 +13423,8 @@
         const gecis = bekleyenHesapGecisi;
         cakismaBtnDurumu(true);
         cakismaDurumGoster('Cihazınızdaki veriler yükleniyor…');
-        if(!window.__sessizlikYedekDosyasiOlustur){ cakismaDurumGoster('Yedekleme sistemi hazır değil.'); cakismaBtnDurumu(false); return; }
-        window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
-          return driveDosyaYukle(gecis.token, dosya, gecis.dosya.id);
-        }).then(function(sonuc){
-          hesapYaz(gecis.hesap);
-          if(sonuc && sonuc.modifiedTime){ bilinenModifiedYaz(sonuc.modifiedTime); }
+        bulutaYukle(gecis.kullaniciId).then(function(){
+          misafirlikTemizle();
           window.location.reload();
         }).catch(function(err){
           cakismaDurumGoster((err && err.message) ? err.message : 'Veriler yüklenirken bir sorun oluştu.');
@@ -13419,292 +13435,113 @@
     if(cakismaVazgecBtn){
       cakismaVazgecBtn.addEventListener('click', function(){
         cakismaModaluKapat();
+        sb.auth.signOut().catch(function(){});
       });
     }
     if(cakismaOverlay){
       cakismaOverlay.addEventListener('click', function(e){
-        if(e.target === cakismaOverlay){ cakismaModaluKapat(); }
+        if(e.target === cakismaOverlay){
+          cakismaModaluKapat();
+          sb.auth.signOut().catch(function(){});
+        }
       });
     }
 
+    // ================= ÇIKIŞ / MİSAFİRKEN "GİRİŞ YAP" =================
     if(cikisBtn){
       cikisBtn.addEventListener('click', function(){
-        const guncelHesap = hesapOku();
-        if(guncelHesap && guncelHesap.misafir){
+        if(misafirMi()){
           cikisBtn.disabled = true;
-          if(standaloneMi()){
-            try{ sessionStorage.setItem(MISAFIR_GECIS_ANAHTARI, '1'); }catch(e){}
-          }
-          girisBaslat().then(function(token){
-            if(!token) return; // standalone: sayfa yönlendiriliyor, dönüşte ele alınacak
-            return kullaniciBilgisiniGetir(token).then(function(yeniHesap){
-              return misafirdenGecisiIsle(token, yeniHesap);
-            });
+          sb.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + window.location.pathname }
+          }).then(function(sonuc){
+            if(sonuc.error){
+              window.alert(sonuc.error.message || 'Google girişi tamamlanamadı.');
+              cikisBtn.disabled = false;
+            }
           }).catch(function(err){
-            try{ sessionStorage.removeItem(MISAFIR_GECIS_ANAHTARI); }catch(e){}
             window.alert((err && err.message) ? err.message : 'Google girişi tamamlanamadı.');
-          }).finally(function(){
             cikisBtn.disabled = false;
           });
           return;
         }
         const onay = window.confirm('Hesabından çıkış yapmak istediğine emin misin? Bir sonraki açılışta tekrar giriş yapman istenecek.');
         if(!onay) return;
-        hesapSil();
-        window.location.reload();
+        if(realtimeKanal){ sb.removeChannel(realtimeKanal); realtimeKanal = null; }
+        sb.auth.signOut().then(function(){
+          bilinenGuncellemeSil();
+          window.location.reload();
+        });
       });
     }
 
-    if(senkronDurumBtn){
-      senkronDurumBtn.addEventListener('click', function(){
-        // PWA (standalone) modda Google'dan sessizce yeni jeton alınamıyor
-        // (bkz. tokenSessizAl). Elimizdeki jetonun süresi dolmuşsa, manuel
-        // dokunma bir kullanıcı etkileşimi olduğu için Google'a yeniden
-        // yönlendirip jetonu tazeleriz; aksi halde senkron kalıcı olarak
-        // "başarısız" durumunda takılı kalırdı.
-        if(!tokenOku() && standaloneMi()){
-          senkronDurumAyarla('calisiyor', 'Google hesabına yönlendiriliyor…');
-          girisBaslat();
-          return;
-        }
-        // Doğrudan tıklamayla tetiklenen senkronizasyon: burada gerekirse
-        // Google'dan sessizce (ya da gerekirse hesap seçtirerek) jeton
-        // yenilenebilir, çünkü bu bir kullanıcı etkileşimidir. Arka plandaki
-        // otomatik senkronizasyon bu tür bir isteği kendiliğinden yapmaz.
-        otomatikYukle(true);
-      });
-    }
-
-    // ================= DRIVE API YARDIMCILARI =================
-    function hataDetayiOlustur(on, r, govde){
-      return r.text().then(function(metin){
-        const hata = new Error(on + ' (HTTP ' + r.status + '): ' + metin);
-        hata.status = r.status;
-        hata.gövde = govde;
-        return hata;
-      }).catch(function(){
-        return new Error(on + ' (HTTP ' + r.status + ')');
-      });
-    }
-
-    function driveDosyaBul(token){
-      const q = encodeURIComponent("name = '" + DRIVE_DOSYA_ADI + "' and trashed = false");
-      return fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,modifiedTime)&spaces=drive', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      }).then(function(r){
-        if(!r.ok) return hataDetayiOlustur('Drive listeleme hatası', r).then(function(h){ throw h; });
-        return r.json();
-      }).then(function(veri){
-        return (veri.files && veri.files[0]) ? veri.files[0] : null;
-      });
-    }
-
-    function driveDosyaYukle(token, dosya, mevcutId){
-      const boundary = '-------sessizlik' + Date.now();
-      return dosya.text().then(function(icerik){
-        const parcalar = [];
-        if(!mevcutId){
-          parcalar.push('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'
-            + JSON.stringify({ name: DRIVE_DOSYA_ADI, mimeType: 'application/json' }) + '\r\n');
+    // ================= OTURUM DURUMU DİNLEYİCİSİ =================
+    // 'INITIAL_SESSION': sayfa ilk açıldığında zaten kalıcı bir oturum varsa (ya
+    // da yoksa) bir kez tetiklenir. 'SIGNED_IN': yeni bir giriş tamamlandığında
+    // (Google'dan dönüşte) tetiklenir — misafirden geçiş de dahil.
+    sb.auth.onAuthStateChange(function(event, session){
+      if(event === 'INITIAL_SESSION'){
+        if(session && session.user){
+          misafirlikTemizle();
+          hesapBilgisiniUygula(session.user);
+          ekraniGizle();
+          senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
+          acilistaKontrolEt(session.user.id);
+          realtimeBaslat(session.user.id);
+        } else if(misafirMi()){
+          hesapBilgisiniUygula(null);
+          ekraniGizle();
         } else {
-          parcalar.push('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{}\r\n');
+          ekraniGoster();
         }
-        parcalar.push('--' + boundary + '\r\nContent-Type: application/json\r\n\r\n' + icerik + '\r\n');
-        parcalar.push('--' + boundary + '--');
-        const govde = parcalar.join('');
+        return;
+      }
 
-        const url = mevcutId
-          ? 'https://www.googleapis.com/upload/drive/v3/files/' + mevcutId + '?uploadType=multipart&fields=id,modifiedTime'
-          : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime';
-
-        return fetch(url, {
-          method: mevcutId ? 'PATCH' : 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'multipart/related; boundary=' + boundary
-          },
-          body: govde
-        });
-      }).then(function(r){
-        if(!r.ok) return hataDetayiOlustur('Drive yükleme hatası', r).then(function(h){ throw h; });
-        return r.json();
-      });
-    }
-
-    function driveDosyaIndir(token, dosyaId){
-      return fetch('https://www.googleapis.com/drive/v3/files/' + dosyaId + '?alt=media', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      }).then(function(r){
-        if(!r.ok) return hataDetayiOlustur('Drive indirme hatası', r).then(function(h){ throw h; });
-        return r.text();
-      });
-    }
-
-    // ================= OTOMATİK SENKRONİZASYON (buton yok, tamamen arka planda) =================
-    let senkronSurmekte = false;
-    function otomatikYukle(manuelMi){
-      if(!hesapSenkroneUygunMu() || !window.__sessizlikYedekDosyasiOlustur) return Promise.resolve();
-      if(senkronSurmekte) return Promise.resolve();
-      senkronSurmekte = true;
-      senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-      // Otomatik (arka plan) senkronizasyonda yalnızca hâlihazırda geçerli
-      // olan bir jeton kullanılır; Google'a sessizce yeni jeton isteği
-      // GÖNDERİLMEZ, çünkü bu bazı tarayıcılarda kullanıcıya beklenmedik
-      // şekilde bir hesap/e-posta seçtirme ekranı olarak görünebiliyor.
-      // Manuel tıklamada (senkron butonuna dokunulduğunda) ise bu kullanıcı
-      // etkileşimi sayıldığından gerekirse jeton sessizce/görünür şekilde
-      // yenilenebilir.
-      const tokenPromise = manuelMi ? gecerliTokenAl() : Promise.resolve(tokenOku());
-      return tokenPromise.then(function(token){
-        if(!token){
-          if(manuelMi){ console.warn('[Sessizlik Senkron] Jeton alınamadı (yenileme başarısız).'); }
-          senkronDurumAyarla(manuelMi ? 'hata' : '', manuelMi ? 'Senkronizasyon başarısız, tekrar dene' : 'Senkronize etmek için dokun');
-          return;
-        }
-        return window.__sessizlikYedekDosyasiOlustur().then(function(dosya){
-          return driveDosyaBul(token).then(function(mevcut){
-            return driveDosyaYukle(token, dosya, mevcut ? mevcut.id : null);
-          });
-        }).then(function(sonuc){
-          if(sonuc && sonuc.modifiedTime){ bilinenModifiedYaz(sonuc.modifiedTime); }
-          sonSenkronZamani = Date.now();
-          senkronGuncelDurumuGoster();
-        });
-      }).catch(function(err){
-        console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
-        const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
-      }).finally(function(){
-        senkronSurmekte = false;
-      });
-    }
-
-    let otoYuklemeZamanlayici = null;
-    function otoYuklemeZamanla(){
-      if(otoYuklemeZamanlayici){ clearTimeout(otoYuklemeZamanlayici); }
-      otoYuklemeZamanlayici = setTimeout(otomatikYukle, OTO_YUKLEME_GECIKME_MS);
-    }
-
-    // dosyaKaydet çağrıldığında (bir görsel/dosya IndexedDB'ye kaydedildiğinde)
-    // otomatik yüklemeyi tetiklemek için mevcut global fonksiyonu sarmalıyoruz.
-    if(window.__sessizlikDosyaKaydet){
-      const orijinalDosyaKaydet = window.__sessizlikDosyaKaydet;
-      window.__sessizlikDosyaKaydet = function(id, blob){
-        return orijinalDosyaKaydet(id, blob).then(function(sonuc){
-          otoYuklemeZamanla();
-          return sonuc;
-        });
-      };
-    }
-
-    // Uygulama arka plana alındığında / kapatılmadan hemen önce de senkronize et,
-    // böylece kullanıcı manuel bir "yedekle" butonuna hiç ihtiyaç duymaz.
-    document.addEventListener('visibilitychange', function(){
-      if(document.visibilityState === 'hidden'){ otomatikYukle(); }
-    });
-    window.addEventListener('pagehide', function(){ otomatikYukle(); });
-    setInterval(otomatikYukle, PERIYODIK_SENKRON_MS);
-
-    // ---- Açılışta: Drive'da bu cihazın bilmediği daha yeni bir sürüm varsa
-    // sessizce indirip geri yükler ----
-    function acilistaKontrolEt(){
-      if(!hesapSenkroneUygunMu() || !window.__sessizlikYedegiGeriYukle) return;
-      // Açılışta yalnızca hâlihazırda geçerli (süresi dolmamış) bir jeton
-      // varsa kontrol edilir; aksi halde Google'a sessizce yeni jeton
-      // istenmez (bkz. otomatikYukle'daki açıklama) — kullanıcı senkron
-      // butonuna dokunduğunda gerekirse yenilenir.
-      const token = tokenOku();
-      if(!token){ senkronDurumAyarla('', 'Senkronize etmek için dokun'); return; }
-      senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
-      driveDosyaBul(token).then(function(mevcut){
-        if(!mevcut){ sonSenkronZamani = Date.now(); senkronGuncelDurumuGoster(); return; }
-        const bilinen = bilinenModifiedOku();
-        if(bilinen && new Date(mevcut.modifiedTime).getTime() <= new Date(bilinen).getTime()){
-          sonSenkronZamani = Date.now();
-          senkronGuncelDurumuGoster();
-          return;
-        }
-        // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
-        return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
-          return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
-            bilinenModifiedYaz(mevcut.modifiedTime);
-            sonSenkronZamani = Date.now();
-            senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-            setTimeout(function(){ window.location.reload(); }, 300);
-          });
-        });
-      }).catch(function(err){
-        console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
-        const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
-        senkronDurumAyarla('hata', 'Senkronizasyon başarısız' + detay);
-      });
-    }
-
-    function ilkSenkronuBaslat(){
-      setTimeout(acilistaKontrolEt, 200);
-    }
-
-    // Google ile TAZE giriş yapıldığında (misafirden geçiş değil) kullanılır.
-    // Giriş ekranını kapatmadan ÖNCE Drive'da bir yedek olup olmadığına bakar;
-    // varsa indirip geri yükler ve sayfayı BİR KEZ yeniler — böylece kullanıcı
-    // hiçbir zaman boş/eski bir uygulama görüp ardından aniden yenilenen bir
-    // sayfa görmez. Yedek yoksa (ya da kontrol başarısız olursa) direkt devam
-    // edilir, kullanıcı giriş ekranında gereksiz yere bekletilmez.
-    function girisSonrasiVeriYukle(token){
-      if(!window.__sessizlikYedegiGeriYukle) return Promise.resolve();
-      return driveDosyaBul(token).then(function(mevcut){
-        if(!mevcut){ sonSenkronZamani = Date.now(); return; }
-        return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
-          return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
-            bilinenModifiedYaz(mevcut.modifiedTime);
-            window.location.reload();
-            // Sayfa yenilemesi devralacak; bu zincirin devam etmesini
-            // (ör. giriş ekranının erken kapanmasını) engellemek için
-            // kasıtlı olarak hiç çözülmeyen bir promise döndürülür.
-            return new Promise(function(){});
-          });
-        });
-      }).catch(function(err){
-        console.error('[Sessizlik Senkron] Giriş sonrası veri yükleme başarısız:', err);
-        // Veriler indirilemese bile kullanıcıyı giriş ekranında sonsuza kadar
-        // bekletmeyelim; uygulama mevcut haliyle açılır, senkron daha sonra
-        // (senkron düğmesi veya periyodik kontrol ile) tekrar denenebilir.
-      });
-    }
-
-    // ---- Açılışta durumu belirle ----
-    const mevcutHesap = hesapOku();
-    let misafirGecisBekleniyor = false;
-    try{ misafirGecisBekleniyor = sessionStorage.getItem(MISAFIR_GECIS_ANAHTARI) === '1'; sessionStorage.removeItem(MISAFIR_GECIS_ANAHTARI); }catch(e){}
-    if(redirectSonuc){
-      try{ sessionStorage.removeItem(BEKLEYEN_ANAHTARI); }catch(e){}
-      tokenKaydet(redirectSonuc.token, redirectSonuc.expiresIn);
-      if(misafirGecisBekleniyor){
-        // Standalone modda misafirken "Giriş Yap" ile başlatılan geçiş: yönlendirme
-        // dönüşünde de aynı çakışma kontrolünden geçirilir, veriler asla sorulmadan
-        // ezilmez.
-        ekraniGizle();
-        kullaniciBilgisiniGetir(redirectSonuc.token).then(function(yeniHesap){
-          return misafirdenGecisiIsle(redirectSonuc.token, yeniHesap);
+      if(event === 'SIGNED_IN' && session && session.user){
+        const kullaniciId = session.user.id;
+        const misafirdenGeliyor = misafirMi();
+        if(!misafirdenGeliyor){ durumGoster('Hesap bilgileri alınıyor…'); }
+        buluttanSatirGetir(kullaniciId).then(function(satir){
+          if(misafirdenGeliyor){
+            if(satir){
+              // Misafirken kayıtlı bir bulut yedeği bulundu: kullanıcıya sor.
+              bekleyenHesapGecisi = { kullaniciId: kullaniciId, satir: satir };
+              cakismaDurumGoster('');
+              cakismaBtnDurumu(false);
+              if(cakismaOverlay){ cakismaOverlay.classList.add('active'); }
+              durumGoster('');
+              hesapBilgisiniUygula(session.user);
+            } else {
+              misafirlikTemizle();
+              hesapBilgisiniUygula(session.user);
+              ekraniGizle();
+              durumGoster('');
+              senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
+              bulutaYukle(kullaniciId).then(function(){ realtimeBaslat(kullaniciId); });
+            }
+            return;
+          }
+          // Taze giriş (misafirden geçiş değil).
+          hesapBilgisiniUygula(session.user);
+          if(satir){
+            durumGoster('Verileriniz yükleniyor…');
+            return buluttanIndir(kullaniciId, satir).then(function(){
+              window.location.reload();
+            });
+          }
+          ekraniGizle();
+          durumGoster('');
+          senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
+          return bulutaYukle(kullaniciId).then(function(){ realtimeBaslat(kullaniciId); });
         }).catch(function(err){
-          window.alert((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
+          durumGoster((err && err.message) ? err.message : 'Giriş sırasında bir sorun oluştu.');
+          if(girisBtn){ girisBtn.disabled = false; }
         });
-      } else {
-        ekraniGoster();
-        durumGoster('Hesap bilgileri alınıyor…');
-        girisTamamla(redirectSonuc.token);
       }
-    } else if(mevcutHesap){
-      hesapBilgisiniUygula(mevcutHesap);
-      ekraniGizle();
-      if(!mevcutHesap.misafir){
-        senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
-        ilkSenkronuBaslat();
-      }
-    } else {
-      ekraniGoster();
-    }
+    });
   })();
+
 
   // ================= SPOR MODU: tam ekran, ayrı bir uygulamaya geçmiş gibi =================
   (function(){
