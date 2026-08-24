@@ -13050,30 +13050,36 @@
     const DOSYA_BUCKET = 'dosyalar';
     const MISAFIR_ANAHTARI = 'sessizlik-misafir';
     const BILINEN_GUNCELLEME_ANAHTARI = 'sessizlik-bilinen-guncelleme';
-    const CIHAZ_ID_ANAHTARI = 'sessizlik-cihaz-id';
+    const CIHAZ_KIMLIK_ANAHTARI = 'sessizlik-cihaz-kimlik';
     const OTO_YUKLEME_GECIKME_MS = 1200;
     const PERIYODIK_SENKRON_MS = 60000;
     // Bu anahtarlar saf yerel muhasebe verisidir; buluta senkronize edilecek
     // "veri" paketine dahil edilmemeli (aksi halde cihazlar birbirinin yerel
     // durumunu ezmeye çalışır).
-    const HARIC_TUTULAN_ANAHTARLAR = [MISAFIR_ANAHTARI, BILINEN_GUNCELLEME_ANAHTARI, CIHAZ_ID_ANAHTARI];
+    const HARIC_TUTULAN_ANAHTARLAR = [MISAFIR_ANAHTARI, BILINEN_GUNCELLEME_ANAHTARI, CIHAZ_KIMLIK_ANAHTARI];
+
+    // Her cihaza kalıcı, rastgele bir kimlik veriyoruz. Bu kimlik buluta
+    // yazılan her satıra eklenir; Realtime'dan bir güncelleme geldiğinde
+    // "bu yazmayı biz mi yaptık" sorusu zaman damgası karşılaştırmasına değil
+    // (race koşuluna açık), doğrudan bu kimliğe bakılarak cevaplanır. Böylece
+    // cihazın kendi yazdığı veriyi "başka bir cihazdan geldi" sanıp kendi
+    // kendine sayfayı yenilemesi (self-echo döngüsü) engellenir.
+    function cihazKimligiAl(){
+      try{
+        let kimlik = localStorage.getItem(CIHAZ_KIMLIK_ANAHTARI);
+        if(!kimlik){
+          kimlik = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('cihaz-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+          localStorage.setItem(CIHAZ_KIMLIK_ANAHTARI, kimlik);
+        }
+        return kimlik;
+      }catch(e){
+        return 'cihaz-gecici-' + Math.random().toString(36).slice(2);
+      }
+    }
+    const CIHAZ_KIMLIK = cihazKimligiAl();
 
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window.__sessizlikSupabase = sb;
-
-    // Her cihaz/tarayıcı için kalıcı, rastgele bir kimlik. Bu, bir cihazın
-    // kendi yazdığı senkronu "başka cihazdan geldi" sanıp gereksiz yere
-    // sayfayı yenilemesini (self-echo döngüsünü) tamamen engellemek için var.
-    function cihazIdOku(){
-      try{
-        let id = localStorage.getItem(CIHAZ_ID_ANAHTARI);
-        if(!id){
-          id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('cihaz-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-          localStorage.setItem(CIHAZ_ID_ANAHTARI, id);
-        }
-        return id;
-      }catch(e){ return 'bilinmeyen-cihaz'; }
-    }
 
     const overlay = document.getElementById('girisEkraniOverlay');
     const girisBtn = document.getElementById('girisGoogleBtn');
@@ -13245,7 +13251,7 @@
       const veri = veriPaketiOlustur();
       return dosyalariBulutaYukle(kullaniciId).then(function(){
         return sb.from(TABLO_ADI)
-          .upsert({ user_id: kullaniciId, veri: veri, kaynak_cihaz: cihazIdOku() }, { onConflict: 'user_id' })
+          .upsert({ user_id: kullaniciId, veri: veri, cihaz_id: CIHAZ_KIMLIK }, { onConflict: 'user_id' })
           .select('updated_at')
           .single();
       }).then(function(sonuc){
@@ -13276,15 +13282,11 @@
     // ================= OTOMATİK SENKRONİZASYON (buton yok, tamamen arka planda) =================
     let senkronSurmekte = false;
     function senkronEt(){
-      // Kilidi burada, herhangi bir "await" öncesinde eşzamanlı (senkron) olarak
-      // koyuyoruz. Aksi halde 'visibilitychange' ve 'pagehide' art arda tetiklendiğinde
-      // ikisi de bu kontrolü henüz kilit konmadan geçip aynı anda iki ayrı
-      // yükleme başlatabilirdi.
-      if(senkronSurmekte) return Promise.resolve();
-      senkronSurmekte = true;
       return sb.auth.getSession().then(function(sonuc){
         const oturum = sonuc && sonuc.data && sonuc.data.session;
-        if(!oturum || misafirMi()){ senkronSurmekte = false; return; }
+        if(!oturum || misafirMi()) return;
+        if(senkronSurmekte) return;
+        senkronSurmekte = true;
         senkronDurumAyarla('calisiyor', 'Senkronize ediliyor…');
         return bulutaYukle(oturum.user.id).catch(function(err){
           console.error('[Sessizlik Senkron] Yükleme başarısız:', err);
@@ -13359,9 +13361,9 @@
           const yeniSatir = payload && payload.new;
           const yeniGuncelleme = yeniSatir && yeniSatir.updated_at;
           if(!yeniGuncelleme || senkronSurmekte) return;
-          // Bu, az önce kendi cihazımızın yaptığı yazmanın yankısı olabilir —
-          // zamanlama karşılaştırmasına bakılmaksızın tamamen yoksay.
-          if(yeniSatir.kaynak_cihaz && yeniSatir.kaynak_cihaz === cihazIdOku()) return;
+          // Self-echo koruması: bu güncellemeyi buluta yazan cihaz kendimizsek
+          // (zaman damgası ne olursa olsun, race koşuluna bakılmaksızın) yok say.
+          if(yeniSatir.cihaz_id && yeniSatir.cihaz_id === CIHAZ_KIMLIK) return;
           const bilinen = bilinenGuncellemeOku();
           if(bilinen && new Date(yeniGuncelleme).getTime() <= new Date(bilinen).getTime()) return;
           senkronDurumAyarla('calisiyor', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
