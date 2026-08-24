@@ -17,71 +17,6 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 
 <script>
-  // ================= YENİLEME DÖNGÜSÜ KİLİDİ =================
-  // Sayfanın herhangi bir yerinden (özellik kodları, servis çalışanı
-  // güncelleme bildirimi, vb.) window.location.reload() çağırmak yerine
-  // window.guvenliYenile(sebep) kullanılmalı. Bu fonksiyon, kaynağı ne
-  // olursa olsun, kısa bir süre içinde art arda çok fazla yenileme
-  // denemesi olursa (örn. GitHub Pages CDN yayılma gecikmesi yüzünden
-  // aynı cihazın farklı edge sunucularından farklı sürümler alması gibi
-  // durumlarda) otomatik yenilemeyi durdurup, kullanıcıya elle
-  // tetikleyebileceği sabit bir "Sayfayı Yenile" düğmesi gösterir.
-  (function(){
-    var KAYIT_ANAHTARI = 'sessizlik-yenileme-gecmisi';
-    var PENCERE_MS = 10000;   // 10 saniyelik gözlem penceresi
-    var ESIK = 3;             // bu pencerede en fazla 3 otomatik yenileme
-
-    function gecmisiOku(){
-      try{
-        var ham = sessionStorage.getItem(KAYIT_ANAHTARI);
-        var liste = ham ? JSON.parse(ham) : [];
-        var simdi = Date.now();
-        return liste.filter(function(t){ return (simdi - t) < PENCERE_MS; });
-      }catch(e){ return []; }
-    }
-    function gecmisiYaz(liste){
-      try{ sessionStorage.setItem(KAYIT_ANAHTARI, JSON.stringify(liste)); }catch(e){}
-    }
-
-    function dugmeGoster(){
-      if(document.getElementById('yenileme-kilidi-uyari')) return;
-      var kutu = document.createElement('div');
-      kutu.id = 'yenileme-kilidi-uyari';
-      kutu.setAttribute('role', 'alert');
-      kutu.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;'+
-        'background:#1c1c1e;color:#fff;padding:14px 16px;border-radius:14px;'+
-        'font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;'+
-        'box-shadow:0 6px 20px rgba(0,0,0,.35);display:flex;align-items:center;'+
-        'justify-content:space-between;gap:12px;';
-      var metin = document.createElement('span');
-      metin.textContent = 'Sayfa tekrar tekrar yenilenmeye çalıştı, otomatik yenileme durduruldu.';
-      var dugme = document.createElement('button');
-      dugme.textContent = 'Sayfayı Yenile';
-      dugme.style.cssText = 'flex:none;background:#fff;color:#1c1c1e;border:0;'+
-        'padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px;';
-      dugme.addEventListener('click', function(){
-        gecmisiYaz([]); // sayaç sıfırlanır, kullanıcı bilerek yeniliyor
-        window.location.reload();
-      });
-      kutu.appendChild(metin);
-      kutu.appendChild(dugme);
-      document.body.appendChild(kutu);
-    }
-
-    window.guvenliYenile = function(sebep){
-      var liste = gecmisiOku();
-      liste.push(Date.now());
-      gecmisiYaz(liste);
-      if(liste.length >= ESIK){
-        console.log('Yenileme döngüsü tespit edildi, otomatik yenileme durduruldu. Sebep:', sebep);
-        if(document.body){ dugmeGoster(); }
-        else{ document.addEventListener('DOMContentLoaded', dugmeGoster); }
-        return;
-      }
-      window.location.reload();
-    };
-  })();
-
   // Koyu mod tercihini stiller çizilmeden önce uygula (yanıp sönmeyi engeller)
   // Not: meta[name="theme-color"] da burada, aynı anda güncelleniyor; aksi
   // halde durum çubuğu/adres çubuğu bir an için eski (açık) renkte kalıp
@@ -13087,7 +13022,7 @@
         okuyucu.onload = function(){
           icerigiGeriYukle(String(okuyucu.result)).then(function(){
             durumGoster('Verilerin geri yüklendi. Sayfa yenileniyor...');
-            setTimeout(function(){ window.guvenliYenile('yedek-geri-yukleme'); }, 900);
+            setTimeout(function(){ window.location.reload(); }, 900);
           }).catch(function(){
             durumGoster('Dosya okunamadı. Geçerli bir yedek dosyası seçtiğinden emin ol.');
           });
@@ -13395,7 +13330,7 @@
     let bekleyenSessizYenileme = false;
     function sessizceYenile(){
       if(document.visibilityState === 'hidden'){
-        window.guvenliYenile('sessiz-yenileme-arka-plan');
+        window.location.reload();
       } else {
         bekleyenSessizYenileme = true;
       }
@@ -13403,7 +13338,7 @@
     document.addEventListener('visibilitychange', function(){
       if(document.visibilityState === 'hidden' && bekleyenSessizYenileme){
         bekleyenSessizYenileme = false;
-        window.guvenliYenile('sessiz-yenileme-goruculuk-degisti');
+        window.location.reload();
       }
     });
 
@@ -13444,7 +13379,7 @@
           bekleyenUzakGuncelleme = null;
           senkronDurumAyarla('calisiyor', 'Güncelleniyor…');
           buluttanIndir(gecis.kullaniciId, gecis.satir).then(function(){
-            window.guvenliYenile('uzak-guncelleme-indirildi');
+            window.location.reload();
           }).catch(function(err){
             console.error('[Sessizlik Senkron] Güncelleme uygulanamadı:', err);
             const detay = (err && err.message) ? (': ' + String(err.message).slice(0, 60)) : '';
@@ -13572,7 +13507,7 @@
         cakismaDurumGoster('Hesabınızdaki veriler yükleniyor…');
         buluttanIndir(gecis.kullaniciId, gecis.satir).then(function(){
           misafirlikTemizle();
-          window.guvenliYenile('hesap-gecisi-buluttan-indirme');
+          window.location.reload();
         }).catch(function(err){
           cakismaDurumGoster((err && err.message) ? err.message : 'Veriler geri yüklenirken bir sorun oluştu.');
           cakismaBtnDurumu(false);
@@ -13587,7 +13522,7 @@
         cakismaDurumGoster('Cihazınızdaki veriler yükleniyor…');
         bulutaYukle(gecis.kullaniciId).then(function(){
           misafirlikTemizle();
-          window.guvenliYenile('hesap-gecisi-buluta-yukleme');
+          window.location.reload();
         }).catch(function(err){
           cakismaDurumGoster((err && err.message) ? err.message : 'Veriler yüklenirken bir sorun oluştu.');
           cakismaBtnDurumu(false);
@@ -13633,7 +13568,7 @@
         if(realtimeKanal){ sb.removeChannel(realtimeKanal); realtimeKanal = null; }
         sb.auth.signOut().then(function(){
           bilinenGuncellemeSil();
-          window.guvenliYenile('cikis-yapildi');
+          window.location.reload();
         });
       });
     }
@@ -13716,7 +13651,7 @@
             durumGoster('Verileriniz yükleniyor…');
             return buluttanIndir(kullaniciId, satir).then(function(){
               oturumBaslatildi = true;
-              window.guvenliYenile('oturum-baslatildi-veri-indirildi');
+              window.location.reload();
             });
           }
           ekraniGizle();
@@ -15198,106 +15133,17 @@
   })();
 
   // ================= PWA: SERVICE WORKER KAYDI =================
-  // Yeni sürüm bulunduğunda artık otomatik/anında devreye girmiyor.
-  // Kurulan yeni service worker "beklemede" kalır; kullanıcıya göze batmayan
-  // bir "Yeni sürüm var" bildirimi gösterilir, o dilerse yeniler. Bu sayede
-  // GitHub Pages'in deploy sonrası birkaç dakika süren CDN yayılma
-  // gecikmesi yüzünden aynı cihazın farklı anlarda farklı edge
-  // sunucularından farklı içerik alıp sürekli install→activate döngüsüne
-  // girmesi durumu artık kullanıcıyı rahatsız etmiyor.
   (function(){
-    if(!('serviceWorker' in navigator)) return;
-
-    function guncellemeBildirimiGoster(kayit){
-      if(document.getElementById('surum-guncelleme-bildirimi')) return;
-      var kutu = document.createElement('div');
-      kutu.id = 'surum-guncelleme-bildirimi';
-      kutu.setAttribute('role', 'status');
-      kutu.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483000;'+
-        'background:#1c1c1e;color:#fff;padding:14px 16px;border-radius:14px;'+
-        'font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;'+
-        'box-shadow:0 6px 20px rgba(0,0,0,.35);display:flex;align-items:center;'+
-        'justify-content:space-between;gap:12px;opacity:0;transform:translateY(8px);'+
-        'transition:opacity .25s ease,transform .25s ease;';
-      var metin = document.createElement('span');
-      metin.textContent = 'Yeni sürüm var.';
-      var dugme = document.createElement('button');
-      dugme.textContent = 'Yenile';
-      dugme.style.cssText = 'flex:none;background:#fff;color:#1c1c1e;border:0;'+
-        'padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px;';
-      var kapatDugme = document.createElement('button');
-      kapatDugme.textContent = '✕';
-      kapatDugme.setAttribute('aria-label', 'Kapat');
-      kapatDugme.style.cssText = 'flex:none;background:transparent;color:#fff;opacity:.6;'+
-        'border:0;font-size:15px;padding:4px 6px;';
-
-      var yenileniyor = false;
-      dugme.addEventListener('click', function(){
-        if(yenileniyor) return;
-        yenileniyor = true;
-        var beklemedeki = kayit.waiting;
-        if(beklemedeki){
-          beklemedeki.postMessage({ type: 'SKIP_WAITING' });
-        } else {
-          // Beklemede bir worker yoksa (nadiren), yine de kontrollü şekilde yenile.
-          window.guvenliYenile ? window.guvenliYenile('surum-guncelleme-manuel') : window.location.reload();
-        }
-      });
-      kapatDugme.addEventListener('click', function(){
-        kutu.remove();
-      });
-
-      kutu.appendChild(metin);
-      var dugmeGrubu = document.createElement('div');
-      dugmeGrubu.style.cssText = 'display:flex;align-items:center;gap:6px;';
-      dugmeGrubu.appendChild(dugme);
-      dugmeGrubu.appendChild(kapatDugme);
-      kutu.appendChild(dugmeGrubu);
-
-      function ekle(){
-        document.body.appendChild(kutu);
-        requestAnimationFrame(function(){
-          kutu.style.opacity = '1';
-          kutu.style.transform = 'translateY(0)';
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', function(){
+        // Kayıt yolu, index.html ile aynı klasördeki service-worker.js dosyasını hedefler.
+        // GitHub Pages "proje sayfası" olarak yayınlandığında (kullanici.github.io/repo-adi/)
+        // bu göreli yol otomatik doğru çalışır.
+        navigator.serviceWorker.register('service-worker.js').catch(function(err){
+          console.log('Service worker kaydı başarısız:', err);
         });
-      }
-      if(document.body){ ekle(); }
-      else{ document.addEventListener('DOMContentLoaded', ekle); }
+      });
     }
-
-    // Yeni worker devreye girdiğinde (kullanıcı "Yenile"ye bastıktan sonra)
-    // sayfayı bir kez, döngü kilidinden geçirerek yenile.
-    var zatenYenilendi = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function(){
-      if(zatenYenilendi) return;
-      zatenYenilendi = true;
-      window.guvenliYenile ? window.guvenliYenile('sw-controllerchange') : window.location.reload();
-    });
-
-    window.addEventListener('load', function(){
-      // Kayıt yolu, index.html ile aynı klasördeki service-worker.js dosyasını hedefler.
-      // GitHub Pages "proje sayfası" olarak yayınlandığında (kullanici.github.io/repo-adi/)
-      // bu göreli yol otomatik doğru çalışır.
-      navigator.serviceWorker.register('service-worker.js').then(function(kayit){
-        // Sayfa açılır açılmaz zaten beklemede bir sürüm varsa bildir.
-        if(kayit.waiting && navigator.serviceWorker.controller){
-          guncellemeBildirimiGoster(kayit);
-        }
-        kayit.addEventListener('updatefound', function(){
-          var yeniWorker = kayit.installing;
-          if(!yeniWorker) return;
-          yeniWorker.addEventListener('statechange', function(){
-            // 'installed' + zaten aktif bir controller varsa: bu bir GÜNCELLEME
-            // (ilk kurulum değil) demektir — kullanıcıyı bilgilendir.
-            if(yeniWorker.state === 'installed' && navigator.serviceWorker.controller){
-              guncellemeBildirimiGoster(kayit);
-            }
-          });
-        });
-      }).catch(function(err){
-        console.log('Service worker kaydı başarısız:', err);
-      });
-    });
   })();
 </script>
 

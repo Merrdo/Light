@@ -5,7 +5,7 @@
 
 // Sürüm numarasını her önemli güncellemede artır (örn: 'v2', 'v3'...).
 // Bu, eski önbelleğin temizlenip yeni dosyaların indirilmesini sağlar.
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = 'sessizlik-' + CACHE_VERSION;
 
 // Uygulama kabuğu: ilk yüklemede önbelleğe alınacak dosyalar.
@@ -19,11 +19,6 @@ const APP_SHELL = [
 ];
 
 // ---- Kurulum: uygulama kabuğunu önbelleğe al ----
-// ÖNEMLİ: Burada artık self.skipWaiting() ÇAĞRILMIYOR. Yeni service worker
-// kurulduktan sonra "waiting" durumunda bekler; sayfayı o an kullanan
-// kullanıcıyı rahatsız etmeden arka planda hazır bekler. Devreye girmesi,
-// yalnızca index.html tarafındaki "Yeni sürüm var" bildirimine kullanıcı
-// tıkladığında, aşağıdaki 'message' dinleyicisi üzerinden istenir.
 self.addEventListener('install', function(event){
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache){
@@ -36,24 +31,13 @@ self.addEventListener('install', function(event){
           });
         })
       );
+    }).then(function(){
+      return self.skipWaiting();
     })
   );
 });
 
-// Sayfa tarafından "Yenile" düğmesine basıldığında gönderilen mesaj:
-// yeni service worker'ı hemen etkinleştirmesini sağlar.
-self.addEventListener('message', function(event){
-  if(event.data && event.data.type === 'SKIP_WAITING'){
-    self.skipWaiting();
-  }
-});
-
 // ---- Aktifleşme: eski sürüm önbelleklerini temizle ----
-// ÖNEMLİ: self.clients.claim() de artık ÇAĞRILMIYOR. Bu sayede yeni service
-// worker, o an açık olan sekmeleri aniden ele geçirip beklenmedik bir
-// içerik/sürüm karışıklığına yol açmaz; devreye girişi doğal akışında,
-// kullanıcı sayfayı bir sonraki gerçek yenilemesinde (veya yukarıdaki
-// SKIP_WAITING mesajıyla tetiklenen kontrollü yenilemede) gerçekleşir.
 self.addEventListener('activate', function(event){
   event.waitUntil(
     caches.keys().then(function(keys){
@@ -64,6 +48,8 @@ self.addEventListener('activate', function(event){
           return caches.delete(key);
         })
       );
+    }).then(function(){
+      return self.clients.claim();
     })
   );
 });
