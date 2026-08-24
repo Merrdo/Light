@@ -13228,6 +13228,17 @@
     // ================= YÜKLE / İNDİR (yedekler tablosu) =================
     function bulutaYukle(kullaniciId){
       const veri = veriPaketiOlustur();
+      // İyimser (optimistic) yazım: yükleme AĞ isteği tamamlanmadan hemen burada
+      // yerel "bilinen güncelleme" zamanını şimdiki an olarak işaretliyoruz.
+      // Neden: iOS, uygulama arka plana alındığında (ana ekrandan kullanılan
+      // PWA'larda) JS'i çok kısa süre içinde askıya alabiliyor/kapatabiliyor.
+      // Bu, yukarıdaki ağ isteğinin cevabının hiç dönmemesine ve dolayısıyla
+      // eski koddaki bilinenGuncellemeYaz(...) çağrısının hiç çalışmamasına
+      // yol açabiliyordu. Sonuç: cihaz kendi az önce yüklediği veriyi bir
+      // sonraki açılışta "başka bir cihazdan gelen yeni veri" sanıp
+      // gereksiz yere indirip sayfayı yeniden yüklüyordu. Bu satır, ağ
+      // isteği kesilse bile yerel değeri güncel tutarak o döngüyü engeller.
+      bilinenGuncellemeYaz(new Date().toISOString());
       return dosyalariBulutaYukle(kullaniciId).then(function(){
         return sb.from(TABLO_ADI)
           .upsert({ user_id: kullaniciId, veri: veri }, { onConflict: 'user_id' })
@@ -13318,7 +13329,19 @@
           return;
         }
         // Buluttaki bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
+        // Reload'dan önce ek bir güvenlik kontrolü yapıyoruz: indirilen veri,
+        // cihazda zaten yerelde duran veriyle birebir aynıysa (ör. bu "yeni"
+        // sürüm aslında bu cihazın kendi az önce yüklediği veriyse) sayfayı
+        // gereksiz yere yenilemiyoruz. Böylece gerçek bir değişiklik yoksa
+        // kullanıcı bir yenileme/titreme hissetmiyor.
+        const indirmedenOnceVeri = JSON.stringify(veriPaketiOlustur());
         return buluttanIndir(kullaniciId, satir).then(function(){
+          const indirdiktenSonraVeri = JSON.stringify(veriPaketiOlustur());
+          if(indirdiktenSonraVeri === indirmedenOnceVeri){
+            sonSenkronZamani = Date.now();
+            senkronGuncelDurumuGoster();
+            return;
+          }
           senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
           setTimeout(function(){ window.location.reload(); }, 300);
         });
@@ -13343,7 +13366,18 @@
           const bilinen = bilinenGuncellemeOku();
           if(bilinen && new Date(yeniGuncelleme).getTime() <= new Date(bilinen).getTime()) return;
           senkronDurumAyarla('calisiyor', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
+          // Bu bildirim, cihazın KENDİ az önce yaptığı bir yüklemenin realtime
+          // yankısı olabilir (yükleme isteğinin REST cevabı henüz dönmeden bu
+          // websocket bildirimi gelebiliyor). O yüzden indirmeden önce/sonra
+          // veriyi karşılaştırıp gerçekten farklı değilse reload yapmıyoruz.
+          const indirmedenOnceVeri = JSON.stringify(veriPaketiOlustur());
           buluttanIndir(kullaniciId, yeniSatir).then(function(){
+            const indirdiktenSonraVeri = JSON.stringify(veriPaketiOlustur());
+            if(indirdiktenSonraVeri === indirmedenOnceVeri){
+              sonSenkronZamani = Date.now();
+              senkronGuncelDurumuGoster();
+              return;
+            }
             window.location.reload();
           }).catch(function(){});
         })
