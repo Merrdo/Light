@@ -13247,8 +13247,20 @@
     }
 
     // ================= YÜKLE / İNDİR (yedekler tablosu) =================
-    function bulutaYukle(kullaniciId){
+    // Son buluta yazılan veri paketinin anlık görüntüsü (JSON). Veri değişmediyse
+    // periyodik döngünün gereksiz yere buluta yazıp diğer cihazlarda "yeni güncelleme
+    // var" sinyali doğurmasını (ve dolayısıyla o cihazlarda gereksiz yenilemeyi)
+    // engellemek için kullanılır.
+    let sonBilinenVeriJSON = null;
+    function bulutaYukle(kullaniciId, zorla){
       const veri = veriPaketiOlustur();
+      const veriJSON = JSON.stringify(veri);
+      if(!zorla && sonBilinenVeriJSON !== null && veriJSON === sonBilinenVeriJSON){
+        // Veri son senkrondan beri değişmemiş: ağ isteği yapmaya gerek yok.
+        sonSenkronZamani = Date.now();
+        senkronGuncelDurumuGoster();
+        return Promise.resolve(bilinenGuncellemeOku());
+      }
       return dosyalariBulutaYukle(kullaniciId).then(function(){
         return sb.from(TABLO_ADI)
           .upsert({ user_id: kullaniciId, veri: veri, cihaz_id: CIHAZ_KIMLIK }, { onConflict: 'user_id' })
@@ -13258,6 +13270,7 @@
         if(sonuc.error) throw sonuc.error;
         const guncelleme = sonuc.data ? sonuc.data.updated_at : null;
         if(guncelleme){ bilinenGuncellemeYaz(guncelleme); }
+        sonBilinenVeriJSON = veriJSON;
         sonSenkronZamani = Date.now();
         senkronGuncelDurumuGoster();
         return guncelleme;
@@ -13273,6 +13286,7 @@
 
     function buluttanIndir(kullaniciId, satir){
       veriPaketiniUygula(satir.veri);
+      sonBilinenVeriJSON = JSON.stringify(satir.veri || {});
       return dosyalariBuluttanIndir(kullaniciId).then(function(){
         bilinenGuncellemeYaz(satir.updated_at);
         sonSenkronZamani = Date.now();
@@ -13295,6 +13309,27 @@
         }).finally(function(){ senkronSurmekte = false; });
       });
     }
+
+    // ================= SESSİZ (BÖLMEYEN) YENİLEME =================
+    // Başka bir cihazdan gelen bir güncelleme indirildiğinde, kullanıcı o anda
+    // uygulamayı aktif kullanıyorsa sayfayı hemen yenilemek onu bulunduğu ekrandan
+    // koparıp başa atar. Bunun yerine: veri sessizce indirilir, sayfa görünürken
+    // yenileme ertelenir; kullanıcı sekmeden ayrılıp (başka sekme/uygulama) sayfa
+    // arka plana alındığı an -kullanıcı görmeden- yenileme uygulanır.
+    let bekleyenSessizYenileme = false;
+    function sessizceYenile(){
+      if(document.visibilityState === 'hidden'){
+        window.location.reload();
+      } else {
+        bekleyenSessizYenileme = true;
+      }
+    }
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState === 'hidden' && bekleyenSessizYenileme){
+        bekleyenSessizYenileme = false;
+        window.location.reload();
+      }
+    });
 
     let otoYuklemeZamanlayici = null;
     function otoYuklemeZamanla(){
@@ -13341,7 +13376,7 @@
         // Buluttaki bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
         return buluttanIndir(kullaniciId, satir).then(function(){
           senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-          setTimeout(function(){ window.location.reload(); }, 300);
+          sessizceYenile();
         });
       }).catch(function(err){
         console.error('[Sessizlik Senkron] Açılış kontrolü başarısız:', err);
@@ -13368,7 +13403,7 @@
           if(bilinen && new Date(yeniGuncelleme).getTime() <= new Date(bilinen).getTime()) return;
           senkronDurumAyarla('calisiyor', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
           buluttanIndir(kullaniciId, yeniSatir).then(function(){
-            window.location.reload();
+            sessizceYenile();
           }).catch(function(){});
         })
         .subscribe();
