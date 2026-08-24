@@ -13337,12 +13337,15 @@
           return;
         }
         // Drive'da bu cihazın bilmediği daha yeni bir sürüm var: sessizce indir.
+        // Not: burada BİLEREK sayfa yenilenmiyor. Kullanıcı sayfayı kendi
+        // isteğiyle (bir butona basarak) yenilemedikçe otomatik reload
+        // tetiklenmez; yeni veriler depoya (localStorage/IndexedDB) sessizce
+        // yazılır ve bir sonraki açılışta/yenilemede kullanılır.
         return driveDosyaIndir(token, mevcut.id).then(function(icerikMetin){
           return window.__sessizlikYedegiGeriYukle(icerikMetin).then(function(){
             bilinenModifiedYaz(mevcut.modifiedTime);
             sonSenkronZamani = Date.now();
-            senkronDurumAyarla('ok', 'Başka bir cihazdan yeni veriler bulundu, güncelleniyor…');
-            setTimeout(function(){ window.location.reload(); }, 900);
+            senkronGuncelDurumuGoster();
           });
         });
       }).catch(function(err){
@@ -13364,11 +13367,21 @@
       durumGoster('Hesap bilgileri alınıyor…');
       tokenKaydet(redirectSonuc.token, redirectSonuc.expiresIn);
       girisTamamla(redirectSonuc.token);
-    } else if(mevcutHesap){
+    } else if(mevcutHesap && tokenOku()){
+      // Hesap biliniyor VE bu oturum için hâlâ geçerli bir jeton var:
+      // kullanıcıyı tekrar bekletmeden doğrudan içeri al.
       hesapBilgisiniUygula(mevcutHesap);
       ekraniGizle();
       senkronDurumAyarla('', 'Senkronizasyon bekleniyor');
       ilkSenkronuBaslat();
+    } else if(mevcutHesap){
+      // Hesap biliniyor ama bu oturumda geçerli bir jeton yok (ör. oto
+      // çıkış / jeton süresi dolmuş): senkronu sessizce atlamak yerine,
+      // kullanıcının fark etmeden veri kaybetmemesi için her açılışta
+      // tekrar giriş sayfası gösterilip mailiyle giriş yapması istenir.
+      hesapBilgisiniUygula(mevcutHesap);
+      durumGoster('Devam etmek için Google hesabınla tekrar giriş yapman gerekiyor.');
+      ekraniGoster();
     } else {
       ekraniGoster();
     }
