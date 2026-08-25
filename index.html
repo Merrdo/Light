@@ -567,61 +567,6 @@
     text-align:center;
   }
 
-  /* ---- Ana sayfa: orta-üst kısımdaki gösterişli kronometre ----
-     Arka plandaki ışık huzmesi/yıldız deseniyle bütünleşmesi için
-     rakamların arkasına aynı vurgu renginde, yavaşça nabız gibi atan
-     yumuşak bir ışıma (hâle) yerleştirilir; rakamlara da hafif bir
-     ışıltı (text-shadow) verilir. */
-  .ana-krono-kart{
-    position:fixed;
-    top:calc(6.6rem + env(safe-area-inset-top, 0px));
-    left:50%;
-    transform:translateX(-50%);
-    z-index:10;
-    width:min(94vw, 640px);
-    background:transparent;
-    border:none;
-    padding:1.2rem 1rem;
-    margin:0;
-    cursor:pointer;
-    transition: transform 0.18s cubic-bezier(.22,1,.36,1), opacity 0.2s ease;
-  }
-  .ana-krono-kart::before{
-    content:'';
-    position:absolute;
-    inset:-15% 4%;
-    z-index:-1;
-    background:radial-gradient(ellipse at center,
-      rgba(var(--accent-rgb),0.24) 0%,
-      rgba(var(--accent-rgb),0.1) 40%,
-      rgba(var(--accent-rgb),0) 72%);
-    filter:blur(28px);
-    animation: kronoHaleNabiz 6s ease-in-out infinite;
-    pointer-events:none;
-  }
-  @keyframes kronoHaleNabiz{
-    0%, 100%{ opacity:0.7; transform:scale(1); }
-    50%{ opacity:1; transform:scale(1.08); }
-  }
-  .ana-krono-kart:hover{ opacity:0.92; }
-  .ana-krono-kart:active{ transform:translateX(-50%) scale(0.97); }
-  .ana-krono-kart .sayac-birim{ padding:0 1rem; }
-  .ana-krono-kart .sayac-sayi{
-    font-size:clamp(2.8rem, 12.5vw, 5rem);
-    text-shadow:0 0 26px rgba(var(--accent-rgb),0.32);
-  }
-  .ana-krono-kart .sayac-ayrac{ height:clamp(2.8rem, 12.5vw, 5rem); }
-  .ana-krono-kart .sayac-birim.sayac-saniye .sayac-sayi{
-    text-shadow:0 0 32px rgba(var(--accent-rgb),0.55);
-  }
-  .ana-krono-kart .sayac-etiket{
-    font-size:0.68rem;
-    letter-spacing:0.22em;
-  }
-  @media (prefers-reduced-motion: reduce){
-    .ana-krono-kart::before{ animation:none; opacity:0.85; }
-  }
-
   .eyebrow{
     display:inline-block;
     font-size:0.72rem;
@@ -900,65 +845,6 @@
   @media (prefers-reduced-motion: reduce){
     .spor-modu-overlay{ transition:opacity 0.15s ease, visibility 0s linear 0.15s; transform:none; }
     .spor-modu-overlay.active{ transition:opacity 0.15s ease, visibility 0s linear 0s; transform:none; }
-  }
-
-  /* ---- Kronometre: tam ekran arayüz (nav bar'ı tamamen örter) ---- */
-  .kronometre-overlay{
-    position:fixed;
-    inset:0;
-    z-index:9999;
-    background:var(--bg);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:calc(2rem + env(safe-area-inset-top, 0px)) 2rem calc(2rem + env(safe-area-inset-bottom, 0px));
-    opacity:0;
-    transform:scale(0.94);
-    pointer-events:none;
-    visibility:hidden;
-    transition: opacity 0.32s cubic-bezier(.22,1,.36,1), transform 0.38s cubic-bezier(.22,1,.36,1), visibility 0s linear 0.38s;
-  }
-  .kronometre-overlay.active{
-    opacity:1;
-    transform:scale(1);
-    pointer-events:auto;
-    visibility:visible;
-    transition: opacity 0.34s cubic-bezier(.22,1,.36,1), transform 0.42s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
-  }
-  @media (prefers-reduced-motion: reduce){
-    .kronometre-overlay{ transition:opacity 0.15s ease, visibility 0s linear 0.15s; transform:none; }
-    .kronometre-overlay.active{ transition:opacity 0.15s ease, visibility 0s linear 0s; transform:none; }
-  }
-  .kronometre-geri-btn{
-    position:fixed;
-    top:calc(1.6rem + env(safe-area-inset-top, 0px));
-    left:calc(1.6rem + env(safe-area-inset-left, 0px));
-    width:2.3rem;
-    height:2.3rem;
-    z-index:2;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border:1px solid var(--line);
-    border-radius:50%;
-    background:transparent;
-    color:var(--ink-soft);
-    cursor:pointer;
-    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-  }
-  .kronometre-geri-btn:hover{
-    color:var(--ink);
-    border-color:var(--ink-soft);
-    background:rgba(var(--accent-rgb),0.1);
-  }
-  .kronometre-geri-btn:active{ transform:scale(0.94); }
-  .kronometre-geri-btn svg{ width:1.05rem; height:1.05rem; }
-  .kronometre-satir{ margin-top:2.2rem; }
-  .kronometre-aksiyonlar{
-    margin-top:3rem;
-    width:100%;
-    max-width:360px;
   }
 
   /* ---- Spor Modu Geçişi: gerçek bir uygulama açılışı hissi veren ikon-büyütme animasyonu ---- */
@@ -6357,56 +6243,17 @@
   </div>
 
   <main class="stage" id="viewHome">
-    <button type="button" class="ana-krono-kart" id="anaKronoWidget" aria-label="Kronometreyi tam ekran aç">
-      <div class="sayac-satir">
-        <div class="sayac-birim">
-          <span class="sayac-sayi" id="anaKronoSaat">00</span>
-          <span class="sayac-etiket">saat</span>
-        </div>
-        <div class="sayac-ayrac"></div>
-        <div class="sayac-birim">
-          <span class="sayac-sayi" id="anaKronoDakika">00</span>
-          <span class="sayac-etiket">dakika</span>
-        </div>
-        <div class="sayac-ayrac"></div>
-        <div class="sayac-birim sayac-saniye">
-          <span class="sayac-sayi" id="anaKronoSaniye">00</span>
-          <span class="sayac-etiket">saniye</span>
-        </div>
-      </div>
-    </button>
-  </main>
+    <span class="eyebrow">Bir Düşünce</span>
+    <div class="rule"></div>
 
-  <!-- ================= KRONOMETRE: tam ekran arayüz ================= -->
-  <div class="kronometre-overlay" id="kronometreOverlay">
-    <button type="button" class="kronometre-geri-btn" id="kronometreKapatBtn" aria-label="Geri dön">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-    </button>
-    <div class="sayac-listem-heading">
-      <span class="sayac-listem-eyebrow">Zamanı Tut</span>
-      <h2 class="sayac-listem-title">Kronometre</h2>
-    </div>
-    <div class="sayac-satir kronometre-satir">
-      <div class="sayac-birim">
-        <span class="sayac-sayi" id="kronoSaat">00</span>
-        <span class="sayac-etiket">saat</span>
-      </div>
-      <div class="sayac-ayrac"></div>
-      <div class="sayac-birim">
-        <span class="sayac-sayi" id="kronoDakika">00</span>
-        <span class="sayac-etiket">dakika</span>
-      </div>
-      <div class="sayac-ayrac"></div>
-      <div class="sayac-birim sayac-saniye">
-        <span class="sayac-sayi" id="kronoSaniye">00</span>
-        <span class="sayac-etiket">saniye</span>
-      </div>
-    </div>
-    <div class="modal-actions modal-actions-pill kronometre-aksiyonlar">
-      <button type="button" class="modal-btn" id="kronometreSifirlaBtn">Sıfırla</button>
-      <button type="button" class="modal-btn modal-btn-primary" id="kronometreBaslatBtn">Başlat</button>
-    </div>
-  </div>
+    <h1 id="headline"></h1>
+
+    <p class="sub">Kelimeler yavaş çıkar; ama kalanı, sessizlik taşır.</p>
+
+    <span class="quote-mark">”</span>
+
+    <p class="signature">Kağıt ve Mürekkep</p>
+  </main>
 
   <div class="view-empty" id="viewEmpty">
     <div class="empty-inner">
@@ -6883,7 +6730,7 @@
     </div>
   </div>
 
-  <footer id="pageFooter"></footer>
+  <footer id="pageFooter">Sayfayı yeniden yükleyerek animasyonu tekrar izleyebilirsiniz</footer>
 
   <div class="modal-overlay" id="denemeModalOverlay">
     <div class="modal-box" id="denemeModalBox" style="position:relative;">
@@ -7457,89 +7304,57 @@
   </div>
 
 <script>
-  // ================= KRONOMETRE =================
-  // Basit, tamamen istemci tarafında çalışan bir kronometre: ana sayfadaki
-  // küçük önizleme alanı ile tam ekran arayüzdeki büyük gösterim aynı anda
-  // güncellenir. Zaman Date.now() farkına göre hesaplanır, böylece sekme
-  // arka plandayken interval yavaşlasa bile gösterilen süre doğru kalır.
+  // Başlığı kelime kelime, gecikmeli olarak sahneye koy
+  const text = "Sessizlik de bir dildir.";
+  const h1 = document.getElementById('headline');
+  const words = text.split(' ');
+
+  words.forEach((word, i) => {
+    const span = document.createElement('span');
+    span.className = 'word';
+    span.textContent = word;
+    span.style.animationDelay = (0.7 + i * 0.16) + 's';
+    h1.appendChild(span);
+    if(i < words.length - 1){
+      h1.appendChild(document.createTextNode('\u00A0'));
+    }
+  });
+
+  // ================= ANA SAYFA GİRİŞ ANİMASYONU GÜVENLİK AĞI =================
+  // Uygulama arka plandan dönerken ya da ikinci kez açılırken (bfcache / PWA
+  // yeniden etkinleşmesi) CSS animation-delay zamanlayıcıları bazen hiç
+  // tetiklenmeden takılı kalabiliyor; bu da ana sayfanın eksik (bazı
+  // öğeler görünmeden) açılmasına yol açıyor. Aşağıdaki güvenlik ağı, giriş
+  // animasyonunun normalde tamamlanmış olması gereken süreden sonra hâlâ
+  // görünmeyen bir öğe kalmışsa onu zorla son (görünür) haline getirir.
   (function(){
-    const widget = document.getElementById('anaKronoWidget');
-    const overlay = document.getElementById('kronometreOverlay');
-    const kapatBtn = document.getElementById('kronometreKapatBtn');
-    const baslatBtn = document.getElementById('kronometreBaslatBtn');
-    const sifirlaBtn = document.getElementById('kronometreSifirlaBtn');
-
-    const anaSaat = document.getElementById('anaKronoSaat');
-    const anaDakika = document.getElementById('anaKronoDakika');
-    const anaSaniye = document.getElementById('anaKronoSaniye');
-    const kSaat = document.getElementById('kronoSaat');
-    const kDakika = document.getElementById('kronoDakika');
-    const kSaniye = document.getElementById('kronoSaniye');
-
-    let calisiyor = false;
-    let baslangicZamani = 0;
-    let birikenMs = 0;
-    let araTimer = null;
-
-    function ikiHane(n){ return String(n).padStart(2, '0'); }
-
-    function goruntuyuGuncelle(){
-      const gecenMs = calisiyor ? (Date.now() - baslangicZamani) : birikenMs;
-      const toplamSn = Math.floor(gecenMs / 1000);
-      const saat = ikiHane(Math.floor(toplamSn / 3600));
-      const dakika = ikiHane(Math.floor((toplamSn % 3600) / 60));
-      const saniye = ikiHane(toplamSn % 60);
-      if(anaSaat){ anaSaat.textContent = saat; }
-      if(anaDakika){ anaDakika.textContent = dakika; }
-      if(anaSaniye){ anaSaniye.textContent = saniye; }
-      if(kSaat){ kSaat.textContent = saat; }
-      if(kDakika){ kDakika.textContent = dakika; }
-      if(kSaniye){ kSaniye.textContent = saniye; }
-    }
-
-    function baslat(){
-      if(calisiyor) return;
-      calisiyor = true;
-      baslangicZamani = Date.now() - birikenMs;
-      araTimer = setInterval(goruntuyuGuncelle, 250);
-      if(baslatBtn){ baslatBtn.textContent = 'Duraklat'; }
-      goruntuyuGuncelle();
-    }
-    function duraklat(){
-      if(!calisiyor) return;
-      calisiyor = false;
-      birikenMs = Date.now() - baslangicZamani;
-      if(araTimer){ clearInterval(araTimer); araTimer = null; }
-      if(baslatBtn){ baslatBtn.textContent = 'Başlat'; }
-      goruntuyuGuncelle();
-    }
-    function sifirla(){
-      birikenMs = 0;
-      baslangicZamani = Date.now();
-      goruntuyuGuncelle();
-    }
-
-    if(baslatBtn){
-      baslatBtn.addEventListener('click', function(){
-        if(calisiyor){ duraklat(); } else { baslat(); }
+    function anaSayfaHeroyuGorunurYap(){
+      const hedefler = document.querySelectorAll(
+        '#viewHome .eyebrow, #viewHome .rule, #viewHome h1 .word, #viewHome .sub, #viewHome .quote-mark, #viewHome .signature, #pageFooter'
+      );
+      hedefler.forEach(function(el){
+        el.style.animation = 'none';
+        el.style.opacity = '1';
+        el.style.filter = 'none';
+        el.style.transform = 'none';
       });
+      const kural = document.querySelector('#viewHome .rule');
+      if(kural){ kural.style.width = '64px'; }
     }
-    if(sifirlaBtn){ sifirlaBtn.addEventListener('click', sifirla); }
 
-    function tamEkranAc(){
-      if(overlay){ overlay.classList.add('active'); }
-    }
-    function tamEkranKapat(){
-      if(overlay){ overlay.classList.remove('active'); }
-    }
-    if(widget){ widget.addEventListener('click', tamEkranAc); }
-    if(kapatBtn){ kapatBtn.addEventListener('click', tamEkranKapat); }
+    // Sayfa arka plan belleğinden (bfcache) geri geldiğinde animasyonları
+    // beklemeden doğrudan tamamlanmış haline getir.
+    window.addEventListener('pageshow', function(e){
+      if(e.persisted){ anaSayfaHeroyuGorunurYap(); }
+    });
 
-    goruntuyuGuncelle();
+    // Normal koşullarda giriş animasyonu ~3.5sn içinde biter; bu süre
+    // geçtiğinde hâlâ görünmeyen bir öğe varsa (takılı kalmışsa) zorla
+    // görünür yapılır. Animasyon zaten tamamlanmışsa bu işlemin görsel
+    // bir etkisi olmaz.
+    setTimeout(anaSayfaHeroyuGorunurYap, 3500);
   })();
-</script>
 
-<script>
   // ================= NAVBAR SCROLL BEHAVIOR =================
   (function(){
     const pill = document.getElementById('navPill');
@@ -14506,7 +14321,7 @@
 
   // ================= ARKA PLAN KİLİDİ: herhangi bir pop-up/kayar pencere açıkken arka plan kaydırılamasın =================
   (function(){
-    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-overlay.active';
+    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active';
     let kilitliKonum = 0;
     let kilitliMi = false;
 
@@ -14546,7 +14361,7 @@
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
     }
 
-    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-overlay');
+    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay');
     if(izlenecekOverlayler.length){
       const gozlemci = new MutationObserver(durumuKontrolEt);
       izlenecekOverlayler.forEach(function(el){
