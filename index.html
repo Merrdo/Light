@@ -207,6 +207,16 @@
     -webkit-tap-highlight-color:transparent;
   }
 
+  /* ---- İstisna: Rutinler ve Yapılacaklar bölümlerinde yazdığımız yazılar seçilebilir/kopyalanabilir olsun ---- */
+  #rutinBolum, #rutinBolum *,
+  #todoBolum, #todoBolum *{
+    -webkit-user-select:text;
+    -moz-user-select:text;
+    -ms-user-select:text;
+    user-select:text;
+    -webkit-touch-callout:default;
+  }
+
   body{
     display:flex;
     flex-direction:column;
@@ -2154,6 +2164,20 @@
   }
   .dock-btn svg{ width:1.3rem; height:1.3rem; }
 
+  /* ---- Animasyonlu dock ikonları: Gündelik (liste-checks) & Geri Sayım (saat) ---- */
+  .anim-icon{ display:inline-flex; align-items:center; justify-content:center; }
+  .anim-icon svg{ width:1.3rem; height:1.3rem; }
+
+  .anim-doc-check .doc-check-mark{ stroke-dasharray:9.7; stroke-dashoffset:0; opacity:1; }
+  .anim-doc-check.animate .doc-check-mark{ animation:dockDocCheckDraw 0.4s ease-in-out both; }
+  @keyframes dockDocCheckDraw{ from{ stroke-dashoffset:9.7; opacity:0; } to{ stroke-dashoffset:0; opacity:1; } }
+
+  .anim-gallery .gv-line{ transform-box:view-box; transform:translateY(0); opacity:1; }
+  .anim-gallery.animate .gv-line-1{ animation:dockGalleryLine1 0.3s ease-out 0.25s both; }
+  .anim-gallery.animate .gv-line-2{ animation:dockGalleryLine2 0.3s ease-out 0s both; }
+  @keyframes dockGalleryLine1{ from{ transform:translateY(2px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+  @keyframes dockGalleryLine2{ from{ transform:translateY(4px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+
   .dock-tip{
     position:absolute;
     bottom:calc(100% + 0.6rem);
@@ -2380,6 +2404,239 @@
     text-decoration:line-through;
     opacity:0.65;
   }
+  .gundelik-madde-metin-yazi{
+    display:block;
+  }
+
+  /* ---- Yapılacaklar Listesi: kategori + öncelik etiketleri ---- */
+  .gundelik-madde-etiketler{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:0.4rem;
+    margin-top:0.4rem;
+  }
+  .gundelik-etiket-kategori-btn,
+  .gundelik-etiket-oncelik-btn{
+    font-family:inherit;
+    font-size:0.72rem;
+    font-weight:600;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:0.22rem 0.65rem;
+    outline:none;
+    background:rgba(var(--ink-rgb),0.03);
+    color:var(--ink-soft);
+    max-width:8rem;
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .gundelik-etiket-kategori-btn{
+    width:auto;
+    min-width:4.2rem;
+    text-align:left;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-etiket-kategori-btn:hover,
+    .gundelik-etiket-oncelik-btn:hover{
+      border-color:var(--accent);
+      background:rgba(var(--accent-rgb),0.08);
+    }
+  }
+  .gundelik-etiket-kategori-btn:active,
+  .gundelik-etiket-oncelik-btn:active{ transform:scale(0.96); }
+  .gundelik-etiket-oncelik-btn.oncelik-yuksek{ background-color:rgba(224,161,153,0.28); border-color:rgba(224,161,153,0.7); color:#8a3f34; }
+  .gundelik-etiket-oncelik-btn.oncelik-orta{ background-color:rgba(217,183,107,0.28); border-color:rgba(217,183,107,0.7); color:#7a5c1c; }
+  .gundelik-etiket-oncelik-btn.oncelik-dusuk{ background-color:rgba(160,209,172,0.28); border-color:rgba(160,209,172,0.7); color:#356b40; }
+  [data-theme="dark"] .gundelik-etiket-oncelik-btn.oncelik-yuksek{ color:#E0A199; }
+  [data-theme="dark"] .gundelik-etiket-oncelik-btn.oncelik-orta{ color:#D9B76B; }
+  [data-theme="dark"] .gundelik-etiket-oncelik-btn.oncelik-dusuk{ color:#A0D1AC; }
+
+  /* ---- Öncelik atanmamış madde: eski usül, göze çarpmayan küçük "ekle" simgesi ---- */
+  .gundelik-etiket-oncelik-ekle-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:1.5rem;
+    height:1.5rem;
+    border-radius:50%;
+    border:1px dashed var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    opacity:0.55;
+    cursor:pointer;
+    padding:0;
+    transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .gundelik-etiket-oncelik-ekle-btn svg{ width:0.7rem; height:0.7rem; }
+  @media (hover:hover) and (pointer:fine){
+    .gundelik-etiket-oncelik-ekle-btn:hover{ opacity:1; border-color:var(--accent); color:var(--accent); }
+  }
+  .gundelik-etiket-oncelik-ekle-btn:active{ transform:scale(0.9); }
+
+  /* ---- Yapılacaklar Listesi: kategoriye göre gruplarken üstteki grup başlığı ---- */
+  .gundelik-todo-grup-baslik{
+    font-size:0.78rem;
+    font-weight:700;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin:0.9rem 0 0.1rem;
+    padding-left:0.15rem;
+  }
+  .gundelik-todo-grup-baslik:first-child{ margin-top:0.2rem; }
+
+  /* ---- Yapılacaklar Listesi: gruplama/sıralama seçici ---- */
+  .gundelik-todo-siralama{
+    display:flex;
+    gap:0.4rem;
+    margin:-0.2rem 0 0.7rem;
+    flex-wrap:wrap;
+  }
+  .todo-siralama-btn{
+    font-family:inherit;
+    font-size:0.76rem;
+    font-weight:600;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:0.32rem 0.75rem;
+    background:rgba(var(--ink-rgb),0.02);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+  .todo-siralama-btn.aktif{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.14);
+    color:var(--accent);
+  }
+
+  /* ---- Yapılacaklar ekleme formu: kategori + öncelik alanları ikinci satırda ---- */
+  #todoEkleForm{
+    flex-wrap:wrap;
+  }
+  #todoEkleForm .gundelik-ekle-input{
+    flex-basis:100%;
+  }
+  .todo-ekle-ek-alanlar{
+    display:flex;
+    gap:0.5rem;
+    flex:1;
+    min-width:0;
+  }
+  /* ---- Yapılacaklar ekleme formu: kategori/öncelik seçici butonları (uygulama tasarımıyla açılan panelleri tetikler) ---- */
+  .todo-secici-btn{
+    flex:1;
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    border:1px solid var(--line);
+    border-radius:0.85rem;
+    background:rgba(var(--ink-rgb),0.02);
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:0.85rem;
+    padding:0.55rem 0.7rem;
+    outline:none;
+    cursor:pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+  .todo-secici-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
+  .todo-secici-btn span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .todo-secici-btn.dolu{ color:var(--ink); border-color:rgba(var(--accent-rgb),0.55); background:rgba(var(--accent-rgb),0.07); }
+  @media (hover:hover) and (pointer:fine){
+    .todo-secici-btn:hover{ border-color:var(--accent); }
+  }
+  .todo-secici-btn:active{ transform:scale(0.98); }
+
+  /* ---- Kategori / öncelik seçme panelleri: uygulamanın diğer paneleriyle aynı tasarım dili ---- */
+  .todo-secici-cip-grup{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.55rem;
+  }
+  .todo-secici-cip{
+    font-family:inherit;
+    font-size:0.85rem;
+    font-weight:600;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:0.5rem 0.95rem;
+    background:rgba(var(--ink-rgb),0.03);
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .todo-secici-cip:hover{ border-color:var(--accent); background:rgba(var(--accent-rgb),0.1); }
+  }
+  .todo-secici-cip:active{ transform:scale(0.95); }
+  .todo-secici-cip.secili{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.16);
+    color:var(--accent);
+  }
+  .todo-secici-cip .todo-secici-cip-nokta{
+    width:0.55rem;
+    height:0.55rem;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .todo-oncelik-secici-liste .todo-secici-cip[data-deger="yuksek"] .todo-secici-cip-nokta{ background:#C7362A; }
+  .todo-oncelik-secici-liste .todo-secici-cip[data-deger="orta"] .todo-secici-cip-nokta{ background:#B08A3E; }
+  .todo-oncelik-secici-liste .todo-secici-cip[data-deger="dusuk"] .todo-secici-cip-nokta{ background:#4B7F52; }
+  .todo-oncelik-secici-liste .todo-secici-cip[data-deger=""]{ border-style:dashed; }
+
+  .todo-secici-yeni-form{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    padding-bottom:0.3rem;
+  }
+  .todo-secici-yeni-input{
+    flex:1;
+    min-width:0;
+    font-family:inherit;
+    font-size:0.9rem;
+    color:var(--ink);
+    background:rgba(var(--ink-rgb),0.03);
+    border:1px solid var(--line);
+    border-radius:0.85rem;
+    padding:0.6rem 0.85rem;
+    outline:none;
+    transition: border-color 0.2s ease;
+  }
+  .todo-secici-yeni-input:focus{ border-color:var(--accent); }
+  .todo-secici-yeni-ekle-btn{
+    flex-shrink:0;
+    width:2.4rem;
+    height:2.4rem;
+    border-radius:50%;
+    border:none;
+    background:var(--accent);
+    color:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: filter 0.2s ease, transform 0.15s ease;
+  }
+  .todo-secici-yeni-ekle-btn svg{ width:1rem; height:1rem; }
+  @media (hover:hover) and (pointer:fine){
+    .todo-secici-yeni-ekle-btn:hover{ filter:brightness(1.08); }
+  }
+  .todo-secici-yeni-ekle-btn:active{ transform:scale(0.9); }
   .gundelik-madde-sil{
     flex-shrink:0;
     width:1.85rem;
@@ -3391,6 +3648,31 @@
   }
   .dosya-goruntule-kapat:hover{ background:rgba(255,255,255,0.2); }
   .dosya-goruntule-kapat svg{ width:1.15rem; height:1.15rem; }
+  /* ---- Görüntüleyici üst çubuğunda, çöp kovasının yanındaki küçük "Çözüldü" dairesi ---- */
+  .dosya-goruntule-cozuldu-btn{
+    flex-shrink:0;
+    width:2.2rem;
+    height:2.2rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1.5px solid rgba(255,255,255,0.4);
+    border-radius:50%;
+    background:rgba(255,255,255,0.1);
+    color:transparent;
+    cursor:pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .dosya-goruntule-cozuldu-btn svg{ width:1.05rem; height:1.05rem; }
+  .dosya-goruntule-cozuldu-btn:hover{ border-color:rgba(255,255,255,0.7); }
+  .dosya-goruntule-cozuldu-btn:active{ transform:scale(0.9); }
+  .dosya-goruntule-cozuldu-btn.secili{
+    background:var(--dogru);
+    border-color:var(--dogru);
+    color:#fff;
+    box-shadow:0 0 0 4px rgba(var(--dogru-rgb),0.22);
+  }
+  .dosya-goruntule-cozuldu-btn.secili:hover{ border-color:var(--dogru); }
   .dosya-goruntule-govde{
     flex:1;
     min-height:0;
@@ -5632,6 +5914,53 @@
   }
   .havuz-kart-cevap.havuz-kart-cevap-bos{ background:rgba(255,255,255,0.3); }
 
+  /* ---- Havuz kartı: Test Modu'nda (veya manuel) çözüldü işaretlenen sorularda görselin ---- */
+  /* ---- tam ortasında beliren, el yapımı çizim hissi veren tik sembolü (arka plan/yuvarlak yok) ---- */
+  .havuz-kart-tik{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:3.6rem;
+    height:3.6rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform:translate(-50%,-50%) rotate(-8deg);
+    z-index:2;
+    pointer-events:none;
+    animation:havuzTikBelir 0.36s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .havuz-kart-tik svg{
+    width:100%;
+    height:100%;
+    overflow:visible;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,0.45));
+  }
+  .havuz-kart-tik .havuz-tik-golge{
+    fill:none;
+    stroke:#1A1A1A;
+    stroke-opacity:0.35;
+    stroke-width:7.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .havuz-kart-tik .havuz-tik-cizgi{
+    fill:none;
+    stroke:var(--dogru);
+    stroke-width:5.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  @keyframes havuzTikBelir{
+    0%{ transform:translate(-50%,-50%) rotate(-8deg) scale(0.3); opacity:0; }
+    60%{ transform:translate(-50%,-50%) rotate(-8deg) scale(1.16); opacity:1; }
+    100%{ transform:translate(-50%,-50%) rotate(-8deg) scale(1); opacity:1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .havuz-kart-tik{ animation:none; }
+  }
+  .havuz-kart.havuz-kart-cozuldu img{ filter:brightness(0.66) saturate(0.85); }
+
   /* ---- Soru Havuzu Düzenle modu: toplu silme (deneme kartlarıyla aynı titreme mantığı) ---- */
   .havuz-liste-toolbar{
     display:flex;
@@ -6190,11 +6519,22 @@
         <span class="dock-tip">Denemelerim</span>
       </button>
       <button class="dock-btn" type="button" data-view="gundelik">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3" width="15" height="18" rx="2"></rect><line x1="8" y1="7.5" x2="16" y2="7.5"></line><line x1="8" y1="11.5" x2="16" y2="11.5"></line><line x1="8" y1="15.5" x2="12.5" y2="15.5"></line></svg>
+        <span class="anim-icon anim-doc-check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375"></path>
+            <path class="doc-check-mark" d="M9 15l2.25 2.25L15 12"></path>
+          </svg>
+        </span>
         <span class="dock-tip">Gündelik</span>
       </button>
       <button class="dock-btn" type="button" data-view="soru-havuzu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path></svg>
+        <span class="anim-icon anim-gallery">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path class="gv-line gv-line-1" d="M7 2h10"></path>
+            <path class="gv-line gv-line-2" d="M5 6h14"></path>
+            <rect x="3" y="10" width="18" height="12" rx="2"></rect>
+          </svg>
+        </span>
         <span class="dock-tip">Soru Havuzu</span>
       </button>
       <button class="dock-btn" type="button" data-view="sayac">
@@ -6589,7 +6929,7 @@
           Rutin Başlığı Ekle
         </button>
         <form class="gundelik-ekle-form" id="rutinBaslikEkleForm" style="display:none;">
-          <input type="text" class="gundelik-ekle-input" id="rutinBaslikEkleInput" placeholder="Örn. Sabah Rutinleri" maxlength="40" autocomplete="off">
+          <input type="text" class="gundelik-ekle-input" id="rutinBaslikEkleInput" placeholder="Örn. Sabah Rutinleri" autocomplete="off">
           <button type="button" class="gundelik-ekle-iptal" id="rutinBaslikEkleIptal" aria-label="Vazgeç">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -6611,6 +6951,10 @@
           <svg class="icon-duzenle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
           <svg class="icon-tamam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </button>
+        <div class="gundelik-todo-siralama" id="todoSiralamaAlan">
+          <button type="button" class="todo-siralama-btn aktif" data-mod="kategori">Kategoriye Göre</button>
+          <button type="button" class="todo-siralama-btn" data-mod="oncelik">Önceliğe Göre</button>
+        </div>
         <div class="gundelik-liste" id="todoListe"></div>
         <p class="gundelik-liste-bos" id="todoBos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
@@ -6622,7 +6966,17 @@
           Ekle
         </button>
         <form class="gundelik-ekle-form" id="todoEkleForm" style="display:none;">
-          <input type="text" class="gundelik-ekle-input" id="todoEkleInput" placeholder="Unutmamam gereken bir şey..." maxlength="120" autocomplete="off">
+          <input type="text" class="gundelik-ekle-input" id="todoEkleInput" placeholder="Unutmamam gereken bir şey..." autocomplete="off">
+          <div class="todo-ekle-ek-alanlar">
+            <button type="button" class="todo-secici-btn" id="todoKategoriSeciciBtn" aria-haspopup="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"></path><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"></circle></svg>
+              <span id="todoKategoriSeciciEtiket">Kategori seç</span>
+            </button>
+            <button type="button" class="todo-secici-btn" id="todoOncelikSeciciBtn" aria-haspopup="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18"></path><path d="M4 4h13l-2.5 4L17 12H4"></path></svg>
+              <span id="todoOncelikSeciciEtiket">Öncelik yok</span>
+            </button>
+          </div>
           <button type="button" class="gundelik-ekle-iptal" id="todoEkleIptal" aria-label="Vazgeç">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -6643,6 +6997,47 @@
       <div class="modal-actions">
         <button type="button" class="modal-btn" id="rutinKategoriSilVazgec">Vazgeç</button>
         <button type="button" class="modal-btn modal-btn-danger" id="rutinKategoriSilOnayla">Evet, Sil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gündelik: Yapılacaklar kategori seçme paneli -->
+  <div class="duzenle-panel-overlay" id="todoKategoriPanelOverlay">
+    <div class="duzenle-panel todo-secici-panel">
+      <div class="duzenle-panel-tutamac"></div>
+      <div class="duzenle-panel-baslik">
+        <h3>Kategori Seç</h3>
+        <button type="button" class="duzenle-panel-kapat" id="todoKategoriPanelKapat" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="duzenle-panel-govde">
+        <div class="todo-secici-cip-grup" id="todoKategoriPanelListe"></div>
+        <p class="duzenle-panel-bos" id="todoKategoriPanelBos" style="display:none;">Henüz kategori yok. Aşağıdan ekleyebilirsin.</p>
+      </div>
+      <div class="duzenle-panel-alt">
+        <form class="todo-secici-yeni-form" id="todoKategoriYeniForm">
+          <input type="text" class="todo-secici-yeni-input" id="todoKategoriYeniInput" placeholder="Yeni kategori adı..." autocomplete="off">
+          <button type="submit" class="todo-secici-yeni-ekle-btn" aria-label="Ekle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gündelik: Yapılacaklar öncelik seçme paneli -->
+  <div class="duzenle-panel-overlay" id="todoOncelikPanelOverlay">
+    <div class="duzenle-panel todo-secici-panel todo-oncelik-panel">
+      <div class="duzenle-panel-tutamac"></div>
+      <div class="duzenle-panel-baslik">
+        <h3>Öncelik Seç</h3>
+        <button type="button" class="duzenle-panel-kapat" id="todoOncelikPanelKapat" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="duzenle-panel-govde">
+        <div class="todo-secici-cip-grup todo-oncelik-secici-liste" id="todoOncelikPanelListe"></div>
       </div>
     </div>
   </div>
@@ -6881,6 +7276,9 @@
     <div class="dosya-goruntule-bar">
       <span class="dosya-goruntule-ad" id="dosyaGoruntuleAd"></span>
       <div class="dosya-goruntule-aksiyonlar">
+        <button class="dosya-goruntule-cozuldu-btn" id="dosyaGoruntuleCozulduBtn" type="button" role="checkbox" aria-checked="false" aria-label="Çözüldü olarak işaretle" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
         <button class="dosya-goruntule-sil" id="dosyaGoruntuleSil" type="button" aria-label="Görseli kaldır" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
         </button>
@@ -7580,8 +7978,36 @@
     const dosyaGoruntuleSil = document.getElementById('dosyaGoruntuleSil');
     const dosyaGoruntuleCevap = document.getElementById('dosyaGoruntuleCevap');
     const dosyaGoruntuleCevapSecenekler = document.getElementById('dosyaGoruntuleCevapSecenekler');
+    const dosyaGoruntuleCozulduBtn = document.getElementById('dosyaGoruntuleCozulduBtn');
     let dosyaGoruntuleUrl = null;
     let dosyaGoruntuleKaldirCallback = null;
+    let dosyaGoruntuleKaydirma = null; // { onOnceki, onSonraki } verilirse sağa/sola kaydırmayla soru değiştirilir
+    let dosyaGoruntuleCozulduSecici = null; // { deger, ayarla(yeni) } verilirse manuel "Çözüldü" anahtarı gösterilir
+
+    // ---- Görüntüleyicide sağa/sola kaydırarak (swipe) soru değiştirme ----
+    (function(){
+      let dokunmaBaslX = null;
+      let dokunmaBaslY = null;
+      const ESIK = 46; // px, kaydırma olarak sayılacak minimum yatay mesafe
+
+      dosyaGoruntuleGovde.addEventListener('touchstart', function(e){
+        if(!dosyaGoruntuleKaydirma || !e.touches || e.touches.length !== 1) return;
+        dokunmaBaslX = e.touches[0].clientX;
+        dokunmaBaslY = e.touches[0].clientY;
+      }, { passive: true });
+
+      dosyaGoruntuleGovde.addEventListener('touchend', function(e){
+        if(!dosyaGoruntuleKaydirma || dokunmaBaslX === null) { dokunmaBaslX = null; return; }
+        const bitis = e.changedTouches && e.changedTouches[0];
+        if(!bitis){ dokunmaBaslX = null; return; }
+        const dx = bitis.clientX - dokunmaBaslX;
+        const dy = bitis.clientY - dokunmaBaslY;
+        dokunmaBaslX = null; dokunmaBaslY = null;
+        if(Math.abs(dx) < ESIK || Math.abs(dx) < Math.abs(dy)) return;
+        if(dx < 0){ if(typeof dosyaGoruntuleKaydirma.onSonraki === 'function') dosyaGoruntuleKaydirma.onSonraki(); }
+        else { if(typeof dosyaGoruntuleKaydirma.onOnceki === 'function') dosyaGoruntuleKaydirma.onOnceki(); }
+      }, { passive: true });
+    })();
 
     // Arka plandaki arayüzün kilitlenmesi (görüntüleyici açıkken kaydırılamaması) artık
     // sayfanın en altındaki genel "kayar pencere / pop-up kilidi" mekanizmasıyla,
@@ -7592,8 +8018,11 @@
       dosyaGoruntuleGovde.innerHTML = '';
       dosyaGoruntuleSil.style.display = 'none';
       dosyaGoruntuleKaldirCallback = null;
+      dosyaGoruntuleKaydirma = null;
       dosyaGoruntuleCevap.style.display = 'none';
       dosyaGoruntuleCevapSecenekler.innerHTML = '';
+      dosyaGoruntuleCozulduBtn.style.display = 'none';
+      dosyaGoruntuleCozulduSecici = null;
       if(dosyaGoruntuleUrl){
         URL.revokeObjectURL(dosyaGoruntuleUrl);
         dosyaGoruntuleUrl = null;
@@ -7605,7 +8034,11 @@
     // tıklandığında bu geri çağrı çalıştırılır ve görüntüleyici kapatılır (ör. bir soruya eklenen görseli silmek için).
     // cevapSecici: verilirse (yalnızca yanlış/boş işaretli sorulara eklenen görsellerde), görüntüleyicinin
     // altında A-E şıklarından oluşan bir "doğru cevap" seçici belirir: { secenekler:[...], deger, ayarla(yeni) }.
-    function dosyaGoster(blob, ad, kaldirCallback, cevapSecici){
+    // kaydirma: verilirse ({ onOnceki, onSonraki }), görüntüleyici içinde sağa/sola kaydırarak
+    // (aynı listedeki) bir önceki/sonraki soruya geçilebilir.
+    // cozulduSecici: verilirse ({ deger, ayarla(yeni) }), görüntüleyicinin altında sorunun "Çözüldü"
+    // durumunu manuel olarak açıp kapatabileceğin bir anahtar belirir.
+    function dosyaGoster(blob, ad, kaldirCallback, cevapSecici, kaydirma, cozulduSecici){
       if(!blob) return;
       dosyaGoruntuleGovde.innerHTML = '';
       if(dosyaGoruntuleUrl){ URL.revokeObjectURL(dosyaGoruntuleUrl); }
@@ -7613,6 +8046,7 @@
       dosyaGoruntuleAd.textContent = ad || '';
       dosyaGoruntuleKaldirCallback = kaldirCallback || null;
       dosyaGoruntuleSil.style.display = dosyaGoruntuleKaldirCallback ? '' : 'none';
+      dosyaGoruntuleKaydirma = kaydirma || null;
 
       const tur = (blob.type || '').toLowerCase();
       const adKucuk = (ad || '').toLowerCase();
@@ -7658,6 +8092,16 @@
         dosyaGoruntuleCevap.style.display = 'none';
       }
 
+      dosyaGoruntuleCozulduSecici = cozulduSecici || null;
+      if(dosyaGoruntuleCozulduSecici){
+        dosyaGoruntuleCozulduBtn.style.display = '';
+        const seciliMi = !!dosyaGoruntuleCozulduSecici.deger;
+        dosyaGoruntuleCozulduBtn.classList.toggle('secili', seciliMi);
+        dosyaGoruntuleCozulduBtn.setAttribute('aria-checked', seciliMi ? 'true' : 'false');
+      } else {
+        dosyaGoruntuleCozulduBtn.style.display = 'none';
+      }
+
       dosyaGoruntuleOverlay.classList.add('active');
     }
 
@@ -7667,6 +8111,16 @@
       dosyaGoruntuleyiciKapat();
       if(typeof cb === 'function'){ cb(); }
     });
+    if(dosyaGoruntuleCozulduBtn){
+      dosyaGoruntuleCozulduBtn.addEventListener('click', function(){
+        if(!dosyaGoruntuleCozulduSecici) return;
+        const yeniDeger = !dosyaGoruntuleCozulduSecici.deger;
+        dosyaGoruntuleCozulduSecici.deger = yeniDeger;
+        dosyaGoruntuleCozulduBtn.classList.toggle('secili', yeniDeger);
+        dosyaGoruntuleCozulduBtn.setAttribute('aria-checked', yeniDeger ? 'true' : 'false');
+        if(typeof dosyaGoruntuleCozulduSecici.ayarla === 'function'){ dosyaGoruntuleCozulduSecici.ayarla(yeniDeger); }
+      });
+    }
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape' && dosyaGoruntuleOverlay.classList.contains('active')){
         dosyaGoruntuleyiciKapat();
@@ -8774,7 +9228,12 @@
       const RUTIN_ANAHTARI = 'sessizlik-rutinler-maddeler';
       const RUTIN_TARIH_ANAHTARI = 'sessizlik-rutinler-tarih';
       const TODO_ANAHTARI = 'sessizlik-todo-liste';
+      const TODO_KATEGORI_ANAHTARI = 'sessizlik-todo-kategoriler';
+      const TODO_SIRALAMA_ANAHTARI = 'sessizlik-todo-siralama-modu';
       const VARSAYILAN_KATEGORI_ID = 'genel-varsayilan';
+      const TODO_ONCELIK_SIRA = { yuksek: 0, orta: 1, dusuk: 2 };
+      const TODO_ONCELIK_ETIKET = { yuksek: 'Yüksek', orta: 'Orta', dusuk: 'Düşük' };
+      const TODO_ONCELIK_SIRASIZ_DEGER = 3;
 
       const rutinKategorilerAlanEl = document.getElementById('rutinKategorilerAlan');
       const rutinBosEl = document.getElementById('rutinBos');
@@ -8792,6 +9251,26 @@
       const todoEkleForm = document.getElementById('todoEkleForm');
       const todoEkleInput = document.getElementById('todoEkleInput');
       const todoEkleIptal = document.getElementById('todoEkleIptal');
+      const todoKategoriSeciciBtn = document.getElementById('todoKategoriSeciciBtn');
+      const todoKategoriSeciciEtiket = document.getElementById('todoKategoriSeciciEtiket');
+      const todoOncelikSeciciBtn = document.getElementById('todoOncelikSeciciBtn');
+      const todoOncelikSeciciEtiket = document.getElementById('todoOncelikSeciciEtiket');
+      const todoSiralamaAlanEl = document.getElementById('todoSiralamaAlan');
+
+      const todoKategoriPanelOverlay = document.getElementById('todoKategoriPanelOverlay');
+      const todoKategoriPanelListe = document.getElementById('todoKategoriPanelListe');
+      const todoKategoriPanelBos = document.getElementById('todoKategoriPanelBos');
+      const todoKategoriPanelKapat = document.getElementById('todoKategoriPanelKapat');
+      const todoKategoriYeniForm = document.getElementById('todoKategoriYeniForm');
+      const todoKategoriYeniInput = document.getElementById('todoKategoriYeniInput');
+
+      const todoOncelikPanelOverlay = document.getElementById('todoOncelikPanelOverlay');
+      const todoOncelikPanelListe = document.getElementById('todoOncelikPanelListe');
+      const todoOncelikPanelKapat = document.getElementById('todoOncelikPanelKapat');
+
+      // Ekleme formundaki kategori/öncelik seçiminin geçici hafızası (form gönderilene kadar)
+      let todoEkleKategoriDeger = '';
+      let todoEkleOncelikDeger = '';
 
       const kategoriSilOverlay = document.getElementById('rutinKategoriSilOnayOverlay');
       const kategoriSilMetinEl = document.getElementById('rutinKategoriSilOnayMetin');
@@ -8854,6 +9333,143 @@
         try{ localStorage.setItem(TODO_ANAHTARI, JSON.stringify(liste)); }catch(e){}
       }
 
+      // ---- Yapılacaklar Listesi: kullanılan kategori adları (otomatik tamamlama için) ----
+      function todoKategorileriOku(){
+        try{
+          const ham = localStorage.getItem(TODO_KATEGORI_ANAHTARI);
+          const liste = ham ? JSON.parse(ham) : [];
+          return Array.isArray(liste) ? liste : [];
+        }catch(e){ return []; }
+      }
+      function todoKategorileriYaz(liste){
+        try{ localStorage.setItem(TODO_KATEGORI_ANAHTARI, JSON.stringify(liste)); }catch(e){}
+      }
+      function todoKategoriKaydet(ad){
+        const temiz = (ad || '').trim();
+        if(!temiz) return;
+        const liste = todoKategorileriOku();
+        if(!liste.some(function(k){ return k.toLocaleLowerCase('tr') === temiz.toLocaleLowerCase('tr'); })){
+          liste.push(temiz);
+          todoKategorileriYaz(liste);
+        }
+      }
+      // ---- Yapılacaklar Listesi: kayıtlı + kullanılan tüm kategori adları (hazır/varsayılan kategori YOK, hepsi kullanıcının kendi eklediği) ----
+      function todoTumKategorileriGetir(){
+        const kullanilanlar = todoOku().map(function(m){ return m.kategori; }).filter(Boolean);
+        const tumu = todoKategorileriOku().concat(kullanilanlar);
+        const benzersiz = [];
+        tumu.forEach(function(ad){
+          if(!benzersiz.some(function(b){ return b.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'); })){
+            benzersiz.push(ad);
+          }
+        });
+        benzersiz.sort(function(a, b){ return a.localeCompare(b, 'tr'); });
+        return benzersiz;
+      }
+
+      // ==================== KATEGORİ / ÖNCELİK SEÇME PANELLERİ (uygulama tasarımıyla açılan kayar pencereler) ====================
+      let todoKategoriPanelSecimCB = null;
+      let todoOncelikPanelSecimCB = null;
+
+      function todoKategoriPaneliAc(mevcutDeger, onSecim){
+        if(!todoKategoriPanelOverlay || !todoKategoriPanelListe) return;
+        todoKategoriPanelSecimCB = onSecim;
+        const kategoriler = todoTumKategorileriGetir();
+        todoKategoriPanelListe.innerHTML = '';
+        if(todoKategoriPanelBos){ todoKategoriPanelBos.style.display = kategoriler.length ? 'none' : ''; }
+        kategoriler.forEach(function(ad){
+          const cip = document.createElement('button');
+          cip.type = 'button';
+          cip.className = 'todo-secici-cip' + ((mevcutDeger && ad.toLocaleLowerCase('tr') === mevcutDeger.toLocaleLowerCase('tr')) ? ' secili' : '');
+          cip.textContent = ad;
+          cip.addEventListener('click', function(){
+            if(todoKategoriPanelSecimCB){ todoKategoriPanelSecimCB(ad); }
+            todoKategoriPaneliKapat();
+          });
+          todoKategoriPanelListe.appendChild(cip);
+        });
+        if(todoKategoriYeniInput){ todoKategoriYeniInput.value = ''; }
+        todoKategoriPanelOverlay.classList.add('active');
+      }
+      function todoKategoriPaneliKapat(){
+        if(todoKategoriPanelOverlay){ todoKategoriPanelOverlay.classList.remove('active'); }
+        todoKategoriPanelSecimCB = null;
+      }
+      if(todoKategoriPanelKapat){ todoKategoriPanelKapat.addEventListener('click', todoKategoriPaneliKapat); }
+      if(todoKategoriPanelOverlay){
+        todoKategoriPanelOverlay.addEventListener('click', function(e){
+          if(e.target === todoKategoriPanelOverlay){ todoKategoriPaneliKapat(); }
+        });
+      }
+      if(todoKategoriYeniForm){
+        todoKategoriYeniForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          const ad = (todoKategoriYeniInput && todoKategoriYeniInput.value.trim()) || '';
+          if(!ad) return;
+          todoKategoriKaydet(ad);
+          if(todoKategoriPanelSecimCB){ todoKategoriPanelSecimCB(ad); }
+          todoKategoriPaneliKapat();
+        });
+      }
+
+      const TODO_ONCELIK_SECENEKLERI = [
+        { deger: '', etiket: 'Öncelik Yok' },
+        { deger: 'yuksek', etiket: 'Yüksek Öncelik' },
+        { deger: 'orta', etiket: 'Orta Öncelik' },
+        { deger: 'dusuk', etiket: 'Düşük Öncelik' }
+      ];
+      function todoOncelikPaneliAc(mevcutDeger, onSecim){
+        if(!todoOncelikPanelOverlay || !todoOncelikPanelListe) return;
+        todoOncelikPanelSecimCB = onSecim;
+        const guncelDeger = mevcutDeger || '';
+        todoOncelikPanelListe.innerHTML = '';
+        TODO_ONCELIK_SECENEKLERI.forEach(function(secenek){
+          const cip = document.createElement('button');
+          cip.type = 'button';
+          cip.className = 'todo-secici-cip' + (guncelDeger === secenek.deger ? ' secili' : '');
+          cip.dataset.deger = secenek.deger;
+          if(secenek.deger){
+            const nokta = document.createElement('span');
+            nokta.className = 'todo-secici-cip-nokta';
+            cip.appendChild(nokta);
+          }
+          const yazi = document.createElement('span');
+          yazi.textContent = secenek.etiket;
+          cip.appendChild(yazi);
+          cip.addEventListener('click', function(){
+            if(todoOncelikPanelSecimCB){ todoOncelikPanelSecimCB(secenek.deger); }
+            todoOncelikPaneliKapat();
+          });
+          todoOncelikPanelListe.appendChild(cip);
+        });
+        todoOncelikPanelOverlay.classList.add('active');
+      }
+      function todoOncelikPaneliKapat(){
+        if(todoOncelikPanelOverlay){ todoOncelikPanelOverlay.classList.remove('active'); }
+        todoOncelikPanelSecimCB = null;
+      }
+      if(todoOncelikPanelKapat){ todoOncelikPanelKapat.addEventListener('click', todoOncelikPaneliKapat); }
+      if(todoOncelikPanelOverlay){
+        todoOncelikPanelOverlay.addEventListener('click', function(e){
+          if(e.target === todoOncelikPanelOverlay){ todoOncelikPaneliKapat(); }
+        });
+      }
+
+      // ---- Yapılacaklar Listesi: gruplama/sıralama modu ----
+      function todoSiralamaModuOku(){
+        try{
+          const kayitli = localStorage.getItem(TODO_SIRALAMA_ANAHTARI);
+          return kayitli === 'oncelik' ? 'oncelik' : 'kategori';
+        }catch(e){ return 'kategori'; }
+      }
+      function todoSiralamaModuYaz(mod){
+        try{ localStorage.setItem(TODO_SIRALAMA_ANAHTARI, mod); }catch(e){}
+      }
+      function todoOncelikSiraDegeri(m){
+        const oncelik = m && m.oncelik;
+        return (oncelik && TODO_ONCELIK_SIRA[oncelik] !== undefined) ? TODO_ONCELIK_SIRA[oncelik] : TODO_ONCELIK_SIRASIZ_DEGER;
+      }
+
       // Önceki (başlıksız) sürümden kalan rutin maddelerini "Genel Rutinler" başlığına taşı.
       function eskiVerileriGoc(){
         const maddeler = rutinleriOku();
@@ -8869,17 +9485,21 @@
       }
 
       // Gün değiştiyse: başlıklar ve rutin maddeleri silinmez, yalnızca "tamamlandı" işaretleri sıfırlanır.
+      // Geriye tarihin gerçekten değişip değişmediğini döndürür; bu sayede gereksiz yeniden
+      // çizimler (ve dolayısıyla yazı yazarken açık formun kapanması) önlenir.
       function gunSonuKontrolEt(){
         let kayitliTarih = '';
         try{ kayitliTarih = localStorage.getItem(RUTIN_TARIH_ANAHTARI) || ''; }catch(e){}
         const guncelTarih = gundelikBugunAnahtari();
-        if(kayitliTarih !== guncelTarih){
+        const degisti = kayitliTarih !== guncelTarih;
+        if(degisti){
           const liste = rutinleriOku();
           liste.forEach(function(m){ m.tamam = false; });
           rutinleriYaz(liste);
           try{ localStorage.setItem(RUTIN_TARIH_ANAHTARI, guncelTarih); }catch(e){}
         }
         if(gundelikSubEl){ gundelikSubEl.textContent = gundelikBugunEtiketi(); }
+        return degisti;
       }
 
       function gundelikMaddeSatiriOlustur(madde, tur){
@@ -8897,7 +9517,82 @@
 
         const metin = document.createElement('span');
         metin.className = 'gundelik-madde-metin';
-        metin.textContent = madde.text;
+
+        const metinYazi = document.createElement('span');
+        metinYazi.className = 'gundelik-madde-metin-yazi';
+        metinYazi.textContent = madde.text;
+        metin.appendChild(metinYazi);
+
+        // ---- Yapılacaklar Listesi: kategori + öncelik etiketleri (yalnızca 'todo' türünde) ----
+        if(tur === 'todo'){
+          const etiketler = document.createElement('div');
+          etiketler.className = 'gundelik-madde-etiketler';
+
+          // ---- Kategori: dokununca uygulama tasarımıyla açılan seçim paneli ----
+          const kategoriBtn = document.createElement('button');
+          kategoriBtn.type = 'button';
+          kategoriBtn.className = 'gundelik-etiket-kategori-btn';
+          kategoriBtn.setAttribute('aria-label', 'Kategori');
+          kategoriBtn.textContent = madde.kategori || 'Genel';
+          kategoriBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            todoKategoriPaneliAc(madde.kategori || 'Genel', function(yeniKategori){
+              const liste = todoOku();
+              const hedef = liste.find(function(m){ return m.id === madde.id; });
+              if(hedef && hedef.kategori !== yeniKategori){
+                hedef.kategori = yeniKategori;
+                todoYaz(liste);
+                gundelikTodoCiz();
+              }
+            });
+          });
+          etiketler.appendChild(kategoriBtn);
+
+          // ---- Öncelik: seçilmemişse hiçbir rozet göstermeden eski usül görünür;
+          // yalnızca ufak, göze çarpmayan bir "ekle" düğmesiyle isteğe bağlı atanabilir ----
+          if(madde.oncelik){
+            const oncelikBtn = document.createElement('button');
+            oncelikBtn.type = 'button';
+            oncelikBtn.className = 'gundelik-etiket-oncelik-btn oncelik-' + madde.oncelik;
+            oncelikBtn.setAttribute('aria-label', 'Öncelik');
+            oncelikBtn.textContent = TODO_ONCELIK_ETIKET[madde.oncelik] || '';
+            oncelikBtn.addEventListener('click', function(e){
+              e.stopPropagation();
+              todoOncelikPaneliAc(madde.oncelik, function(yeniOncelik){
+                const liste = todoOku();
+                const hedef = liste.find(function(m){ return m.id === madde.id; });
+                if(hedef){
+                  if(yeniOncelik){ hedef.oncelik = yeniOncelik; } else { delete hedef.oncelik; }
+                  todoYaz(liste);
+                  gundelikTodoCiz();
+                }
+              });
+            });
+            etiketler.appendChild(oncelikBtn);
+          } else {
+            const oncelikEkleBtn = document.createElement('button');
+            oncelikEkleBtn.type = 'button';
+            oncelikEkleBtn.className = 'gundelik-etiket-oncelik-ekle-btn';
+            oncelikEkleBtn.setAttribute('aria-label', 'Öncelik ekle');
+            oncelikEkleBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+            oncelikEkleBtn.addEventListener('click', function(e){
+              e.stopPropagation();
+              todoOncelikPaneliAc('', function(yeniOncelik){
+                if(!yeniOncelik) return;
+                const liste = todoOku();
+                const hedef = liste.find(function(m){ return m.id === madde.id; });
+                if(hedef){
+                  hedef.oncelik = yeniOncelik;
+                  todoYaz(liste);
+                  gundelikTodoCiz();
+                }
+              });
+            });
+            etiketler.appendChild(oncelikEkleBtn);
+          }
+
+          metin.appendChild(etiketler);
+        }
 
         const duzenle = document.createElement('button');
         duzenle.type = 'button';
@@ -9007,7 +9702,6 @@
           const input = document.createElement('input');
           input.type = 'text';
           input.className = 'gundelik-madde-metin-input';
-          input.maxLength = tur === 'rutin' ? 80 : 120;
           input.value = madde.text;
           input.autocomplete = 'off';
 
@@ -9085,7 +9779,6 @@
         const adInput = document.createElement('input');
         adInput.type = 'text';
         adInput.className = 'gundelik-kategori-ad-input';
-        adInput.maxLength = 40;
         adInput.value = kategori.ad;
         adInput.setAttribute('aria-label', 'Başlığı yeniden adlandır');
         adInput.addEventListener('input', function(){
@@ -9160,7 +9853,7 @@
         ekleForm.className = 'gundelik-ekle-form';
         ekleForm.style.display = 'none';
         ekleForm.innerHTML =
-          '<input type="text" class="gundelik-ekle-input" placeholder="Örn. Su iç" maxlength="80" autocomplete="off">' +
+          '<input type="text" class="gundelik-ekle-input" placeholder="Örn. Su iç" autocomplete="off">' +
           '<button type="button" class="gundelik-ekle-iptal" aria-label="Vazgeç"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>' +
           '<button type="submit" class="gundelik-ekle-onay" aria-label="Ekle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>';
 
@@ -9220,7 +9913,43 @@
           todoBosEl.style.display = '';
         } else {
           todoBosEl.style.display = 'none';
-          liste.forEach(function(m){ todoListeEl.appendChild(gundelikMaddeSatiriOlustur(m, 'todo')); });
+          const mod = todoSiralamaModuOku();
+          if(mod === 'oncelik'){
+            // ---- Önceliğe göre: yüksek > orta > düşük > önceliksiz, her biri kendi başlığı altında ----
+            const oncelikGruplari = [
+              { anahtar: 'yuksek', baslik: 'Yüksek Öncelik' },
+              { anahtar: 'orta', baslik: 'Orta Öncelik' },
+              { anahtar: 'dusuk', baslik: 'Düşük Öncelik' },
+              { anahtar: '', baslik: 'Önceliksiz' }
+            ];
+            oncelikGruplari.forEach(function(grup){
+              const maddeler = liste.filter(function(m){ return (m.oncelik || '') === grup.anahtar; });
+              if(!maddeler.length) return;
+              const baslik = document.createElement('div');
+              baslik.className = 'gundelik-todo-grup-baslik';
+              baslik.textContent = grup.baslik + ' (' + maddeler.length + ')';
+              todoListeEl.appendChild(baslik);
+              maddeler.forEach(function(m){ todoListeEl.appendChild(gundelikMaddeSatiriOlustur(m, 'todo')); });
+            });
+          } else {
+            // ---- Kategoriye göre: her kategori kendi başlığı altında, içinde önceliğe göre sıralı ----
+            const gruplar = {};
+            const kategoriSirasi = [];
+            liste.forEach(function(m){
+              const ad = (m.kategori && m.kategori.trim()) ? m.kategori.trim() : 'Genel';
+              if(!gruplar[ad]){ gruplar[ad] = []; kategoriSirasi.push(ad); }
+              gruplar[ad].push(m);
+            });
+            kategoriSirasi.sort(function(a, b){ return a.localeCompare(b, 'tr'); });
+            kategoriSirasi.forEach(function(ad){
+              const baslik = document.createElement('div');
+              baslik.className = 'gundelik-todo-grup-baslik';
+              baslik.textContent = ad + ' (' + gruplar[ad].length + ')';
+              todoListeEl.appendChild(baslik);
+              gruplar[ad].slice().sort(function(a, b){ return todoOncelikSiraDegeri(a) - todoOncelikSiraDegeri(b); })
+                .forEach(function(m){ todoListeEl.appendChild(gundelikMaddeSatiriOlustur(m, 'todo')); });
+            });
+          }
         }
         if(todoSayacEl){
           const toplam = liste.length;
@@ -9351,22 +10080,79 @@
       }
 
       // ---- yapılacaklar listesi ekleme ----
+      function todoEkleSeciciEtiketleriGuncelle(){
+        if(todoKategoriSeciciEtiket){ todoKategoriSeciciEtiket.textContent = todoEkleKategoriDeger || 'Kategori seç'; }
+        if(todoKategoriSeciciBtn){ todoKategoriSeciciBtn.classList.toggle('dolu', !!todoEkleKategoriDeger); }
+        if(todoOncelikSeciciEtiket){ todoOncelikSeciciEtiket.textContent = todoEkleOncelikDeger ? (TODO_ONCELIK_ETIKET[todoEkleOncelikDeger] + ' Öncelik') : 'Öncelik yok'; }
+        if(todoOncelikSeciciBtn){ todoOncelikSeciciBtn.classList.toggle('dolu', !!todoEkleOncelikDeger); }
+      }
+      function todoEkleSeciciSifirla(){
+        todoEkleKategoriDeger = '';
+        todoEkleOncelikDeger = '';
+        todoEkleSeciciEtiketleriGuncelle();
+      }
+      if(todoKategoriSeciciBtn){
+        todoKategoriSeciciBtn.addEventListener('click', function(){
+          todoKategoriPaneliAc(todoEkleKategoriDeger, function(secilen){
+            todoEkleKategoriDeger = secilen;
+            todoEkleSeciciEtiketleriGuncelle();
+          });
+        });
+      }
+      if(todoOncelikSeciciBtn){
+        todoOncelikSeciciBtn.addEventListener('click', function(){
+          todoOncelikPaneliAc(todoEkleOncelikDeger, function(secilen){
+            todoEkleOncelikDeger = secilen;
+            todoEkleSeciciEtiketleriGuncelle();
+          });
+        });
+      }
       if(todoEkleAcBtn){
-        todoEkleAcBtn.addEventListener('click', function(){ gundelikFormAc(todoEkleAcBtn, todoEkleForm, todoEkleInput); });
+        todoEkleAcBtn.addEventListener('click', function(){
+          gundelikFormAc(todoEkleAcBtn, todoEkleForm, todoEkleInput);
+          todoEkleSeciciSifirla();
+        });
       }
       if(todoEkleIptal){
-        todoEkleIptal.addEventListener('click', function(){ gundelikFormKapat(todoEkleAcBtn, todoEkleForm); });
+        todoEkleIptal.addEventListener('click', function(){
+          gundelikFormKapat(todoEkleAcBtn, todoEkleForm);
+          todoEkleSeciciSifirla();
+        });
       }
       if(todoEkleForm){
         todoEkleForm.addEventListener('submit', function(e){
           e.preventDefault();
           const metin = todoEkleInput.value.trim();
           if(!metin) return;
+          const kategori = todoEkleKategoriDeger || 'Genel';
+          const oncelik = todoEkleOncelikDeger || '';
+          const yeniMadde = { id: gundelikIdUret('t'), text: metin, tamam: false, kategori: kategori };
+          if(oncelik){ yeniMadde.oncelik = oncelik; }
           const liste = todoOku();
-          liste.push({ id: gundelikIdUret('t'), text: metin, tamam: false });
+          liste.push(yeniMadde);
           todoYaz(liste);
+          todoKategoriKaydet(kategori);
           gundelikTodoCiz();
           gundelikFormKapat(todoEkleAcBtn, todoEkleForm);
+          todoEkleSeciciSifirla();
+        });
+      }
+
+      // ---- yapılacaklar listesi: kategoriye/önceliğe göre gruplama seçimi ----
+      if(todoSiralamaAlanEl){
+        todoSiralamaAlanEl.querySelectorAll('.todo-siralama-btn').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            const mod = btn.dataset.mod === 'oncelik' ? 'oncelik' : 'kategori';
+            todoSiralamaModuYaz(mod);
+            todoSiralamaAlanEl.querySelectorAll('.todo-siralama-btn').forEach(function(b){
+              b.classList.toggle('aktif', b === btn);
+            });
+            gundelikTodoCiz();
+          });
+        });
+        const aktifMod = todoSiralamaModuOku();
+        todoSiralamaAlanEl.querySelectorAll('.todo-siralama-btn').forEach(function(b){
+          b.classList.toggle('aktif', b.dataset.mod === aktifMod);
         });
       }
 
@@ -9382,10 +10168,15 @@
       gundelikRutinCiz();
       gundelikTodoCiz();
 
-      // Uygulama açık kalırken gece yarısı geçerse rutin işaretlerini otomatik sıfırla
+      // Uygulama açık kalırken gece yarısı geçerse rutin işaretlerini otomatik sıfırla.
+      // Not: tarih değişmediyse yeniden çizim yapılmaz; aksi halde her 30 saniyede bir
+      // ekranın tazelenmesi, rutin eklerken açık olan yazı alanının elinizin altından
+      // kapanmasına (ve yazdığınızı kaybetmenize) yol açıyordu.
       setInterval(function(){
-        gunSonuKontrolEt();
-        gundelikRutinCiz();
+        const tarihDegisti = gunSonuKontrolEt();
+        if(tarihDegisti){
+          gundelikRutinCiz();
+        }
       }, 30000);
     })();
 
@@ -9864,7 +10655,7 @@
 
     function havuzKartOlustur(soru){
       const kart = document.createElement('div');
-      kart.className = 'havuz-kart';
+      kart.className = 'havuz-kart' + (soru.cozuldu ? ' havuz-kart-cozuldu' : '');
       kart.style.setProperty('--jiggle-derece', (0.5 + Math.random() * 0.6).toFixed(2) + 'deg');
       kart.style.setProperty('--jiggle-suresi', (0.24 + Math.random() * 0.14).toFixed(2) + 's');
       kart.style.setProperty('--jiggle-gecikme', (Math.random() * 0.25).toFixed(2) + 's');
@@ -9889,6 +10680,10 @@
       etiket.appendChild(cevapRozet);
       kart.appendChild(etiket);
 
+      // Test Modu'nda doğru çözülen sorularda, görselin tam ortasında beliren tik rozeti.
+      // Tıklanınca (kartı açmadan) çözüldü işaretini kaldırıp geri koyar.
+      havuzKartTikGuncelle(kart, soru);
+
       // Düzenleme modunda kartın sağ üstünde beliren, tek dokunuşla (onaysız) direkt silen rozet.
       const silBtn = document.createElement('button');
       silBtn.type = 'button';
@@ -9907,6 +10702,30 @@
       });
 
       return kart;
+    }
+
+    // Bir havuz kartındaki tik rozetini soru.cozuldu durumuna göre ekler/kaldırır.
+    // Rozet artık salt görsel bir işarettir; kaldırmak/eklemek için soruyu açıp
+    // görüntüleyicideki "Çözüldü" anahtarını kullan.
+    function havuzKartTikGuncelle(kart, soru){
+      const mevcut = kart.querySelector('.havuz-kart-tik');
+      if(mevcut) mevcut.remove();
+      kart.classList.toggle('havuz-kart-cozuldu', !!soru.cozuldu);
+      if(!soru.cozuldu) return;
+      const tik = document.createElement('div');
+      tik.className = 'havuz-kart-tik';
+      tik.innerHTML =
+        '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' +
+          '<path class="havuz-tik-golge" d="M6.5 21.8c0 0 6.7 8.1 9.2 9.7c0 0 1.8 0.4 3.1-1.8C22.6 22.6 34 7.2 34 7.2" transform="translate(0.8,1.1)"></path>' +
+          '<path class="havuz-tik-cizgi" d="M6.5 21.8c0 0 6.7 8.1 9.2 9.7c0 0 1.8 0.4 3.1-1.8C22.6 22.6 34 7.2 34 7.2"></path>' +
+        '</svg>';
+      kart.appendChild(tik);
+    }
+
+    // Bir sorunun "çözüldü" (Test Modu'nda doğru yapıldı ya da manuel işaretlendi) durumunu ayarlar ve kaydeder.
+    function havuzSoruCozulduAyarla(soru, deger){
+      soru.cozuldu = !!deger;
+      havuzKaydet();
     }
 
     // Düzenleme modundaki silme rozetinden gelen silme: onay istemeden anında havuzdan kaldırır.
@@ -9932,9 +10751,32 @@
             havuzListeCiz();
           }
         };
+        const cozulduSecici = {
+          deger: !!soru.cozuldu,
+          ayarla: function(yeniDeger){
+            havuzSoruCozulduAyarla(soru, yeniDeger);
+            havuzListeCiz();
+          }
+        };
+        // Aynı (filtrelenmiş) listede sağa/sola kaydırarak bir önceki/sonraki soruya geçiş.
+        const liste = havuzGosterilecekSorular();
+        const index = liste.findIndex(function(s){ return s.id === soru.id; });
+        let kaydirma = null;
+        if(index !== -1 && liste.length > 1){
+          kaydirma = {
+            onSonraki: function(){
+              const sonraki = liste[(index + 1) % liste.length];
+              havuzSoruGoruntule(sonraki);
+            },
+            onOnceki: function(){
+              const onceki = liste[(index - 1 + liste.length) % liste.length];
+              havuzSoruGoruntule(onceki);
+            }
+          };
+        }
         dosyaGoster(blob, soru.alan + ' · ' + soru.brans, function(){
           havuzSoruSilOnayAc(soru);
-        }, cevapSecici);
+        }, cevapSecici, kaydirma, cozulduSecici);
       }).catch(function(err){ console.log('Görsel açılamadı:', err); });
     }
 
@@ -10277,6 +11119,8 @@
 
           const dogruMu = harf === soru.dogruCevap;
           if(dogruMu){ havuzQuizDogru++; } else { havuzQuizYanlis++; }
+          // Test Modu'nda doğru yapılan sorular havuzda tik işaretli görünsün.
+          havuzSoruCozulduAyarla(soru, dogruMu);
 
           const geri = document.createElement('p');
           geri.className = 'sifirhata-geribildirim ' + (dogruMu ? 'dogru-metin' : 'yanlis-metin');
@@ -12309,6 +13153,31 @@
         if(targetLink){ targetLink.click(); }
       });
     });
+
+    // ---- Dock ikonları: Gündelik (belge-onay) ve Soru Havuzu (galeri) hover/tık animasyonu ----
+    (function(){
+      const gundelikDockBtn = document.querySelector('#bottomNav .dock-btn[data-view="gundelik"]');
+
+      function playListChecks(el){
+        if(!el) return;
+        el.classList.remove('animate');
+        void el.offsetWidth; // reflow ile animasyonu yeniden başlat
+        el.classList.add('animate');
+      }
+
+      if(gundelikDockBtn){
+        const icon = gundelikDockBtn.querySelector('.anim-doc-check');
+        gundelikDockBtn.addEventListener('mouseenter', function(){ playListChecks(icon); });
+        gundelikDockBtn.addEventListener('click', function(){ playListChecks(icon); });
+      }
+
+      const havuzDockBtn = document.querySelector('#bottomNav .dock-btn[data-view="soru-havuzu"]');
+      if(havuzDockBtn){
+        const icon = havuzDockBtn.querySelector('.anim-gallery');
+        havuzDockBtn.addEventListener('mouseenter', function(){ playListChecks(icon); });
+        havuzDockBtn.addEventListener('click', function(){ playListChecks(icon); });
+      }
+    })();
   })();
 
   // ================= TEMA (KOYU / AÇIK MOD) =================
@@ -14313,9 +15182,18 @@
   })();
 
   // ================= KOPYALAMA ENGELLEME =================
+  // Not: Rutinler (#rutinBolum) ve Yapılacaklar (#todoBolum) bölümlerinde yazdığımız
+  // yazıların seçilip kopyalanabilmesi için bu iki bölümün içi istisna tutulur.
   (function(){
+    const KOPYALAMA_SERBEST_SECICI = '#rutinBolum, #todoBolum';
+    function serbestAlanIcindeMi(hedef){
+      return !!(hedef && hedef.closest && hedef.closest(KOPYALAMA_SERBEST_SECICI));
+    }
     ['copy','cut','contextmenu','selectstart','dragstart'].forEach(function(evt){
-      document.addEventListener(evt, function(e){ e.preventDefault(); });
+      document.addEventListener(evt, function(e){
+        if(serbestAlanIcindeMi(e.target)) return;
+        e.preventDefault();
+      });
     });
   })();
 
