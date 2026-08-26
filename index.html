@@ -688,6 +688,287 @@
     animation-delay:2.4s;
   }
 
+  /* ================= ANA SAYFA: KRONOMETRE (sayaç ile aynı görsel dil) ================= */
+  .kronometre-widget{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    max-width:22rem;
+    margin-top:3.4rem;
+    margin-left:auto;
+    margin-right:auto;
+    padding:0;
+    border:none;
+    background:transparent;
+    font-family:inherit;
+    color:var(--ink);
+    cursor:pointer;
+    opacity:0;
+    animation: rise 0.9s ease forwards;
+    animation-delay:2.3s;
+    transition: transform 0.22s cubic-bezier(.22,1,.36,1), opacity 0.25s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .kronometre-widget:hover{
+      transform:translateY(-2px);
+    }
+    .kronometre-widget:hover .kronometre-widget-sayi{
+      color:var(--accent);
+    }
+    .kronometre-widget:hover .kronometre-widget-saniye .kronometre-widget-sayi{
+      color:var(--sari);
+    }
+  }
+  .kronometre-widget:active{ transform:scale(0.97); }
+
+  .kronometre-widget-ust-cizgi{
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    width:100%;
+    margin-bottom:1.3rem;
+  }
+  .kronometre-widget-ust-cizgi::before,
+  .kronometre-widget-ust-cizgi::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+  .kronometre-widget-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.62rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .kronometre-widget-satir{
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    width:100%;
+  }
+  .kronometre-widget-birim{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.4rem;
+    padding:0 1.05rem;
+  }
+  .kronometre-widget-ayrac{
+    width:1px;
+    align-self:flex-start;
+    height:clamp(2.4rem, 9vw, 3.4rem);
+    margin-top:0.05rem;
+    background:linear-gradient(to bottom,
+      rgba(var(--ink-rgb),0) 0%,
+      rgba(var(--ink-rgb),0.22) 18%,
+      rgba(var(--ink-rgb),0.22) 82%,
+      rgba(var(--ink-rgb),0) 100%);
+  }
+  .kronometre-widget-sayi{
+    font-size:clamp(2.4rem, 9vw, 3.4rem);
+    line-height:1;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    transition:color 0.25s ease;
+  }
+  .kronometre-widget-birim-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.6rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+
+  /* saniye birimi: kronometre çalışırken de sabit vurgu rengiyle öne çıkar */
+  .kronometre-widget-saniye .kronometre-widget-sayi{
+    color:var(--accent);
+  }
+  .kronometre-widget.calisiyor .kronometre-widget-saniye .kronometre-widget-sayi{
+    animation: kronometreNabiz 1s ease-in-out infinite;
+  }
+  @keyframes kronometreNabiz{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.55; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kronometre-widget{ transition:none; }
+    .kronometre-widget.calisiyor .kronometre-widget-saniye .kronometre-widget-sayi{ animation:none; }
+  }
+
+  /* ================= TAM EKRAN KRONOMETRE ================= */
+  html.kronometre-tam-ekran-acik .nav-wrap,
+  html.kronometre-tam-ekran-acik .bottom-nav-wrap{
+    display:none !important;
+  }
+  .kronometre-tam-ekran-overlay{
+    position:fixed;
+    inset:0;
+    z-index:10050;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    opacity:0;
+    transform:scale(0.94);
+    pointer-events:none;
+    visibility:hidden;
+    padding:calc(5.4rem + env(safe-area-inset-top, 0px)) 1.5rem calc(1.6rem + env(safe-area-inset-bottom, 0px));
+    transition: opacity 0.32s cubic-bezier(.22,1,.36,1), transform 0.38s cubic-bezier(.22,1,.36,1), visibility 0s linear 0.38s;
+  }
+  /* Saat, akışın en üstünde sabit bir yerde durur (iOS Kronometre gibi);
+     alttaki tur listesi ne kadar uzasa da bu blok yerinden oynamaz. */
+  .kronometre-tam-ekran-ust{
+    flex:none;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  /* Tur listesi + kontrol düğmeleri kalan alanı doldurur; liste kendi
+     içinde kayar (overflow), düğmeler ise her zaman en altta sabit kalır. */
+  .kronometre-tam-ekran-alt{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    max-width:22rem;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-top:1.8rem;
+  }
+  .kronometre-tam-ekran-overlay.active{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+    visibility:visible;
+    transition: opacity 0.34s cubic-bezier(.22,1,.36,1), transform 0.42s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kronometre-tam-ekran-overlay{ transition:opacity 0.15s ease, visibility 0s linear 0.15s; transform:none; }
+    .kronometre-tam-ekran-overlay.active{ transition:opacity 0.15s ease, visibility 0s linear 0s; transform:none; }
+  }
+  .kronometre-kapat-btn{
+    position:absolute;
+    top:calc(1.4rem + env(safe-area-inset-top, 0px));
+    right:1.4rem;
+    width:2.4rem;
+    height:2.4rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .kronometre-kapat-btn svg{ width:1.1rem; height:1.1rem; }
+  .kronometre-kapat-btn:active{ background:rgba(var(--ink-rgb),0.06); }
+  @media (hover:hover) and (pointer:fine){
+    .kronometre-kapat-btn:hover{ background:rgba(var(--ink-rgb),0.06); color:var(--ink); }
+  }
+  .kronometre-eyebrow{
+    font-size:0.72rem;
+    letter-spacing:0.35em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .kronometre-tam-ekran-saat{
+    margin-top:1.6rem;
+    font-size:clamp(2.8rem, 13vw, 5.2rem);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:0.01em;
+    font-weight:400;
+    color:var(--ink);
+  }
+  .kronometre-tam-ekran-saat .kronometre-yuzde{
+    font-size:0.42em;
+    color:var(--ink-soft);
+    margin-left:0.2rem;
+  }
+  .kronometre-tur-liste{
+    width:100%;
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:0.5rem;
+    scrollbar-width:none;
+  }
+  .kronometre-tur-liste::-webkit-scrollbar{ display:none; }
+  .kronometre-tur-satir{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:0.55rem 0.9rem;
+    border-bottom:1px solid var(--line);
+    font-size:0.85rem;
+    font-variant-numeric:tabular-nums;
+    color:var(--ink-soft);
+  }
+  .kronometre-tur-satir span:first-child{
+    color:var(--ink);
+    font-weight:600;
+  }
+  .kronometre-kontrol-satir{
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:1rem;
+    margin-top:1.6rem;
+  }
+  .kronometre-kontrol-btn{
+    width:4.4rem;
+    height:4.4rem;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink);
+    font-family:inherit;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: transform 0.2s cubic-bezier(.22,1,.36,1), background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .kronometre-kontrol-btn:active{ transform:scale(0.94); }
+  .kronometre-kontrol-btn.kronometre-baslat{
+    border-color:rgba(var(--dogru-rgb),0.5);
+    color:var(--dogru);
+  }
+  .kronometre-kontrol-btn.kronometre-durdur{
+    border-color:rgba(var(--yanlis-rgb),0.5);
+    color:var(--yanlis);
+    background:rgba(var(--yanlis-rgb),0.08);
+  }
+  .kronometre-kontrol-btn.kronometre-sifirla{
+    opacity:0.55;
+  }
+  .kronometre-kontrol-btn.kronometre-sifirla:disabled,
+  .kronometre-kontrol-btn.kronometre-tur:disabled{
+    opacity:0.3;
+    pointer-events:none;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .kronometre-kontrol-btn:hover{ border-color:rgba(var(--accent-rgb),0.55); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kronometre-kontrol-btn{ transition:none; }
+  }
+
   /* ================= BOŞ SAYFA / YAKINDA GÖRÜNÜMÜ ================= */
   .view-empty{
     position:relative;
@@ -6592,8 +6873,28 @@
 
     <span class="quote-mark">”</span>
 
-    <p class="signature">Kağıt ve Mürekkep</p>
+    <button type="button" class="kronometre-widget" id="kronometreWidget" aria-label="Kronometreyi tam ekran aç">
+      <div class="kronometre-widget-ust-cizgi"><span class="kronometre-widget-etiket">Kronometre</span></div>
+      <div class="kronometre-widget-satir" id="kronometreWidgetSatir">
+        <div class="kronometre-widget-birim">
+          <span class="kronometre-widget-sayi" id="kronometreWidgetSaat">00</span>
+          <span class="kronometre-widget-birim-etiket">saat</span>
+        </div>
+        <div class="kronometre-widget-ayrac"></div>
+        <div class="kronometre-widget-birim">
+          <span class="kronometre-widget-sayi" id="kronometreWidgetDakika">00</span>
+          <span class="kronometre-widget-birim-etiket">dakika</span>
+        </div>
+        <div class="kronometre-widget-ayrac"></div>
+        <div class="kronometre-widget-birim kronometre-widget-saniye">
+          <span class="kronometre-widget-sayi" id="kronometreWidgetSaniye">00</span>
+          <span class="kronometre-widget-birim-etiket">saniye</span>
+        </div>
+      </div>
+    </button>
   </main>
+
+  <footer id="pageFooter"></footer>
 
   <div class="view-empty" id="viewEmpty">
     <div class="empty-inner">
@@ -7125,7 +7426,28 @@
     </div>
   </div>
 
-  <footer id="pageFooter">Sayfayı yeniden yükleyerek animasyonu tekrar izleyebilirsiniz</footer>
+
+  <!-- ================= TAM EKRAN KRONOMETRE ================= -->
+  <div class="kronometre-tam-ekran-overlay" id="kronometreTamEkranOverlay">
+    <button type="button" class="kronometre-kapat-btn" id="kronometreKapatBtn" aria-label="Kronometreyi kapat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <div class="kronometre-tam-ekran-ust">
+      <span class="kronometre-eyebrow">Kronometre</span>
+      <div class="kronometre-tam-ekran-saat" id="kronometreTamEkranSaat">00:00:00<span class="kronometre-yuzde" id="kronometreTamEkranYuzde">.00</span></div>
+    </div>
+
+    <div class="kronometre-tam-ekran-alt">
+      <div class="kronometre-tur-liste" id="kronometreTurListe"></div>
+
+      <div class="kronometre-kontrol-satir">
+        <button type="button" class="kronometre-kontrol-btn kronometre-tur" id="kronometreTurBtn" disabled>Tur</button>
+        <button type="button" class="kronometre-kontrol-btn kronometre-baslat" id="kronometreBaslatBtn">Başlat</button>
+        <button type="button" class="kronometre-kontrol-btn kronometre-sifirla" id="kronometreSifirlaBtn" disabled>Sıfırla</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="denemeModalOverlay">
     <div class="modal-box" id="denemeModalBox" style="position:relative;">
@@ -7728,7 +8050,7 @@
   (function(){
     function anaSayfaHeroyuGorunurYap(){
       const hedefler = document.querySelectorAll(
-        '#viewHome .eyebrow, #viewHome .rule, #viewHome h1 .word, #viewHome .sub, #viewHome .quote-mark, #viewHome .signature, #pageFooter'
+        '#viewHome .eyebrow, #viewHome .rule, #viewHome h1 .word, #viewHome .sub, #viewHome .quote-mark, #viewHome .signature, #viewHome .kronometre-widget, #pageFooter'
       );
       hedefler.forEach(function(el){
         el.style.animation = 'none';
@@ -15199,7 +15521,7 @@
 
   // ================= ARKA PLAN KİLİDİ: herhangi bir pop-up/kayar pencere açıkken arka plan kaydırılamasın =================
   (function(){
-    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active';
+    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-tam-ekran-overlay.active';
     let kilitliKonum = 0;
     let kilitliMi = false;
 
@@ -15239,7 +15561,7 @@
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
     }
 
-    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay');
+    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-tam-ekran-overlay');
     if(izlenecekOverlayler.length){
       const gozlemci = new MutationObserver(durumuKontrolEt);
       izlenecekOverlayler.forEach(function(el){
@@ -15247,6 +15569,142 @@
       });
     }
     durumuKontrolEt();
+  })();
+
+  // ================= KRONOMETRE =================
+  (function(){
+    const widget = document.getElementById('kronometreWidget');
+    const widgetSaat = document.getElementById('kronometreWidgetSaat');
+    const widgetDakika = document.getElementById('kronometreWidgetDakika');
+    const widgetSaniye = document.getElementById('kronometreWidgetSaniye');
+    const overlay = document.getElementById('kronometreTamEkranOverlay');
+    const kapatBtn = document.getElementById('kronometreKapatBtn');
+    const tamEkranSaat = document.getElementById('kronometreTamEkranSaat');
+    const tamEkranYuzde = document.getElementById('kronometreTamEkranYuzde');
+    const baslatBtn = document.getElementById('kronometreBaslatBtn');
+    const sifirlaBtn = document.getElementById('kronometreSifirlaBtn');
+    const turBtn = document.getElementById('kronometreTurBtn');
+    const turListe = document.getElementById('kronometreTurListe');
+    if(!widget || !overlay) return;
+
+    let calisiyorMu = false;
+    let baslangicZamani = 0;
+    let biriktirilenSure = 0;
+    let raf = null;
+    let turSayisi = 0;
+    let sonTurZamani = 0;
+
+    function ikiHane(n){
+      return String(n).padStart(2, '0');
+    }
+
+    function suretiBicimle(ms, yuzdeDahil){
+      const toplamSaniye = Math.floor(ms / 1000);
+      const saat = Math.floor(toplamSaniye / 3600);
+      const dakika = Math.floor((toplamSaniye % 3600) / 60);
+      const saniye = toplamSaniye % 60;
+      const anaMetin = ikiHane(saat) + ':' + ikiHane(dakika) + ':' + ikiHane(saniye);
+      if(!yuzdeDahil) return { ana:anaMetin, saat:ikiHane(saat), dakika:ikiHane(dakika), saniye:ikiHane(saniye) };
+      const yuzde = Math.floor((ms % 1000) / 10);
+      return { ana: anaMetin, yuzde: '.' + ikiHane(yuzde) };
+    }
+
+    function gecenSure(){
+      return biriktirilenSure + (calisiyorMu ? (performance.now() - baslangicZamani) : 0);
+    }
+
+    function ekraniGuncelle(){
+      const ms = gecenSure();
+      const parcalanmis = suretiBicimle(ms, false);
+      widgetSaat.textContent = parcalanmis.saat;
+      widgetDakika.textContent = parcalanmis.dakika;
+      widgetSaniye.textContent = parcalanmis.saniye;
+      const parcali = suretiBicimle(ms, true);
+      tamEkranSaat.firstChild.textContent = parcali.ana;
+      tamEkranYuzde.textContent = parcali.yuzde;
+    }
+
+    function dongu(){
+      ekraniGuncelle();
+      if(calisiyorMu){
+        raf = requestAnimationFrame(dongu);
+      }
+    }
+
+    function baslat(){
+      if(calisiyorMu) return;
+      calisiyorMu = true;
+      baslangicZamani = performance.now();
+      widget.classList.add('calisiyor');
+      baslatBtn.textContent = 'Durdur';
+      baslatBtn.classList.remove('kronometre-baslat');
+      baslatBtn.classList.add('kronometre-durdur');
+      sifirlaBtn.disabled = true;
+      turBtn.disabled = false;
+      raf = requestAnimationFrame(dongu);
+    }
+
+    function durdur(){
+      if(!calisiyorMu) return;
+      calisiyorMu = false;
+      biriktirilenSure += performance.now() - baslangicZamani;
+      widget.classList.remove('calisiyor');
+      baslatBtn.textContent = 'Başlat';
+      baslatBtn.classList.remove('kronometre-durdur');
+      baslatBtn.classList.add('kronometre-baslat');
+      sifirlaBtn.disabled = biriktirilenSure <= 0;
+      turBtn.disabled = true;
+      if(raf) cancelAnimationFrame(raf);
+      ekraniGuncelle();
+    }
+
+    function sifirla(){
+      if(calisiyorMu) return;
+      biriktirilenSure = 0;
+      turSayisi = 0;
+      sonTurZamani = 0;
+      turListe.innerHTML = '';
+      sifirlaBtn.disabled = true;
+      ekraniGuncelle();
+    }
+
+    function turEkle(){
+      if(!calisiyorMu) return;
+      const suanki = gecenSure();
+      const fark = suanki - sonTurZamani;
+      sonTurZamani = suanki;
+      turSayisi += 1;
+      const satir = document.createElement('div');
+      satir.className = 'kronometre-tur-satir';
+      const etiket = document.createElement('span');
+      etiket.textContent = 'Tur ' + turSayisi;
+      const deger = document.createElement('span');
+      deger.textContent = suretiBicimle(fark, false).ana;
+      satir.appendChild(etiket);
+      satir.appendChild(deger);
+      turListe.insertBefore(satir, turListe.firstChild);
+    }
+
+    function tamEkraniAc(){
+      ekraniGuncelle();
+      overlay.classList.add('active');
+      document.documentElement.classList.add('kronometre-tam-ekran-acik');
+    }
+
+    function tamEkraniKapat(){
+      overlay.classList.remove('active');
+      document.documentElement.classList.remove('kronometre-tam-ekran-acik');
+    }
+
+    widget.addEventListener('click', tamEkraniAc);
+    kapatBtn.addEventListener('click', tamEkraniKapat);
+    baslatBtn.addEventListener('click', function(){
+      if(calisiyorMu){ durdur(); } else { baslat(); }
+    });
+    sifirlaBtn.addEventListener('click', sifirla);
+    turBtn.addEventListener('click', turEkle);
+
+    ekraniGuncelle();
   })();
 
   // ================= PWA: SERVICE WORKER KAYDI =================
