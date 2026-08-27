@@ -88,6 +88,18 @@
     return !veri || Object.keys(veri).length === 0;
   }
 
+  function hataMesajiCevir(ham) {
+    var m = String(ham || '').toLowerCase();
+    if (m.indexOf('invalid login credentials') !== -1) return 'E-posta veya şifre hatalı.';
+    if (m.indexOf('email not confirmed') !== -1) return 'Önce e-posta adresini onaylaman gerekiyor.';
+    if (m.indexOf('user already registered') !== -1 || m.indexOf('already registered') !== -1) return 'Bu e-posta ile zaten bir hesap var, giriş yapmayı dene.';
+    if (m.indexOf('password should be at least') !== -1) return 'Şifre en az 6 karakter olmalı.';
+    if (m.indexOf('unable to validate email') !== -1 || m.indexOf('invalid email') !== -1) return 'Geçerli bir e-posta adresi gir.';
+    if (m.indexOf('rate limit') !== -1 || m.indexOf('too many requests') !== -1) return 'Çok fazla deneme yapıldı, birkaç dakika sonra tekrar dene.';
+    if (m.indexOf('failed to fetch') !== -1 || m.indexOf('network') !== -1) return 'Bağlantı kurulamadı, internetini kontrol et.';
+    return ham || 'Bir hata oluştu, tekrar dene.';
+  }
+
   function zamanFormatla(iso) {
     if (!iso) return 'Hiç yedeklenmedi';
     try {
@@ -283,6 +295,17 @@
       '.bulut-panel input{width:100%;padding:0.6rem 0.7rem;border:1px solid var(--line);border-radius:0.6rem;',
       'background:transparent;color:var(--ink);font-size:0.92rem;font-family:inherit;}',
       '.bulut-panel input:focus{outline:none;border-color:var(--accent);}',
+      '.bulut-sifre-wrap{position:relative;}',
+      '.bulut-sifre-wrap input{padding-right:2.5rem;}',
+      '.bulut-goz-btn{position:absolute;right:0.35rem;top:50%;transform:translateY(-50%);width:1.9rem;height:1.9rem;',
+      'background:none;border:none;cursor:pointer;color:var(--ink-soft);padding:0;}',
+      '.bulut-goz-btn:active{color:var(--accent);}',
+      '.bulut-goz-btn svg{position:absolute;top:50%;left:50%;width:1.15rem;height:1.15rem;',
+      'transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1;',
+      'transition:opacity .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1);}',
+      '.bulut-goz-btn .goz-kapali{opacity:0;transform:translate(-50%,-50%) scale(0.4) rotate(-25deg);}',
+      '.bulut-goz-btn.acik .goz-acik{opacity:0;transform:translate(-50%,-50%) scale(0.4) rotate(25deg);}',
+      '.bulut-goz-btn.acik .goz-kapali{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg);}',
       '.bulut-btn{width:100%;padding:0.68rem;border-radius:0.6rem;border:1px solid var(--line);background:transparent;',
       'color:var(--ink);font-size:0.9rem;margin-top:0.7rem;cursor:pointer;font-family:inherit;}',
       '.bulut-btn.ana{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}',
@@ -354,8 +377,8 @@
       '<button class="bulut-btn" id="bulutSecCihaz">Bu Cihazdakini Kullan (buluta gönder)</button>' +
       '<button class="bulut-btn" id="bulutSecVazgec">Şimdi Karar Vermeyeyim</button>';
     panelEl.querySelector('.bulut-kapat').addEventListener('click', panelKapat);
-    panelEl.querySelector('#bulutSecBulut').addEventListener('click', function () { buluttanGeriYukle(true); });
-    panelEl.querySelector('#bulutSecCihaz').addEventListener('click', function () { simdiYedekle().then(panelKapat); });
+    panelEl.querySelector('#bulutSecBulut').addEventListener('click', function () { panelKapat(); buluttanGeriYukle(true); });
+    panelEl.querySelector('#bulutSecCihaz').addEventListener('click', function () { panelKapat(); simdiYedekle(); });
     panelEl.querySelector('#bulutSecVazgec').addEventListener('click', panelKapat);
   }
 
@@ -397,19 +420,25 @@
         '<label for="bulutEposta">E-posta</label>' +
         '<input type="email" id="bulutEposta" autocomplete="email">' +
         '<label for="bulutSifre">Şifre</label>' +
+        '<div class="bulut-sifre-wrap">' +
         '<input type="password" id="bulutSifre" autocomplete="current-password">' +
+        '<button type="button" class="bulut-goz-btn" id="bulutGozBtn" aria-label="Şifreyi göster">' +
+        '<svg class="goz-acik" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>' +
+        '<svg class="goz-kapali" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a21.8 21.8 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>' +
+        '</button>' +
+        '</div>' +
         '<div class="bulut-satir">' +
         '<button class="bulut-btn ana" id="bulutGirisBtn">Giriş Yap</button>' +
         '<button class="bulut-btn" id="bulutKayitBtn">Kayıt Ol</button>' +
         '</div>' +
-        '<button class="bulut-btn" id="bulutAyarSifirla">Farklı Proje Kullan</button>' +
         '<div class="bulut-mesaj" id="bulutMesaj"></div>';
       mesajEl = panelEl.querySelector('#bulutMesaj');
       panelEl.querySelector('.bulut-kapat').addEventListener('click', panelKapat);
-      panelEl.querySelector('#bulutAyarSifirla').addEventListener('click', function () {
-        localStorage.removeItem(AYAR_ANAHTARI);
-        istemci = null; oturum = null;
-        panelCiz();
+      panelEl.querySelector('#bulutGozBtn').addEventListener('click', function () {
+        var sifreInput = panelEl.querySelector('#bulutSifre');
+        var acikMi = this.classList.toggle('acik');
+        sifreInput.type = acikMi ? 'text' : 'password';
+        this.setAttribute('aria-label', acikMi ? 'Şifreyi gizle' : 'Şifreyi göster');
       });
       panelEl.querySelector('#bulutGirisBtn').addEventListener('click', function () {
         var e = panelEl.querySelector('#bulutEposta').value.trim();
@@ -417,7 +446,7 @@
         if (!e || !s) { mesajGoster('E-posta ve şifre gerekli.'); return; }
         mesajGoster('Giriş yapılıyor…');
         istemci.auth.signInWithPassword({ email: e, password: s }).then(function (r) {
-          if (r.error) { mesajGoster(r.error.message); return; }
+          if (r.error) { mesajGoster(hataMesajiCevir(r.error.message)); return; }
           panelCiz();
         });
       });
@@ -428,7 +457,7 @@
         if (s.length < 6) { mesajGoster('Şifre en az 6 karakter olmalı.'); return; }
         mesajGoster('Hesap oluşturuluyor…');
         istemci.auth.signUp({ email: e, password: s }).then(function (r) {
-          if (r.error) { mesajGoster(r.error.message); return; }
+          if (r.error) { mesajGoster(hataMesajiCevir(r.error.message)); return; }
           mesajGoster('Hesap oluşturuldu. E-postanı onayladıktan sonra giriş yapabilirsin (proje ayarına göre onaysız da giriş yapmış olabilirsin).');
         });
       });
