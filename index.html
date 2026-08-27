@@ -3998,6 +3998,16 @@
     border-color:#c94940;
     color:#fff;
   }
+  .modal-btn-basari{
+    background:var(--dogru);
+    color:#fff;
+    border-color:var(--dogru);
+  }
+  .modal-btn-basari:hover{
+    background:#3f6e46;
+    border-color:#3f6e46;
+    color:#fff;
+  }
   .modal-onay-metin{
     margin-top:0.9rem;
     font-size:0.88rem;
@@ -5179,11 +5189,76 @@
     font-weight:600;
     letter-spacing:0.01em;
     cursor:pointer;
-    transition:background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+    overflow:hidden;
+    opacity:1;
+    transform:scale(1);
+    max-height:3rem;
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.28s cubic-bezier(.22,1,.36,1), opacity 0.28s ease, max-height 0.28s ease, margin 0.28s ease, padding 0.28s ease;
   }
   .deneme-tumunu-dogru-btn svg{ width:1rem; height:1rem; flex-shrink:0; }
   .deneme-tumunu-dogru-btn:hover{ border-color:var(--dogru); background:rgba(var(--dogru-rgb),0.18); }
   .deneme-tumunu-dogru-btn:active{ transform:scale(0.96); }
+  /* Tüm sorular doğru işaretlendiğinde buton animasyonla kaybolur */
+  .deneme-tumunu-dogru-btn.tamamlandi{
+    opacity:0;
+    transform:scale(0.7);
+    max-height:0;
+    margin-top:0;
+    padding-top:0;
+    padding-bottom:0;
+    border-width:0;
+    pointer-events:none;
+  }
+  /* ---- Denemedeki tüm işaretlemeleri (kırmızı) kaldırma butonu ---- */
+  .deneme-tumunu-kaldir-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.45rem;
+    margin:0.7rem auto 0;
+    padding:0.6rem 1.1rem;
+    border:1px solid rgba(var(--yanlis-rgb),0.4);
+    border-radius:100px;
+    background:rgba(var(--yanlis-rgb),0.1);
+    color:var(--yanlis);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    font-weight:600;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+  }
+  .deneme-tumunu-kaldir-btn svg{ width:1rem; height:1rem; flex-shrink:0; }
+  .deneme-tumunu-kaldir-btn:hover{ border-color:var(--yanlis); background:rgba(var(--yanlis-rgb),0.18); }
+  .deneme-tumunu-kaldir-btn:active{ transform:scale(0.96); }
+  /* ---- Denemeyi tamamen silme: büyük, dolu kırmızı buton ---- */
+  .deneme-detay-sil-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.6rem;
+    width:100%;
+    margin:1.6rem auto 0;
+    padding:1rem 1.3rem;
+    border:1px solid var(--yanlis);
+    border-radius:0.9rem;
+    background:var(--yanlis);
+    color:#fff;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.86rem;
+    font-weight:700;
+    letter-spacing:0.03em;
+    cursor:pointer;
+    box-shadow:0 10px 24px -8px rgba(var(--yanlis-rgb),0.5);
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
+  }
+  .deneme-detay-sil-btn svg{ width:1.15rem; height:1.15rem; flex-shrink:0; }
+  .deneme-detay-sil-btn:hover{
+    background:#c94940;
+    border-color:#c94940;
+    box-shadow:0 14px 30px -8px rgba(var(--yanlis-rgb),0.6);
+  }
+  .deneme-detay-sil-btn:active{ transform:scale(0.97); }
   .deneme-branslar{
     margin-top:1rem;
     display:flex;
@@ -7486,11 +7561,19 @@
       </div>
 
       <p class="deneme-brans-yonerge">Her soruya dokun: 1. dokunuş doğru, 2. dokunuş yanlış, 3. dokunuş boşa döner.</p>
+      <div class="deneme-branslar" id="denemeBranslar"></div>
       <button type="button" class="deneme-tumunu-dogru-btn" id="denemeTumunuDogruBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         <span>Tümünü Doğru İşaretle</span>
       </button>
-      <div class="deneme-branslar" id="denemeBranslar"></div>
+      <button type="button" class="deneme-tumunu-kaldir-btn" id="denemeTumunuKaldirBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+        <span>Tüm İşaretlemeleri Kaldır</span>
+      </button>
+      <button type="button" class="deneme-detay-sil-btn" id="denemeDetaySilBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+        <span>Denemeyi Sil</span>
+      </button>
     </div>
   </div>
 
@@ -7925,6 +8008,45 @@
       <div class="modal-actions">
         <button type="button" class="modal-btn" id="denemeSilVazgec">Vazgeç</button>
         <button type="button" class="modal-btn modal-btn-danger" id="denemeSilOnayla">Evet, Sil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Denemedeki tüm soruları tek dokunuşla doğru işaretleme: onay penceresi -->
+  <div class="modal-overlay" id="denemeTumunuDogruOnayOverlay">
+    <div class="modal-box" style="position:relative;">
+      <span class="modal-eyebrow">İşaretleme Onayı</span>
+      <h3 class="modal-title">Tümünü doğru işaretle</h3>
+      <p class="modal-onay-metin" id="denemeTumunuDogruOnayMetin">Bu denemedeki tüm sorular doğru olarak işaretlenecek.</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="denemeTumunuDogruVazgec">Vazgeç</button>
+        <button type="button" class="modal-btn modal-btn-basari" id="denemeTumunuDogruOnayla">Onayla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Denemedeki tüm işaretlemeleri kaldırma: onay penceresi -->
+  <div class="modal-overlay" id="denemeTumunuKaldirOnayOverlay">
+    <div class="modal-box" style="position:relative;">
+      <span class="modal-eyebrow">İşaretleme Onayı</span>
+      <h3 class="modal-title">Tüm işaretlemeleri kaldır</h3>
+      <p class="modal-onay-metin" id="denemeTumunuKaldirOnayMetin">Bu denemedeki tüm soru işaretlemeleri silinecek ve deneme yeni oluşturulmuş gibi boş hâle gelecek. Bu işlem geri alınamaz.</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="denemeTumunuKaldirVazgec">Vazgeç</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="denemeTumunuKaldirOnayla">Evet, Kaldır</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deneme detayından denemeyi tamamen silme: onay penceresi -->
+  <div class="modal-overlay" id="denemeDetaySilOnayOverlay">
+    <div class="modal-box" style="position:relative;">
+      <span class="modal-eyebrow">Silme Onayı</span>
+      <h3 class="modal-title">Bu denemeyi sil</h3>
+      <p class="modal-onay-metin" id="denemeDetaySilOnayMetin">Bu işlem geri alınamaz.</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="denemeDetaySilVazgec">Vazgeç</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="denemeDetaySilOnayla">Evet, Sil</button>
       </div>
     </div>
   </div>
@@ -12705,6 +12827,7 @@
           bransNetGuncelle();
           denemeToplamGuncelle(veri);
           denemeleriKaydet();
+          if(typeof denemeTumunuDogruBtnGuncelle === 'function'){ denemeTumunuDogruBtnGuncelle(denemeAktifId); }
         });
 
         wrap.appendChild(btn);
@@ -12735,28 +12858,222 @@
       yapi.forEach(function(b){
         denemeBranslarEl.appendChild(denemeBransKartOlustur(veri, b.ad, b.soru));
       });
+
+      denemeTumunuDogruBtnGuncelle(id);
     }
 
-    // ---- Denemedeki tüm soruları tek dokunuşla "doğru" işaretler ----
+    // ---- Denemedeki tüm soruları tek dokunuşla "doğru" işaretler (uygulama
+    // içi onay penceresiyle). Tüm sorular zaten doğruysa buton animasyonla
+    // gizlenir; herhangi bir soru doğru dışı bir şeye dönerse buton tekrar
+    // belirir. Ekstra bir yedek/kayıt tutulmaz; buton durumu doğrudan
+    // mevcut cevaplardan hesaplanır. ----
     const denemeTumunuDogruBtn = document.getElementById('denemeTumunuDogruBtn');
+
+    function denemeTumuDogruMu(veri){
+      if(!veri) return false;
+      const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
+      return yapi.every(function(b){
+        const arr = (veri.cevaplar && veri.cevaplar[b.ad]) || [];
+        for(let i = 0; i < b.soru; i++){
+          if(arr[i] !== 1) return false;
+        }
+        return true;
+      });
+    }
+
+    function denemeTumunuDogruBtnGuncelle(id){
+      if(!denemeTumunuDogruBtn) return;
+      const veri = denemeVerileri[id];
+      const hepsiDogru = denemeTumuDogruMu(veri);
+      denemeTumunuDogruBtn.classList.toggle('tamamlandi', hepsiDogru);
+    }
+
+    // Onay pop-up'ını açan fonksiyon; aşağıdaki pop-up IIFE'si tarafından atanır.
+    let denemeTumunuDogruOnayAc = null;
+
     if(denemeTumunuDogruBtn){
       denemeTumunuDogruBtn.addEventListener('click', function(){
         if(!denemeAktifId) return;
         const veri = denemeVerileri[denemeAktifId];
         if(!veri) return;
-        const onay = window.confirm('Bu denemedeki tüm sorular doğru olarak işaretlenecek. Mevcut işaretlemelerin üzerine yazılacak. Devam edilsin mi?');
-        if(!onay) return;
-        const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
-        yapi.forEach(function(b){
-          veri.cevaplar[b.ad] = veri.cevaplar[b.ad] || [];
-          for(let i = 0; i < b.soru; i++){
-            veri.cevaplar[b.ad][i] = 1;
-          }
-        });
-        denemeleriKaydet();
-        renderDenemeDetay(denemeAktifId);
+        if(denemeTumuDogruMu(veri)) return; // zaten tamamlanmış, gizli durumda
+        if(denemeTumunuDogruOnayAc){ denemeTumunuDogruOnayAc(denemeAktifId); }
       });
     }
+
+    // ---- "Tümünü Doğru İşaretle" onay pop-up'ı ----
+    (function(){
+      const overlay = document.getElementById('denemeTumunuDogruOnayOverlay');
+      if(!overlay) return;
+      const vazgecBtn = document.getElementById('denemeTumunuDogruVazgec');
+      const onaylaBtn = document.getElementById('denemeTumunuDogruOnayla');
+
+      let hedefId = null;
+
+      function acPopup(id){
+        hedefId = id;
+        overlay.classList.add('active');
+      }
+      function kapatPopup(){
+        overlay.classList.remove('active');
+        hedefId = null;
+      }
+
+      denemeTumunuDogruOnayAc = acPopup;
+
+      vazgecBtn.addEventListener('click', kapatPopup);
+      overlay.addEventListener('click', function(e){
+        if(e.target === overlay){ kapatPopup(); }
+      });
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && overlay.classList.contains('active')){ kapatPopup(); }
+      });
+
+      onaylaBtn.addEventListener('click', function(){
+        if(!hedefId) return;
+        const veri = denemeVerileri[hedefId];
+        if(veri){
+          const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
+          yapi.forEach(function(b){
+            veri.cevaplar[b.ad] = veri.cevaplar[b.ad] || [];
+            for(let i = 0; i < b.soru; i++){
+              veri.cevaplar[b.ad][i] = 1;
+            }
+          });
+          denemeleriKaydet();
+          if(denemeAktifId === hedefId){ renderDenemeDetay(hedefId); }
+        }
+        kapatPopup();
+      });
+    })();
+
+    // ---- Denemedeki tüm işaretlemeleri kaldırma (yeni oluşturulmuş deneme
+    // gibi tamamen boşa alma) butonu ve kırmızı onay pop-up'ı ----
+    const denemeTumunuKaldirBtn = document.getElementById('denemeTumunuKaldirBtn');
+    let denemeTumunuKaldirOnayAc = null;
+
+    if(denemeTumunuKaldirBtn){
+      denemeTumunuKaldirBtn.addEventListener('click', function(){
+        if(!denemeAktifId) return;
+        if(denemeTumunuKaldirOnayAc){ denemeTumunuKaldirOnayAc(denemeAktifId); }
+      });
+    }
+
+    (function(){
+      const overlay = document.getElementById('denemeTumunuKaldirOnayOverlay');
+      if(!overlay) return;
+      const vazgecBtn = document.getElementById('denemeTumunuKaldirVazgec');
+      const onaylaBtn = document.getElementById('denemeTumunuKaldirOnayla');
+
+      let hedefId = null;
+
+      function acPopup(id){
+        hedefId = id;
+        overlay.classList.add('active');
+      }
+      function kapatPopup(){
+        overlay.classList.remove('active');
+        hedefId = null;
+      }
+
+      denemeTumunuKaldirOnayAc = acPopup;
+
+      vazgecBtn.addEventListener('click', kapatPopup);
+      overlay.addEventListener('click', function(e){
+        if(e.target === overlay){ kapatPopup(); }
+      });
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && overlay.classList.contains('active')){ kapatPopup(); }
+      });
+
+      onaylaBtn.addEventListener('click', function(){
+        if(!hedefId) return;
+        const veri = denemeVerileri[hedefId];
+        if(veri){
+          const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
+          yapi.forEach(function(b){
+            veri.cevaplar[b.ad] = veri.cevaplar[b.ad] || [];
+            for(let i = 0; i < b.soru; i++){
+              veri.cevaplar[b.ad][i] = 0;
+            }
+          });
+          denemeleriKaydet();
+          if(denemeAktifId === hedefId){ renderDenemeDetay(hedefId); }
+        }
+        kapatPopup();
+      });
+    })();
+
+    // ---- Deneme detayından "Denemeyi Sil": denemeyi kalıcı olarak siler ve
+    // Denemelerim listesine geri döner ----
+    const denemeDetaySilBtn = document.getElementById('denemeDetaySilBtn');
+    let denemeDetaySilOnayAc = null;
+
+    if(denemeDetaySilBtn){
+      denemeDetaySilBtn.addEventListener('click', function(){
+        if(!denemeAktifId) return;
+        if(denemeDetaySilOnayAc){ denemeDetaySilOnayAc(denemeAktifId); }
+      });
+    }
+
+    (function(){
+      const overlay = document.getElementById('denemeDetaySilOnayOverlay');
+      if(!overlay) return;
+      const metinEl = document.getElementById('denemeDetaySilOnayMetin');
+      const vazgecBtn = document.getElementById('denemeDetaySilVazgec');
+      const onaylaBtn = document.getElementById('denemeDetaySilOnayla');
+
+      let silinecekId = null;
+
+      function acPopup(id){
+        const veri = denemeVerileri[id];
+        if(!veri) return;
+        silinecekId = id;
+        metinEl.textContent = '"' + veri.isim + '" adlı deneme kalıcı olarak silinecek. Bu işlem geri alınamaz.';
+        overlay.classList.add('active');
+      }
+      function kapatPopup(){
+        overlay.classList.remove('active');
+        silinecekId = null;
+      }
+
+      denemeDetaySilOnayAc = acPopup;
+
+      vazgecBtn.addEventListener('click', kapatPopup);
+      overlay.addEventListener('click', function(e){
+        if(e.target === overlay){ kapatPopup(); }
+      });
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && overlay.classList.contains('active')){ kapatPopup(); }
+      });
+
+      onaylaBtn.addEventListener('click', function(){
+        if(!silinecekId) return;
+        const silinecekVeri = denemeVerileri[silinecekId];
+        if(silinecekVeri && silinecekVeri.cevapAnahtari && silinecekVeri.cevapAnahtari.tur === 'dosya' && silinecekVeri.cevapAnahtari.dosyaId){
+          dosyaSil(silinecekVeri.cevapAnahtari.dosyaId);
+        }
+        if(silinecekVeri && silinecekVeri.soruGorselleri){
+          Object.keys(silinecekVeri.soruGorselleri).forEach(function(brans){
+            const bransGorselleri = silinecekVeri.soruGorselleri[brans] || {};
+            Object.keys(bransGorselleri).forEach(function(idx){
+              if(bransGorselleri[idx]){ dosyaSil(bransGorselleri[idx]); }
+            });
+          });
+        }
+        delete denemeVerileri[silinecekId];
+        denemeleriKaydet();
+
+        // Denemelerim ızgarasındaki kartı da (varsa) kaldır, böylece geri
+        // dönüldüğünde silinen deneme listede görünmez.
+        const card = denemeGridEl.querySelector('.deneme-card[data-deneme-id="' + silinecekId + '"]');
+        if(card){ card.remove(); }
+        if(typeof denemeleriDuzenle === 'function'){ denemeleriDuzenle(); }
+
+        kapatPopup();
+        showDenemelerView();
+      });
+    })();
 
     function showDenemeDetayView(id){
       gecisIleDegistir(function(){
