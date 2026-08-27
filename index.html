@@ -1880,6 +1880,50 @@
     color:var(--ink-soft);
   }
 
+  /* ---- Kalori: egzersizler arası geçişte önce isim gösteren anons katmanı ---- */
+  .kalori-egzersiz-anons{
+    position:fixed;
+    inset:0;
+    z-index:30;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6vw;
+    text-align:center;
+    background:var(--bg);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity 0.3s ease, visibility 0s linear 0.3s;
+  }
+  .kalori-egzersiz-anons.active{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transition:opacity 0.25s ease, visibility 0s linear 0s;
+  }
+  .kalori-egzersiz-anons.cikiyor{
+    opacity:0;
+    transition:opacity 0.5s ease, visibility 0s linear 0.5s;
+  }
+  .kalori-egzersiz-anons-isim{
+    font-size:clamp(1.6rem, 6vw, 2.4rem);
+    font-weight:600;
+    letter-spacing:0.01em;
+    color:var(--ink);
+    animation:kaloriEgzersizAnonsGir 0.5s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes kaloriEgzersizAnonsGir{
+    from{ opacity:0; transform:translateY(14px) scale(0.96); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kalori-egzersiz-anons,
+    .kalori-egzersiz-anons.active,
+    .kalori-egzersiz-anons.cikiyor{ transition:none; }
+    .kalori-egzersiz-anons-isim{ animation:none; }
+  }
+
   .kalori-hareket-blok{
     width:100%;
     display:flex;
@@ -8180,6 +8224,11 @@
 
       <!-- Alt görünüm 2: hareket + geri sayım -->
       <div class="kalori-pane kalori-pane-calisma" id="kaloriPaneCalisma">
+        <!-- Egzersizler arası geçişte, süreyi doğrudan başlatmak yerine önce
+             yeni egzersizin ismini birkaç saniye animasyonlu şekilde gösteren katman. -->
+        <div class="kalori-egzersiz-anons" id="kaloriEgzersizAnons" aria-hidden="true">
+          <span class="kalori-egzersiz-anons-isim" id="kaloriEgzersizAnonsIsim"></span>
+        </div>
         <div class="kalori-calisma-ust">
           <button type="button" class="kalori-cikis-btn" id="kaloriCikisBtn" aria-label="Antrenmanı bitir">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
@@ -15390,6 +15439,9 @@
     const duraklatBtn = document.getElementById('kaloriDuraklatBtn');
     const duraklatIkon = document.getElementById('kaloriDuraklatIkon');
     const hazirlikAtlaBtn = document.getElementById('kaloriHazirlikAtlaBtn');
+    const egzersizAnons = document.getElementById('kaloriEgzersizAnons');
+    const egzersizAnonsIsim = document.getElementById('kaloriEgzersizAnonsIsim');
+    let egzersizAnonsZamanlayici = null;
 
     if(!paneSecim || !grupListe) return;
 
@@ -15760,6 +15812,28 @@
       }
     }
 
+    // Bir sonraki EGZERSİZE (bir önceki egzersizden farklı harekete) geçerken
+    // süreyi doğrudan başlatmak yerine önce ekranda egzersizin ismini birkaç
+    // saniye animasyonlu şekilde gösterir, sonra kaybolup hareketi başlatır.
+    function egzersizIsmiIleBaslat(){
+      if(egzersizAnonsZamanlayici){ clearTimeout(egzersizAnonsZamanlayici); egzersizAnonsZamanlayici = null; }
+      const eg = akisEgzersizleri[akisIndex];
+      if(!egzersizAnons || !egzersizAnonsIsim || !eg){ hareketBaslat(); return; }
+      zamanlayiciTemizle();
+      egzersizAnonsIsim.textContent = eg.isim;
+      egzersizAnons.classList.remove('cikiyor');
+      void egzersizAnons.offsetWidth; // reflow: animasyonu baştan tetikle
+      egzersizAnons.classList.add('active');
+      egzersizAnonsZamanlayici = setTimeout(function(){
+        egzersizAnons.classList.add('cikiyor');
+        egzersizAnonsZamanlayici = setTimeout(function(){
+          egzersizAnons.classList.remove('active', 'cikiyor');
+          egzersizAnonsZamanlayici = null;
+          hareketBaslat();
+        }, 500); // CSS'teki kaybolma geçiş süresiyle eşleşir
+      }, 3000);
+    }
+
     // Verilen türde molayı başlatır (tekrar/set/egzersiz arası). Mola bitince bir sonraki
     // hareketi otomatik başlatır. setIndex/tekrarIndex/akisIndex bu çağrılmadan ÖNCE
     // zaten bir sonraki adıma güncellenmiş olmalı.
@@ -15787,7 +15861,9 @@
         paneCalisma.classList.add('set-gecis-anim');
       }
       sayacGuncelle();
-      zamanlayiciBaslat(hareketBaslat);
+      // Egzersizler arası mola bittiğinde doğrudan süreyi başlatmak yerine
+      // önce yeni egzersizin ismini animasyonlu şekilde gösterir.
+      zamanlayiciBaslat(tur === 'egzersiz' ? egzersizIsmiIleBaslat : hareketBaslat);
     }
 
     // Bir mola türüne karar verir: ayarlardan açıksa molayı başlatır, kapalıysa
@@ -15797,6 +15873,9 @@
       const ayar = ayarlar[tur];
       if(ayar && ayar.acik && ayar.sure > 0){
         molaBaslat(tur, ayar.sure);
+      } else if(tur === 'egzersiz'){
+        // Mola kapalı olsa bile egzersizler arası geçişte önce ismi göster.
+        egzersizIsmiIleBaslat();
       } else {
         hareketBaslat();
       }
@@ -15832,7 +15911,7 @@
         bitir();
         return;
       }
-      if(molaAtla){ hareketBaslat(); } else { molaVeyaHareket('egzersiz'); }
+      if(molaAtla){ egzersizIsmiIleBaslat(); } else { molaVeyaHareket('egzersiz'); }
     }
 
     // Antrenman başlamadan önce 5-4-3-2-1 hazırlık geri sayımı gösterir,
@@ -15908,7 +15987,8 @@
         zamanlayiciTemizle();
         if(dinlenmeModu){
           // Molayı atla, indeksler zaten bir sonraki adıma ayarlanmış durumda.
-          hareketBaslat();
+          // Egzersiz molasıysa yine de yeni egzersizin ismini kısaca göster.
+          if(molaTuru === 'egzersiz'){ egzersizIsmiIleBaslat(); } else { hareketBaslat(); }
           return;
         }
         // Aktif tekrarı/hareketi atla, set × tekrar döngüsüne göre bir sonraki adıma geç.
@@ -15921,6 +16001,7 @@
     if(geriBtn){
       geriBtn.addEventListener('click', function(){
         zamanlayiciTemizle();
+        let oncekiEgzersizeDonuldu = false;
         if(!dinlenmeModu){
           if(tekrarIndex > 1){
             tekrarIndex--;
@@ -15931,9 +16012,10 @@
             akisIndex--;
             setIndex = 1;
             tekrarIndex = 1;
+            oncekiEgzersizeDonuldu = true;
           }
         }
-        hareketBaslat();
+        if(oncekiEgzersizeDonuldu){ egzersizIsmiIleBaslat(); } else { hareketBaslat(); }
       });
     }
   })();
