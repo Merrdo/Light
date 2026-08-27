@@ -1058,8 +1058,11 @@
   #yedekRow.animate{
     animation-delay:1.85s;
   }
-  #sporModuRow.animate{
+  #bulutYedekRow.animate{
     animation-delay:2s;
+  }
+  #sporModuRow.animate{
+    animation-delay:2.15s;
   }
   .yedek-ac-btn{
     flex-shrink:0;
@@ -7081,17 +7084,34 @@
     display:none;
     align-items:center;
     justify-content:center;
+    overflow:hidden;
     background:
-      radial-gradient(circle at 50% 28%, rgba(var(--accent-rgb),0.16), transparent 55%),
-      var(--bg);
+      radial-gradient(circle at 50% 28%, rgba(var(--accent-rgb),0.22), transparent 55%),
+      rgba(var(--bg-rgb),0.86);
+    -webkit-backdrop-filter:blur(18px) saturate(1.15);
+    backdrop-filter:blur(18px) saturate(1.15);
     padding:6vw;
     opacity:0;
   }
   .giris-overlay.active{
     display:flex;
-    animation: girisOverlayIn 0.35s ease forwards;
+    animation: girisOverlayIn 0.4s ease forwards;
   }
   @keyframes girisOverlayIn{ to{ opacity:1; } }
+
+  /* Giriş ekranındayken arka plandaki hareketli ışık/yıldız katmanı
+     (.field, body seviyesinde ve overlay'in tam arkasında durur) buzlu
+     cam efektinin ardında biraz daha belirgin süzülsün diye hafifçe
+     güçlendirilir. */
+  html.giris-bekleniyor .bg-destek{ opacity:0.9; }
+  html.giris-bekleniyor .ray{ animation-duration:8s; }
+
+  .giris-adim-wrap{
+    position:relative;
+    width:100%;
+    max-width:380px;
+    z-index:1;
+  }
 
   .giris-box{
     width:100%;
@@ -7102,7 +7122,155 @@
     animation: girisBoxIn 0.45s cubic-bezier(.22,1,.36,1) forwards;
     animation-delay:0.1s;
   }
+  .giris-adim-wrap .giris-box{ position:relative; }
+  .giris-adim-wrap .giris-box + .giris-box{ position:absolute; top:0; left:0; }
   @keyframes girisBoxIn{ to{ transform:translateY(0); opacity:1; } }
+  .giris-adim-cikis{
+    animation: girisAdimCikis 0.28s cubic-bezier(.4,0,.2,1) forwards !important;
+  }
+  @keyframes girisAdimCikis{
+    to{ transform:translateY(-12px) scale(0.97); opacity:0; }
+  }
+  .giris-adim-giris{
+    animation: girisBoxIn 0.5s cubic-bezier(.22,1,.36,1) forwards !important;
+    animation-delay:0s !important;
+  }
+  .giris-box[hidden]{ display:none !important; }
+
+  /* ---- Giriş / Kayıt sekmesi ---- */
+  .giris-sekme{
+    position:relative;
+    display:flex;
+    margin:1.6rem auto 0;
+    max-width:16rem;
+    background:rgba(var(--ink-rgb),0.05);
+    border:1px solid var(--line);
+    border-radius:9999px;
+    padding:0.2rem;
+  }
+  .giris-sekme-vurgu{
+    position:absolute;
+    top:0.2rem;
+    bottom:0.2rem;
+    left:0.2rem;
+    width:calc(50% - 0.2rem);
+    border-radius:9999px;
+    background:var(--bg);
+    box-shadow:0 2px 8px rgba(var(--shadow-rgb),0.1);
+    transition: transform 0.35s cubic-bezier(.65,0,.35,1);
+    z-index:0;
+  }
+  .giris-sekme-btn{
+    position:relative;
+    z-index:1;
+    flex:1;
+    border:none;
+    background:transparent;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    padding:0.55rem 0.5rem;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-radius:9999px;
+    transition: color 0.25s ease;
+  }
+  .giris-sekme-btn.active{ color:var(--ink); }
+
+  .giris-form-alan{ margin-top:1.3rem; text-align:left; }
+  .giris-form-alan .giris-isim-label{ display:block; }
+  .giris-form-alan .giris-isim-input{ text-align:left; width:100%; max-width:none; }
+
+  .giris-sifre-wrap{ position:relative; }
+  .giris-sifre-wrap .giris-isim-input{ padding-right:2.2rem; }
+  .giris-goz-btn{
+    position:absolute;
+    right:0;
+    top:50%;
+    transform:translateY(-50%);
+    width:1.9rem;
+    height:1.9rem;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--ink-soft);
+    padding:0;
+  }
+  .giris-goz-btn svg{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:1.1rem;
+    height:1.1rem;
+    transform:translate(-50%,-50%) scale(1) rotate(0deg);
+    opacity:1;
+    transition:opacity .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1);
+  }
+  .giris-goz-btn .goz-kapali{ opacity:0; transform:translate(-50%,-50%) scale(0.4) rotate(-25deg); }
+  .giris-goz-btn.acik .goz-acik{ opacity:0; transform:translate(-50%,-50%) scale(0.4) rotate(25deg); }
+  .giris-goz-btn.acik .goz-kapali{ opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg); }
+
+  .giris-link-btn{
+    display:block;
+    margin:0.9rem auto 0;
+    background:none;
+    border:none;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    text-underline-offset:2px;
+    cursor:pointer;
+    transition: color 0.2s ease;
+  }
+  .giris-link-btn:hover{ color:var(--accent); }
+
+  .giris-misafir-btn{
+    display:block;
+    width:100%;
+    margin-top:1.4rem;
+    padding-top:1.1rem;
+    border:none;
+    border-top:1px solid var(--line);
+    background:none;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .giris-misafir-btn:hover{ color:var(--ink); }
+  .giris-misafir-btn:active{ transform:scale(0.98); }
+
+  /* ---- Genel dokunma/tık tepkimesi (ripple) ----
+     Not: .dokunma-tepki-katman öğenin TAM üzerine (inset:0) oturan ayrı bir
+     katmandır ve yalnızca kendi içindeki dalgayı kırpar; böylece .dock-tip
+     gibi düğmenin dışına taşan ipuçları/etiketler asla kırpılmaz. */
+  .dokunma-tepki-konum{ position:relative; }
+  .dokunma-tepki-katman{
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .dokunma-tepki{
+    position:absolute;
+    border-radius:50%;
+    transform:scale(0);
+    background:rgba(var(--ink-rgb),0.16);
+    pointer-events:none;
+    animation: dokunmaYayil 0.55s ease-out forwards;
+  }
+  html[data-theme="dark"] .dokunma-tepki{ background:rgba(255,255,255,0.14); }
+  @keyframes dokunmaYayil{
+    to{ transform:scale(2.6); opacity:0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .dokunma-tepki{ display:none; }
+  }
 
   .giris-title{
     margin-top:0.6rem;
@@ -7318,16 +7486,56 @@
 
   <!-- ================= GİRİŞ / KAYIT EKRANI ================= -->
   <div class="giris-overlay" id="girisEkraniOverlay">
-    <div class="giris-box">
-      <h1 class="giris-title">Hoş geldin</h1>
-      <p class="giris-sub">Verilerin yalnızca bu cihazda, tamamen yerel olarak saklanır.</p>
-      <div class="giris-isim-alan">
-        <label for="girisIsimInput" class="giris-isim-label">Sana nasıl seslenelim?</label>
-        <input type="text" id="girisIsimInput" class="giris-isim-input" placeholder="Adını yaz" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false">
+    <div class="giris-adim-wrap" id="girisAdimWrap">
+
+      <!-- Adım 1: Giriş yap / Hesap oluştur -->
+      <div class="giris-box" id="girisAdimHesap" data-adim="hesap">
+        <h1 class="giris-title">Hoş geldin</h1>
+        <p class="giris-sub" id="girisHesapAltYazi">Hesabınla giriş yap, verilerin cihazlar arasında güvende kalsın.</p>
+
+        <div class="giris-sekme" id="girisSekme">
+          <span class="giris-sekme-vurgu" id="girisSekmeVurgu"></span>
+          <button type="button" class="giris-sekme-btn active" id="girisSekmeGirisBtn" data-mod="giris">Giriş Yap</button>
+          <button type="button" class="giris-sekme-btn" id="girisSekmeKayitBtn" data-mod="kayit">Kayıt Ol</button>
+        </div>
+
+        <div class="giris-form-alan">
+          <label for="girisEposta" class="giris-isim-label">E-posta</label>
+          <input type="email" id="girisEposta" class="giris-isim-input" placeholder="ornek@eposta.com" autocomplete="email" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="giris-form-alan">
+          <label for="girisSifre" class="giris-isim-label">Şifre</label>
+          <div class="giris-sifre-wrap">
+            <input type="password" id="girisSifre" class="giris-isim-input" placeholder="En az 6 karakter" autocomplete="current-password">
+            <button type="button" class="giris-goz-btn" id="girisGozBtn" aria-label="Şifreyi göster">
+              <svg class="goz-acik" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="goz-kapali" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a21.8 21.8 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="giris-devam-btn" id="girisHesapBtn" disabled>
+          <span id="girisHesapBtnMetin">Giriş Yap</span>
+        </button>
+        <button type="button" class="giris-link-btn" id="girisSifremiUnuttumBtn">Şifreni mi unuttun?</button>
+        <p class="giris-durum" id="girisHesapDurum"></p>
+
+        <button type="button" class="giris-misafir-btn" id="girisMisafirBtn">Hesap oluşturmadan, bu cihazda devam et</button>
       </div>
-      <button type="button" class="giris-devam-btn" id="girisDevamBtn" disabled>
-        <span>Devam Et</span>
-      </button>
+
+      <!-- Adım 2: İsim sorma -->
+      <div class="giris-box" id="girisAdimIsim" data-adim="isim" hidden>
+        <h1 class="giris-title">Son bir adım</h1>
+        <p class="giris-sub">Verilerin yalnızca bu cihazda, tamamen yerel olarak saklanır.</p>
+        <div class="giris-isim-alan">
+          <label for="girisIsimInput" class="giris-isim-label">Sana nasıl seslenelim?</label>
+          <input type="text" id="girisIsimInput" class="giris-isim-input" placeholder="Adını yaz" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false">
+        </div>
+        <button type="button" class="giris-devam-btn" id="girisDevamBtn" disabled>
+          <span>Devam Et</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -7525,6 +7733,16 @@
         <button type="button" class="yedek-ac-btn" id="yedekAcBtn" aria-label="Yedekleme seçeneklerini aç">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           <span>Yedekle</span>
+        </button>
+      </div>
+      <div class="settings-row" id="bulutYedekRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Bulut Yedekleme</span>
+          <span class="settings-row-sub" id="bulutYedekStateLabel">Hesabınla senkronize et</span>
+        </div>
+        <button type="button" class="yedek-ac-btn" id="bulutYedekAcBtn" aria-label="Bulut yedekleme sayfasını aç">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+          <span>Aç</span>
         </button>
       </div>
       <div class="settings-row" id="sporModuRow">
@@ -9510,6 +9728,7 @@
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
     const yedekRow = document.getElementById('yedekRow');
+    const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
@@ -9597,6 +9816,7 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
+      bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
@@ -9639,6 +9859,7 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
+      bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
@@ -9651,6 +9872,7 @@
       isikEfektiRow.classList.add('animate');
       bganimRow.classList.add('animate');
       yedekRow.classList.add('animate');
+      bulutYedekRow.classList.add('animate');
       sporModuRow.classList.add('animate');
       });
     }
@@ -15399,6 +15621,47 @@
     }
   })();
 
+  // ================= BULUT YEDEKLEME (Ayarlar satırı bağlantısı) =================
+  // supabase-yedekleme.js sayfanın altında `defer` ile ayrı ve bağımsız
+  // yüklenir; burada sadece Ayarlar'daki satırı ona bağlıyoruz. Modül
+  // henüz hazır olmasa bile "Aç" tıklandığında hazır olduğu an paneli açar.
+  (function(){
+    const satirBtn = document.getElementById('bulutYedekAcBtn');
+    const etiket = document.getElementById('bulutYedekStateLabel');
+    if(!satirBtn) return;
+
+    satirBtn.addEventListener('click', function(){
+      if(window.bulutYedekleme && typeof window.bulutYedekleme.ac === 'function'){
+        window.bulutYedekleme.ac();
+      }else{
+        // Modül henüz yüklenmediyse (yavaş bağlantı vb.) kısa süre sonra tekrar dene.
+        let denemeSayisi = 0;
+        const dene = setInterval(function(){
+          denemeSayisi++;
+          if(window.bulutYedekleme && typeof window.bulutYedekleme.ac === 'function'){
+            clearInterval(dene);
+            window.bulutYedekleme.ac();
+          }else if(denemeSayisi > 20){
+            clearInterval(dene);
+          }
+        }, 150);
+      }
+    });
+
+    // supabase-yedekleme.js her durum değişiminde bu fonksiyonu çağırır.
+    window.bulutYedekAyarGuncelle = function(ozet){
+      if(!etiket) return;
+      if(!ozet || !ozet.kuruluMu){
+        etiket.textContent = 'Hesabınla senkronize et';
+      }else if(!ozet.girisliMi){
+        etiket.textContent = 'Bağlanmak için hesabına giriş yap';
+      }else{
+        const durumSozluk = { senkron:'Güncel', bekliyor:'Senkronize ediliyor…', hata:'Hata oluştu', kapali:'Bağlı değil' };
+        etiket.textContent = (ozet.eposta || '') + ' · ' + (durumSozluk[ozet.durum] || '');
+      }
+    };
+  })();
+
   // ================= VERİ YEDEKLEME (İÇE / DIŞA AKTAR) =================
   (function(){
     const acBtn = document.getElementById('yedekAcBtn');
@@ -15625,18 +15888,49 @@
     }
   })();
 
-  // ================= GİRİŞ EKRANI (tamamen yerel, hesap/senkron yok) =================
-  // Uygulama ilk açıldığında tam ekran bir karşılama ekranı gösterir; kullanıcı
-  // "Devam Et" düğmesine bastığında bu tercih yalnızca bu cihazda hatırlanır ve
-  // bir daha sorulmaz. Hiçbir hesap girişi, bulut senkronizasyonu ya da ağ
-  // isteği yoktur — tüm veriler cihazda (localStorage + IndexedDB) kalır.
+  // ================= GİRİŞ / KAYIT + İSİM SORMA EKRANI =================
+  // Uygulama YALNIZCA ilk açılışta tam ekran bir karşılama akışı gösterir:
+  //   Adım 1) Hesapla giriş yap / hesap oluştur, ya da "hesapsız devam et"
+  //   Adım 2) İlk kez giriliyorsa isim sorma ekranı (animasyonlu geçişle)
+  // Bu akış yalnızca bu cihazda hatırlanır ve tamamlandıktan sonra bir daha
+  // sorulmaz. Hesap adımı tamamen isteğe bağlıdır; "Hesapsız devam et"
+  // seçilirse veriler öncekiyle birebir aynı şekilde yalnızca bu cihazda
+  // (localStorage + IndexedDB) kalır. Hesapla girişte kullanılan Supabase
+  // bağlantısı, bulut yedekleme modülüyle (supabase-yedekleme.js) aynı
+  // projeyi ve aynı oturumu (localStorage'daki auth token'ı) paylaşır —
+  // bu yüzden burada oturum açıldıktan sonra o modül otomatik olarak
+  // "girişli" durumuna geçer ve senkronunu kendi başına yürütür.
   (function(){
     const GIRIS_ANAHTARI = 'sessizlik-giris-tamam';
     const ISIM_ANAHTARI = 'sessizlik-kullanici-adi';
+    const SUPABASE_JS_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    const SUPA_URL = 'https://jyrvvyiwlavqquxbodab.supabase.co';
+    const SUPA_ANON = 'sb_publishable_3_9QRSOx-HHZ2vq_ZZd0Bw_rpEGMeCm';
 
     const overlay = document.getElementById('girisEkraniOverlay');
+    const adimHesap = document.getElementById('girisAdimHesap');
+    const adimIsim = document.getElementById('girisAdimIsim');
+
+    const sekmeGiris = document.getElementById('girisSekmeGirisBtn');
+    const sekmeKayit = document.getElementById('girisSekmeKayitBtn');
+    const sekmeVurgu = document.getElementById('girisSekmeVurgu');
+    const altYazi = document.getElementById('girisHesapAltYazi');
+
+    const epostaInput = document.getElementById('girisEposta');
+    const sifreInput = document.getElementById('girisSifre');
+    const gozBtn = document.getElementById('girisGozBtn');
+    const hesapBtn = document.getElementById('girisHesapBtn');
+    const hesapBtnMetin = document.getElementById('girisHesapBtnMetin');
+    const hesapDurum = document.getElementById('girisHesapDurum');
+    const unuttumBtn = document.getElementById('girisSifremiUnuttumBtn');
+    const misafirBtn = document.getElementById('girisMisafirBtn');
+
     const devamBtn = document.getElementById('girisDevamBtn');
     const isimInput = document.getElementById('girisIsimInput');
+
+    let mod = 'giris'; // 'giris' | 'kayit'
+    let istemci = null;
+    let supabaseYukleniyor = null;
 
     function ekraniGizle(){
       if(overlay){ overlay.classList.remove('active'); }
@@ -15645,7 +15939,6 @@
     function ekraniGoster(){
       if(overlay){ overlay.classList.add('active'); }
       document.documentElement.classList.add('giris-bekleniyor');
-      if(isimInput){ setTimeout(function(){ isimInput.focus(); }, 350); }
     }
 
     function girisTamamlandiMi(){
@@ -15654,11 +15947,164 @@
     function girisTamamlandiIsaretle(){
       try{ localStorage.setItem(GIRIS_ANAHTARI, '1'); }catch(e){}
     }
+    function isimVarMi(){
+      try{ return !!(localStorage.getItem(ISIM_ANAHTARI) || '').trim(); }catch(e){ return false; }
+    }
 
     // İsmi düzgün Türkçe kurallarına göre biçimlendiren fonksiyon, isim
     // yönetimi betiğinde tanımlanıp global olarak paylaşılıyor (bkz.
     // window.turkceDuzgunAd) — burada tekrar tanımlanmıyor.
 
+    // ---- Adımlar arası animasyonlu geçiş (soluk+kaydırma çapraz geçişi) ----
+    function adimaGec(gizlenecek, gosterilecek, odaklanacakInput){
+      if(!gizlenecek || !gosterilecek || gizlenecek === gosterilecek) return;
+      gizlenecek.classList.remove('giris-adim-giris');
+      gizlenecek.classList.add('giris-adim-cikis');
+      setTimeout(function(){
+        gizlenecek.hidden = true;
+        gizlenecek.classList.remove('giris-adim-cikis');
+        gosterilecek.hidden = false;
+        gosterilecek.classList.remove('giris-adim-giris');
+        void gosterilecek.offsetWidth; // reflow: animasyonu yeniden tetikler
+        gosterilecek.classList.add('giris-adim-giris');
+        if(odaklanacakInput){ setTimeout(function(){ odaklanacakInput.focus(); }, 200); }
+      }, 280);
+    }
+
+    // ---- "Giriş Yap" / "Kayıt Ol" sekmesi ----
+    function sekmeGuncelle(){
+      const kayitMi = mod === 'kayit';
+      if(sekmeGiris) sekmeGiris.classList.toggle('active', !kayitMi);
+      if(sekmeKayit) sekmeKayit.classList.toggle('active', kayitMi);
+      if(sekmeVurgu) sekmeVurgu.style.transform = kayitMi ? 'translateX(100%)' : 'translateX(0)';
+      if(hesapBtnMetin) hesapBtnMetin.textContent = kayitMi ? 'Hesap Oluştur' : 'Giriş Yap';
+      if(altYazi) altYazi.textContent = kayitMi
+        ? 'Yeni bir hesap oluştur, verilerin cihazlar arasında güvende kalsın.'
+        : 'Hesabınla giriş yap, verilerin cihazlar arasında güvende kalsın.';
+      if(hesapDurum){ hesapDurum.style.display = 'none'; hesapDurum.textContent = ''; }
+      girisFormGecerliligiKontrolEt();
+    }
+    if(sekmeGiris) sekmeGiris.addEventListener('click', function(){ if(mod !== 'giris'){ mod = 'giris'; sekmeGuncelle(); } });
+    if(sekmeKayit) sekmeKayit.addEventListener('click', function(){ if(mod !== 'kayit'){ mod = 'kayit'; sekmeGuncelle(); } });
+
+    // ---- Şifreyi göster/gizle ----
+    if(gozBtn && sifreInput){
+      gozBtn.addEventListener('click', function(){
+        const acikMi = this.classList.toggle('acik');
+        sifreInput.type = acikMi ? 'text' : 'password';
+        this.setAttribute('aria-label', acikMi ? 'Şifreyi gizle' : 'Şifreyi göster');
+      });
+    }
+
+    // ---- Form geçerliliği ----
+    function epostaGecerliMi(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || ''); }
+    function girisFormGecerliligiKontrolEt(){
+      const e = epostaInput ? epostaInput.value.trim() : '';
+      const s = sifreInput ? sifreInput.value : '';
+      if(hesapBtn){ hesapBtn.disabled = !(epostaGecerliMi(e) && s.length >= 6); }
+    }
+    if(epostaInput) epostaInput.addEventListener('input', girisFormGecerliligiKontrolEt);
+    if(sifreInput) sifreInput.addEventListener('input', girisFormGecerliligiKontrolEt);
+    if(sifreInput){
+      sifreInput.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' && hesapBtn && !hesapBtn.disabled){ e.preventDefault(); hesapBtn.click(); }
+      });
+    }
+
+    function durumGoster(m){
+      if(!hesapDurum) return;
+      hesapDurum.textContent = m;
+      hesapDurum.style.display = m ? 'block' : 'none';
+    }
+
+    function hataMesajiCevir(ham){
+      const m = String(ham || '').toLowerCase();
+      if(m.indexOf('invalid login credentials') !== -1) return 'E-posta veya şifre hatalı.';
+      if(m.indexOf('email not confirmed') !== -1) return 'Önce e-postana gelen bağlantıyla hesabını onaylaman gerekiyor.';
+      if(m.indexOf('already registered') !== -1) return 'Bu e-posta ile zaten bir hesap var, giriş yapmayı dene.';
+      if(m.indexOf('password should be at least') !== -1) return 'Şifre en az 6 karakter olmalı.';
+      if(m.indexOf('invalid email') !== -1 || m.indexOf('unable to validate email') !== -1) return 'Geçerli bir e-posta adresi gir.';
+      if(m.indexOf('rate limit') !== -1 || m.indexOf('too many requests') !== -1) return 'Çok fazla deneme yapıldı, birkaç dakika sonra tekrar dene.';
+      if(m.indexOf('failed to fetch') !== -1 || m.indexOf('network') !== -1) return 'Bağlantı kurulamadı, internetini kontrol et.';
+      return ham || 'Bir şeyler ters gitti, tekrar dene.';
+    }
+
+    function supabaseJsYukle(){
+      if(window.supabase) return Promise.resolve();
+      if(supabaseYukleniyor) return supabaseYukleniyor;
+      supabaseYukleniyor = new Promise(function(resolve, reject){
+        const s = document.createElement('script');
+        s.src = SUPABASE_JS_CDN;
+        s.onload = function(){ resolve(); };
+        s.onerror = function(){ reject(new Error('Bağlantı kütüphanesi yüklenemedi. İnternetini kontrol et.')); };
+        document.head.appendChild(s);
+      });
+      return supabaseYukleniyor;
+    }
+    function istemciyiGetir(){
+      if(istemci) return Promise.resolve(istemci);
+      return supabaseJsYukle().then(function(){
+        istemci = window.supabase.createClient(SUPA_URL, SUPA_ANON, { auth:{ persistSession:true, autoRefreshToken:true } });
+        return istemci;
+      });
+    }
+
+    function isimAdiminaGecVeyaBitir(){
+      if(isimVarMi()){
+        girisTamamlandiIsaretle();
+        ekraniGizle();
+        if(typeof window.hosgeldinBasligiOlustur === 'function'){ window.hosgeldinBasligiOlustur(); }
+      } else {
+        adimaGec(adimHesap, adimIsim, isimInput);
+      }
+    }
+
+    if(hesapBtn){
+      hesapBtn.addEventListener('click', function(){
+        if(hesapBtn.disabled) return;
+        const eposta = epostaInput.value.trim();
+        const sifre = sifreInput.value;
+        hesapBtn.disabled = true;
+        durumGoster(mod === 'kayit' ? 'Hesap oluşturuluyor…' : 'Giriş yapılıyor…');
+        istemciyiGetir().then(function(client){
+          const istek = mod === 'kayit'
+            ? client.auth.signUp({ email: eposta, password: sifre })
+            : client.auth.signInWithPassword({ email: eposta, password: sifre });
+          return istek.then(function(r){
+            if(r.error){ durumGoster(hataMesajiCevir(r.error.message)); hesapBtn.disabled = false; return; }
+            if(mod === 'kayit' && r.data && r.data.user && !r.data.session){
+              durumGoster('Hesabın oluşturuldu. E-postana gelen bağlantıyla onayladıktan sonra giriş yapabilirsin.');
+              hesapBtn.disabled = false;
+              return;
+            }
+            durumGoster('');
+            isimAdiminaGecVeyaBitir();
+          });
+        }).catch(function(e){
+          durumGoster(hataMesajiCevir(e && e.message));
+          hesapBtn.disabled = false;
+        });
+      });
+    }
+
+    if(unuttumBtn){
+      unuttumBtn.addEventListener('click', function(){
+        const eposta = epostaInput ? epostaInput.value.trim() : '';
+        if(!epostaGecerliMi(eposta)){ durumGoster('Önce geçerli bir e-posta adresi yaz.'); return; }
+        durumGoster('Gönderiliyor…');
+        istemciyiGetir().then(function(client){
+          return client.auth.resetPasswordForEmail(eposta).then(function(r){
+            durumGoster(r.error ? hataMesajiCevir(r.error.message) : 'Şifre sıfırlama bağlantısı e-postana gönderildi.');
+          });
+        }).catch(function(e){ durumGoster(hataMesajiCevir(e && e.message)); });
+      });
+    }
+
+    if(misafirBtn){
+      misafirBtn.addEventListener('click', function(){ isimAdiminaGecVeyaBitir(); });
+    }
+
+    // ---- İsim adımı ----
     function isimGecerliMi(){
       return !!(isimInput && isimInput.value.trim().length > 0);
     }
@@ -15689,11 +16135,52 @@
       });
     }
 
+    sekmeGuncelle();
+
     if(girisTamamlandiMi()){
       ekraniGizle();
     } else {
       ekraniGoster();
+      setTimeout(function(){ if(epostaInput){ epostaInput.focus(); } }, 380);
+      // Bu cihazda zaten geçerli bir oturum varsa (örn. bulut yedekleme
+      // modülünden daha önce giriş yapılmış olabilir), hesap adımını tekrar
+      // sormadan doğrudan isim adımına ya da uygulamaya geç.
+      istemciyiGetir().then(function(client){
+        return client.auth.getSession();
+      }).then(function(r){
+        if(r && r.data && r.data.session){ isimAdiminaGecVeyaBitir(); }
+      }).catch(function(){ /* bağlantı yoksa ya da hata olursa sessizce yoksay */ });
     }
+  })();
+
+  // ================= GENEL DOKUNMA/TIK TEPKİMESİ =================
+  // Düğmelere ve nav öğelerine dokunulduğunda hafif bir dalga (ripple)
+  // efekti verir; sayfadaki mevcut :active/hover efektleriyle çakışmaz,
+  // yalnızca üstüne eklenir.
+  (function(){
+    const HEDEF_SECICI = 'button, .dock-btn, .nav-items a, [data-dokunma-tepki]';
+    document.addEventListener('pointerdown', function(e){
+      if(e.pointerType === 'mouse' && e.button !== 0) return;
+      const el = e.target.closest(HEDEF_SECICI);
+      if(!el || el.disabled) return;
+      if(getComputedStyle(el).position === 'static'){ el.classList.add('dokunma-tepki-konum'); }
+      let katman = el.querySelector(':scope > .dokunma-tepki-katman');
+      if(!katman){
+        katman = document.createElement('span');
+        katman.className = 'dokunma-tepki-katman';
+        el.appendChild(katman);
+      }
+      const dikdortgen = el.getBoundingClientRect();
+      const boyut = Math.max(dikdortgen.width, dikdortgen.height) * 1.4;
+      const dalga = document.createElement('span');
+      dalga.className = 'dokunma-tepki';
+      dalga.style.width = dalga.style.height = boyut + 'px';
+      dalga.style.left = (e.clientX - dikdortgen.left - boyut / 2) + 'px';
+      dalga.style.top = (e.clientY - dikdortgen.top - boyut / 2) + 'px';
+      katman.appendChild(dalga);
+      dalga.addEventListener('animationend', function(){ dalga.remove(); });
+      setTimeout(function(){ if(dalga.parentNode){ dalga.remove(); } }, 700);
+    }, { passive:true });
   })();
 
   // ================= SPOR MODU: tam ekran, ayrı bir uygulamaya geçmiş gibi =================
