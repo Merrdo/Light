@@ -90,12 +90,12 @@
   :root{
     --bg:#FDFBF7;
     --ink:#1A1A1A;
-    --ink-soft:#6B675F;
+    --ink-soft:#524E46;
     --line:#D8D2C4;
-    --accent:#8A6E4B;
+    --accent:#4E7AA6;
     --bg-rgb:253,251,247;
     --ink-rgb:26,26,26;
-    --accent-rgb:138,110,75;
+    --accent-rgb:78,122,166;
     --shadow-rgb:0,0,0;
     --dogru:#4B7F52;
     --dogru-rgb:75,127,82;
@@ -448,6 +448,50 @@
   html[data-isik="off"] .ray{
     opacity:0 !important;
     animation-play-state:paused;
+  }
+
+  /* ---- Arka planın alt tarafını yumuşatan, seçilen vurgu rengine göre yavaşça
+     renk değiştiren "destek" ışıması: düz beyaz zeminin göz yormasını azaltır ---- */
+  .bg-destek{
+    position:fixed;
+    left:-10%;
+    right:-10%;
+    bottom:-18%;
+    height:60vh;
+    pointer-events:none;
+    z-index:0;
+    background: radial-gradient(120% 100% at 50% 100%,
+      rgba(var(--accent-rgb),0.24) 0%,
+      rgba(var(--accent-rgb),0.11) 38%,
+      rgba(var(--accent-rgb),0) 72%);
+    filter: blur(46px) hue-rotate(0deg);
+    opacity:0.75;
+    transform: translateX(0) scale(1);
+    animation: bgDestekNefes 13s ease-in-out infinite,
+               bgDestekKaydir 21s ease-in-out infinite,
+               bgDestekRenk 30s ease-in-out infinite;
+    will-change: opacity, transform, filter;
+    transition: background 0.6s ease;
+  }
+  html[data-theme="dark"] .bg-destek{
+    opacity:0.4;
+  }
+  @keyframes bgDestekNefes{
+    0%,100%{ opacity:0.55; }
+    50%{ opacity:1; }
+  }
+  @keyframes bgDestekKaydir{
+    0%{ transform:translateX(-5%) scale(1); }
+    50%{ transform:translateX(5%) scale(1.1); }
+    100%{ transform:translateX(-5%) scale(1); }
+  }
+  @keyframes bgDestekRenk{
+    0%{ filter: blur(46px) hue-rotate(-16deg); }
+    50%{ filter: blur(46px) hue-rotate(16deg); }
+    100%{ filter: blur(46px) hue-rotate(-16deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .bg-destek{ animation:none; opacity:0.6; }
   }
 
   /* ---- Arka Plan Animasyonu seçimi: "Işık Huzmesi" ile "Yıldız Gecesi" birbirini dışlar ---- */
@@ -1047,15 +1091,15 @@
     gap:0.45rem;
     padding:0.65rem 1.1rem;
     border-radius:9999px;
-    border:1px solid rgba(var(--sari-rgb),0.55);
-    background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
+    border:1px solid rgba(var(--accent-rgb),0.55);
+    background:linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb),0.78));
     color:var(--bg);
     font-family:"Helvetica Neue",Arial,sans-serif;
     font-size:0.76rem;
     font-weight:600;
     letter-spacing:0.03em;
     cursor:pointer;
-    box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.5);
+    box-shadow:0 10px 24px -6px rgba(var(--accent-rgb),0.5);
     transition: transform 0.22s cubic-bezier(.22,1,.36,1), box-shadow 0.22s ease, filter 0.2s ease;
   }
   @media (hover:hover) and (pointer:fine){
@@ -1084,6 +1128,36 @@
     visibility:hidden;
     transition: opacity 0.16s ease, transform 0.16s cubic-bezier(.4,0,1,1), visibility 0s linear 0.16s;
     will-change:opacity, transform;
+  }
+  /* ---- Spor Modu'nda da ana uygulamadaki renk geçişli "destek" ışıması:
+     burada seçili Spor Modu temasının rengini (--sari) kullanır ---- */
+  .spor-modu-overlay::before{
+    content:'';
+    position:absolute;
+    left:-10%;
+    right:-10%;
+    bottom:-18%;
+    height:60vh;
+    pointer-events:none;
+    z-index:-1;
+    background: radial-gradient(120% 100% at 50% 100%,
+      rgba(var(--sari-rgb),0.24) 0%,
+      rgba(var(--sari-rgb),0.11) 38%,
+      rgba(var(--sari-rgb),0) 72%);
+    filter: blur(46px) hue-rotate(0deg);
+    opacity:0.75;
+    transform: translateX(0) scale(1);
+    animation: bgDestekNefes 13s ease-in-out infinite,
+               bgDestekKaydir 21s ease-in-out infinite,
+               bgDestekRenk 30s ease-in-out infinite;
+    will-change: opacity, transform, filter;
+    transition: background 0.6s ease;
+  }
+  html[data-theme="dark"] .spor-modu-overlay::before{
+    opacity:0.4;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spor-modu-overlay::before{ animation:none; opacity:0.6; }
   }
   .spor-modu-overlay.active{
     opacity:1;
@@ -7319,6 +7393,7 @@
   </div>
 
   <div class="field">
+    <span class="bg-destek"></span>
     <span class="ray"></span>
     <span class="ray"></span>
     <span class="ray"></span>
