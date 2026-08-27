@@ -103,6 +103,8 @@
     --yanlis-rgb:181,80,74;
     --sari:#B08A3E;
     --sari-rgb:176,138,62;
+    --kisa-mola:#6E9B74;
+    --kisa-mola-rgb:110,155,116;
   }
 
   html[data-theme="dark"]{
@@ -121,6 +123,8 @@
     --yanlis-rgb:224,132,120;
     --sari:#D9B76B;
     --sari-rgb:217,183,107;
+    --kisa-mola:#A0D1AC;
+    --kisa-mola-rgb:160,209,172;
   }
 
   /* ---- Renk (vurgu rengi) seçenekleri: Mavi (varsayılan), Mor, Kırmızı, Yeşil ---- */
@@ -1642,7 +1646,9 @@
   #antrenmanKartSilOnayOverlay,
   #antrenmanEgzersizModalOverlay,
   #antrenmanEgzersizSilOnayOverlay,
-  #sporSureSecici{
+  #sporSureSecici,
+  #molaAyarlarModalOverlay,
+  #molaSureSecici{
     z-index:10050;
     background:
       radial-gradient(circle at 50% 32%, rgba(var(--sari-rgb),0.14), transparent 55%),
@@ -1651,7 +1657,8 @@
   #antrenmanKartModalOverlay .modal-eyebrow,
   #antrenmanKartSilOnayOverlay .modal-eyebrow,
   #antrenmanEgzersizModalOverlay .modal-eyebrow,
-  #antrenmanEgzersizSilOnayOverlay .modal-eyebrow{
+  #antrenmanEgzersizSilOnayOverlay .modal-eyebrow,
+  #molaAyarlarModalOverlay .modal-eyebrow{
     color:var(--sari);
   }
   #antrenmanKartModalOverlay .modal-field input:focus,
@@ -1659,16 +1666,36 @@
     border-color:var(--sari);
   }
   #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary,
-  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary{
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary,
+  #molaAyarlarModalOverlay .modal-btn-primary{
     border:1px solid rgba(var(--sari-rgb),0.5);
     background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
     box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
   }
   #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary:hover,
-  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary:hover{
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary:hover,
+  #molaAyarlarModalOverlay .modal-btn-primary:hover{
     background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
     box-shadow:0 14px 30px -6px rgba(var(--sari-rgb),0.62);
   }
+
+  /* ---- Spor Modu: Mola Süreleri paneli — sarı tema (anahtar, süre metni, ikon) ---- */
+  #molaAyarlarModalOverlay .mola-ayar-switch.on{
+    background:var(--sari);
+    border-color:var(--sari);
+  }
+  #molaAyarlarModalOverlay .mola-ayar-sure-btn{
+    color:var(--sari);
+    border-color:rgba(var(--sari-rgb),0.35);
+    background:rgba(var(--sari-rgb),0.08);
+  }
+  #molaAyarlarModalOverlay .mola-ayar-sure-btn svg{ color:var(--sari); }
+  #molaAyarlarModalOverlay .mola-ayar-sure-btn.devre-disi{
+    color:var(--ink-soft);
+    border-color:var(--line);
+    background:rgba(var(--ink-rgb),0.03);
+  }
+  #molaAyarlarModalOverlay .mola-ayar-sure-btn.devre-disi svg{ color:var(--ink-soft); }
 
   /* ---- Spor Modu: sekmeler arası geçiş animasyonu ---- */
   .spor-modu-view.active{
@@ -2043,6 +2070,134 @@
     box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
   }
 
+  /* ---- Kalori: set × tekrar ilerleme göstergesi — kaçıncı sette/tekrarda olduğumuzu gösterir ---- */
+  /* Minimalist tasarım: kart/çerçeve/blur olmadan, tek satırlık ince bir şerit;
+     iki blok (Set / Tekrar) yan yana, aralarında ince bir ayraç ile. */
+  .kalori-set-tekrar-gosterge{
+    display:none;
+    width:100%;
+  }
+  .kalori-pane-calisma.set-tekrar-aktif .kalori-set-tekrar-gosterge{ display:flex; }
+  .kalori-str-kart{
+    width:100%;
+    max-width:16rem;
+    margin:0.55rem auto 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.9rem;
+  }
+  .kalori-str-blok{
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    min-width:0;
+  }
+  .kalori-str-blok + .kalori-str-blok{
+    padding-left:0.9rem;
+    border-left:1px solid var(--line);
+  }
+  .kalori-str-baslik{
+    display:flex;
+    align-items:baseline;
+    gap:0.28rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    white-space:nowrap;
+  }
+  .kalori-str-etiket{
+    font-size:0.58rem;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .kalori-str-sayi{
+    font-size:0.72rem;
+    font-weight:700;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .kalori-str-sayi .kalori-str-toplam{
+    color:var(--ink-soft);
+    font-weight:600;
+  }
+  .kalori-set-pil-satir,
+  .kalori-tekrar-nokta-satir{
+    display:flex;
+    align-items:center;
+    gap:0.22rem;
+  }
+  .kalori-set-pil{
+    width:0.85rem;
+    height:0.2rem;
+    border-radius:9999px;
+    background:rgba(var(--ink-rgb),0.1);
+    transition: background 0.3s ease, transform 0.25s cubic-bezier(.22,1,.36,1), box-shadow 0.3s ease;
+  }
+  .kalori-set-pil.dolu{ background:var(--dogru); }
+  .kalori-set-pil.aktif{
+    background:var(--sari);
+    transform:scaleY(1.6);
+    box-shadow:0 2px 6px -1px rgba(var(--sari-rgb),0.55);
+  }
+  .kalori-tekrar-nokta{
+    width:0.3rem;
+    height:0.3rem;
+    border-radius:50%;
+    background:rgba(var(--ink-rgb),0.14);
+    transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .kalori-tekrar-nokta.dolu{ background:var(--dogru); }
+  .kalori-tekrar-nokta.aktif{
+    background:var(--sari);
+    transform:scale(1.5);
+    box-shadow:0 0 0 3px rgba(var(--sari-rgb),0.2);
+    animation: kaloriTekrarNoktaNabiz 1.15s ease-in-out infinite;
+  }
+  /* Tekrar sayısı arttıkça nokta satırı sığmaz hale gelebileceği için: 6'dan
+     fazla tekrarda noktalar yerine "3 / 10" gibi kompakt bir sayaç gösterilir. */
+  .kalori-str-blok.kalori-str-kompakt .kalori-tekrar-nokta-satir{ display:none; }
+  @keyframes kaloriTekrarNoktaNabiz{
+    0%,100%{ box-shadow:0 0 0 3px rgba(var(--sari-rgb),0.2); }
+    50%{ box-shadow:0 0 0 5px rgba(var(--sari-rgb),0.06); }
+  }
+  /* Mola sırasında kart, sıradaki adımın rengine göre hafifçe vurgulansın */
+  .kalori-pane-calisma.mola-tekrar .kalori-str-sayi{ color:var(--kisa-mola); }
+  .kalori-pane-calisma.mola-set .kalori-str-sayi{ color:var(--accent); }
+  .kalori-pane-calisma.mola-egzersiz .kalori-str-sayi{ color:var(--dogru); }
+
+  /* ---- Kalori: mola türüne göre renk ayrımı — tekrar arası (kısa) açık yeşil, set arası (uzun) accent, egzersiz arası (uzun) koyu yeşil ---- */
+  .kalori-pane-calisma.mola-tekrar .kalori-durum-etiket{ color:var(--kisa-mola); }
+  .kalori-pane-calisma.mola-tekrar .kalori-sayac-wrap{
+    background:conic-gradient(var(--kisa-mola) calc(var(--kalori-yuzde) * 1%), rgba(var(--ink-rgb),0.08) 0);
+  }
+  .kalori-pane-calisma.mola-tekrar .kalori-kontrol-btn-buyuk{
+    background:linear-gradient(135deg, var(--kisa-mola), rgba(var(--kisa-mola-rgb),0.78));
+    box-shadow:0 10px 24px -6px rgba(var(--kisa-mola-rgb),0.55);
+  }
+  .kalori-pane-calisma.mola-set .kalori-durum-etiket{ color:var(--accent); }
+  .kalori-pane-calisma.mola-set .kalori-sayac-wrap{
+    background:conic-gradient(var(--accent) calc(var(--kalori-yuzde) * 1%), rgba(var(--ink-rgb),0.08) 0);
+  }
+  .kalori-pane-calisma.mola-set .kalori-kontrol-btn-buyuk{
+    background:linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb),0.78));
+    box-shadow:0 10px 24px -6px rgba(var(--accent-rgb),0.55);
+  }
+  .kalori-pane-calisma.mola-egzersiz .kalori-durum-etiket{ color:var(--dogru); }
+
+  /* ---- Kalori: setler arası geçişte belirgin bir animasyon ---- */
+  @keyframes kaloriSetGecis{
+    0%{ opacity:0.35; transform:scale(0.85); }
+    55%{ opacity:1; transform:scale(1.12); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+  .kalori-pane-calisma.set-gecis-anim .kalori-set-tekrar-gosterge{
+    animation: kaloriSetGecis 0.55s cubic-bezier(.22,1,.36,1);
+  }
+  .kalori-pane-calisma.set-gecis-anim .kalori-durum-etiket{
+    animation: kaloriSetGecis 0.5s cubic-bezier(.22,1,.36,1);
+  }
+
   /* ---- Kalori: antrenman başlamadan önceki 5-4-3-2-1 hazırlık geri sayımı ---- */
   .kalori-pane-calisma.hazirlik-durumu .kalori-kontrol-satir{
     display:none;
@@ -2106,6 +2261,9 @@
     .kalori-hareket-blok.kalori-hareket-gecis,
     .kalori-tekrar-wrap,
     .kalori-sayac-sayi.kalori-hazirlik-sayi-anim{ animation:none; }
+    .kalori-tekrar-nokta.aktif,
+    .kalori-pane-calisma.set-gecis-anim .kalori-set-tekrar-gosterge,
+    .kalori-pane-calisma.set-gecis-anim .kalori-durum-etiket{ animation:none; }
   }
 
   .settings-row-text{
@@ -2246,6 +2404,69 @@
     font-size:0.78rem;
     color:var(--ink-soft);
     padding-bottom:0.1rem;
+  }
+
+  /* ---- Spor Modu: Mola Süreleri pop-up paneli ---- */
+  .mola-ayarlar-box{
+    max-height:85vh;
+    overflow-y:auto;
+  }
+  .mola-ayar-satir{
+    margin-top:1.3rem;
+    padding-top:1.3rem;
+    border-top:1px solid var(--line);
+  }
+  .mola-ayar-satir:first-of-type{
+    margin-top:1.5rem;
+    padding-top:0;
+    border-top:none;
+  }
+  .mola-ayar-satir-ust{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.75rem;
+  }
+  .mola-ayar-satir-text{
+    display:flex;
+    flex-direction:column;
+    gap:0.15rem;
+  }
+  .mola-ayar-satir-baslik{
+    font-size:0.92rem;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .mola-ayar-satir-alt{
+    font-size:0.72rem;
+    color:var(--ink-soft);
+  }
+  .mola-ayar-sure-btn{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.4rem;
+    width:100%;
+    margin-top:0.7rem;
+    padding:0.6rem 0.9rem;
+    border:1px solid var(--line);
+    border-radius:0.6rem;
+    background:rgba(var(--ink-rgb),0.03);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:0.85rem;
+    font-weight:600;
+    cursor:pointer;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+  .mola-ayar-sure-btn svg{ width:0.8rem; height:0.8rem; color:var(--ink-soft); flex-shrink:0; }
+  .mola-ayar-sure-btn:active{ opacity:0.7; }
+  .mola-ayar-sure-btn.devre-disi{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .mola-ayar-sure-btn:not(.devre-disi):hover{ border-color:var(--ink-soft); }
   }
 
   .theme-switch{
@@ -4330,6 +4551,35 @@
     color:var(--sari);
   }
 
+  /* ---- Mola Süreleri: süre seçici (spor temasıyla, dar ve çentikli) ---- */
+  #molaSureSecici .mini-zaman-card{
+    max-width:190px;
+  }
+  #molaSureSecici .mini-zaman-item.secili{
+    background:transparent;
+    color:var(--sari);
+    font-weight:700;
+  }
+  #molaSureSecici .mini-zaman-birim{
+    position:relative;
+    padding-left:0.55rem;
+    color:var(--ink-soft);
+  }
+  #molaSureSecici .mini-zaman-birim::before{
+    content:"";
+    position:absolute;
+    left:-0.15rem;
+    top:50%;
+    transform:translateY(-50%);
+    width:0.4rem;
+    height:2px;
+    border-radius:2px;
+    background:var(--sari);
+  }
+  #molaSureSecici .mini-zaman-tamam{
+    color:var(--sari);
+  }
+
   .view-denemeler{
     position:relative;
     z-index:1;
@@ -5135,6 +5385,7 @@
     gap:0.15rem;
   }
   .takvim-gun{
+    position:relative;
     aspect-ratio:1;
     display:flex;
     align-items:center;
@@ -5189,6 +5440,48 @@
   @keyframes takvimAyIn{
     from{ opacity:0; transform:translateX(var(--ay-yon, 10px)); }
     to{ opacity:1; transform:translateX(0); }
+  }
+
+  /* ---- O gün için kaydedilmiş kronometre süresi olduğunu belirten nokta ---- */
+  .takvim-gun.kayitli::after{
+    content:'';
+    position:absolute;
+    bottom:0.28rem;
+    left:50%;
+    transform:translateX(-50%);
+    width:4px;
+    height:4px;
+    border-radius:50%;
+    background:var(--accent);
+  }
+  .takvim-gun.kayitli.bugun::after{
+    background:var(--bg);
+  }
+
+  /* ---- Takvim: seçili günün kronometre süresini gösteren panel ---- */
+  .takvim-gun-detay{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.35rem;
+    width:100%;
+    margin-top:1.6rem;
+    padding-top:1.3rem;
+    border-top:1px solid var(--line);
+    text-align:center;
+  }
+  .takvim-gun-detay-tarih{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.7rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .takvim-gun-detay-sure{
+    font-size:1.2rem;
+    font-weight:600;
+    color:var(--accent);
+    letter-spacing:0.01em;
   }
 
   /* ---- Takvim: dar yatay ekranlar (kısa boylu telefon yatay modu) ---- */
@@ -6874,6 +7167,8 @@
 
     <span class="quote-mark">”</span>
 
+    <p class="signature">Kağıt ve Mürekkep</p>
+
     <button type="button" class="kronometre-widget" id="kronometreWidget" aria-label="Kronometreyi tam ekran aç">
       <div class="kronometre-widget-ust-cizgi"><span class="kronometre-widget-etiket">Kronometre</span></div>
       <div class="kronometre-widget-satir" id="kronometreWidgetSatir">
@@ -6894,8 +7189,6 @@
       </div>
     </button>
   </main>
-
-  <footer id="pageFooter"></footer>
 
   <div class="view-empty" id="viewEmpty">
     <div class="empty-inner">
@@ -7097,6 +7390,10 @@
         <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span class="hafta-sonu-etiket">Ct</span><span class="hafta-sonu-etiket">Pz</span>
       </div>
       <div class="takvim-gunler" id="takvimGunler"></div>
+      <div class="takvim-gun-detay" id="takvimGunDetay">
+        <span class="takvim-gun-detay-tarih" id="takvimGunDetayTarih"></span>
+        <span class="takvim-gun-detay-sure" id="takvimGunDetaySure">—</span>
+      </div>
     </div>
   </div>
 
@@ -7427,6 +7724,7 @@
     </div>
   </div>
 
+  <footer id="pageFooter">Sayfayı yeniden yükleyerek animasyonu tekrar izleyebilirsiniz</footer>
 
   <!-- ================= TAM EKRAN KRONOMETRE ================= -->
   <div class="kronometre-tam-ekran-overlay" id="kronometreTamEkranOverlay">
@@ -7721,6 +8019,82 @@
     </div>
   </div>
 
+  <!-- Spor Modu: mola süreleri ayar paneli (tekrar / set / egzersiz arası) -->
+  <div class="modal-overlay" id="molaAyarlarModalOverlay">
+    <div class="modal-box mola-ayarlar-box" style="position:relative;">
+      <span class="modal-eyebrow">Spor Modu</span>
+      <h3 class="modal-title">Mola Süreleri</h3>
+      <p class="modal-onay-metin">Egzersizler arasındaki molaları istediğin gibi ayarla, istemediğini kapat.</p>
+
+      <div class="mola-ayar-satir" data-mola-tur="tekrar">
+        <div class="mola-ayar-satir-ust">
+          <div class="mola-ayar-satir-text">
+            <span class="mola-ayar-satir-baslik">Tekrarlar Arası</span>
+            <span class="mola-ayar-satir-alt">Aynı egzersizin tekrarları arasında · kısa mola</span>
+          </div>
+          <button type="button" class="theme-switch mola-ayar-switch" data-mola-tur="tekrar" role="switch" aria-checked="true" aria-label="Tekrarlar arası mola anahtarı">
+            <span class="theme-switch-knob"></span>
+          </button>
+        </div>
+        <button type="button" class="mola-ayar-sure-btn" data-mola-tur="tekrar" aria-haspopup="true">
+          <span data-mola-tur-text="tekrar">5 saniye</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+      </div>
+
+      <div class="mola-ayar-satir" data-mola-tur="set">
+        <div class="mola-ayar-satir-ust">
+          <div class="mola-ayar-satir-text">
+            <span class="mola-ayar-satir-baslik">Setler Arası</span>
+            <span class="mola-ayar-satir-alt">Bir sonraki sete geçerken · uzun mola</span>
+          </div>
+          <button type="button" class="theme-switch mola-ayar-switch" data-mola-tur="set" role="switch" aria-checked="true" aria-label="Setler arası mola anahtarı">
+            <span class="theme-switch-knob"></span>
+          </button>
+        </div>
+        <button type="button" class="mola-ayar-sure-btn" data-mola-tur="set" aria-haspopup="true">
+          <span data-mola-tur-text="set">20 saniye</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+      </div>
+
+      <div class="mola-ayar-satir" data-mola-tur="egzersiz">
+        <div class="mola-ayar-satir-ust">
+          <div class="mola-ayar-satir-text">
+            <span class="mola-ayar-satir-baslik">Egzersizler Arası</span>
+            <span class="mola-ayar-satir-alt">Bir sonraki egzersize geçerken · uzun mola</span>
+          </div>
+          <button type="button" class="theme-switch mola-ayar-switch" data-mola-tur="egzersiz" role="switch" aria-checked="true" aria-label="Egzersizler arası mola anahtarı">
+            <span class="theme-switch-knob"></span>
+          </button>
+        </div>
+        <button type="button" class="mola-ayar-sure-btn" data-mola-tur="egzersiz" aria-haspopup="true">
+          <span data-mola-tur-text="egzersiz">15 saniye</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="modal-btn modal-btn-primary" id="molaAyarlarKapatBtn">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mini-zaman" id="molaSureSecici">
+    <div class="mini-zaman-card">
+      <span class="mini-zaman-baslik" id="molaSureSeciciBaslik">Mola Süresi</span>
+      <div class="mini-zaman-kolonlar">
+        <div class="mini-zaman-kolon" id="molaSureKolon" role="listbox" aria-label="Saniye"></div>
+        <span class="mini-zaman-birim">saniye</span>
+      </div>
+      <div class="mini-zaman-aksiyonlar">
+        <button type="button" class="mini-zaman-temizle" id="molaSureVazgecBtn">Vazgeç</button>
+        <button type="button" class="mini-zaman-tamam" id="molaSureTamamBtn">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+
   <div class="mini-zaman" id="miniZaman">
     <div class="mini-zaman-card">
       <span class="mini-zaman-baslik">Saat seç</span>
@@ -7764,6 +8138,13 @@
         <button type="button" class="spor-hazirlik-sure-btn" id="sporHazirlikSureBtn" aria-haspopup="true" aria-expanded="false">
           <span id="sporHazirlikSureBtnText">5 saniye</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+      </div>
+      <div class="spor-hazirlik-sure-blok">
+        <span class="spor-hazirlik-sure-etiket">Mola Süreleri</span>
+        <button type="button" class="spor-hazirlik-sure-btn" id="sporMolaAyarlarBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="sporMolaAyarlarBtnText">Düzenle</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
         </button>
       </div>
       <button type="button" class="spor-modu-cikis-satir" id="sporModuCikisBtn" aria-label="Spor Modundan Çık">
@@ -7838,6 +8219,7 @@
           <p class="kalori-durum-etiket" id="kaloriDurumEtiket">HAREKET</p>
           <h3 class="kalori-hareket-isim" id="kaloriHareketIsim">Egzersiz</h3>
           <p class="kalori-hareket-alt" id="kaloriHareketAlt"></p>
+          <div class="kalori-set-tekrar-gosterge" id="kaloriSetTekrarGosterge"></div>
         </div>
         <div class="kalori-calisma-orta" id="kaloriCalismaOrta">
           <div class="kalori-sayac-wrap" id="kaloriSayacWrap">
@@ -8051,7 +8433,7 @@
   (function(){
     function anaSayfaHeroyuGorunurYap(){
       const hedefler = document.querySelectorAll(
-        '#viewHome .eyebrow, #viewHome .rule, #viewHome h1 .word, #viewHome .sub, #viewHome .quote-mark, #viewHome .signature, #viewHome .kronometre-widget, #pageFooter'
+        '#viewHome .eyebrow, #viewHome .rule, #viewHome h1 .word, #viewHome .sub, #viewHome .quote-mark, #viewHome .signature, #pageFooter'
       );
       hedefler.forEach(function(el){
         el.style.animation = 'none';
@@ -12592,12 +12974,33 @@
       const takvimGunler = document.getElementById('takvimGunler');
       const takvimPrev = document.getElementById('takvimPrev');
       const takvimNext = document.getElementById('takvimNext');
+      const takvimGunDetayTarih = document.getElementById('takvimGunDetayTarih');
+      const takvimGunDetaySure = document.getElementById('takvimGunDetaySure');
 
       const ayIsimleri = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
       const gunIsimleriUzun = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
 
       let goruntulenenTarih = new Date();
       let seciliTarih = new Date();
+
+      // ---- Günlük kronometre sürelerini okunaklı biçimde göstermek için yardımcılar ----
+      function takvimSureyiBicimle(ms){
+        if(!ms || ms <= 0) return 'Bu gün için kayıt yok';
+        const toplamDakika = Math.floor(ms / 60000);
+        const saat = Math.floor(toplamDakika / 60);
+        const dakika = toplamDakika % 60;
+        if(saat <= 0) return dakika + ' dk çalışıldı';
+        if(dakika <= 0) return saat + ' sa çalışıldı';
+        return saat + ' sa ' + dakika + ' dk çalışıldı';
+      }
+
+      function gunDetayGuncelle(tarih){
+        if(!takvimGunDetayTarih || !takvimGunDetaySure) return;
+        const gunlukVeriler = (typeof kronometreGunlukSureleriYukle === 'function') ? kronometreGunlukSureleriYukle() : {};
+        const anahtar = (typeof kronometreGunAnahtari === 'function') ? kronometreGunAnahtari(tarih) : '';
+        takvimGunDetayTarih.textContent = tarih.getDate() + ' ' + ayIsimleri[tarih.getMonth()] + ' ' + tarih.getFullYear() + ', ' + gunIsimleriUzun[tarih.getDay()];
+        takvimGunDetaySure.textContent = takvimSureyiBicimle(gunlukVeriler[anahtar]);
+      }
 
       function ayGunleriniOlustur(tarih){
         const yil = tarih.getFullYear();
@@ -12629,6 +13032,8 @@
         takvimAyYil.textContent = ayIsimleri[goruntulenenTarih.getMonth()] + ' ' + goruntulenenTarih.getFullYear();
         takvimGunler.innerHTML = '';
 
+        const gunlukVeriler = (typeof kronometreGunlukSureleriYukle === 'function') ? kronometreGunlukSureleriYukle() : {};
+
         ayGunleriniOlustur(goruntulenenTarih).forEach(function(gun){
           const btn = document.createElement('button');
           btn.type = 'button';
@@ -12637,6 +13042,8 @@
           if(gun.bugunMu) btn.classList.add('bugun');
           if(gun.seciliMi) btn.classList.add('secili');
           if(gun.haftaSonuMu) btn.classList.add('hafta-sonu');
+          const gunAnahtari = (typeof kronometreGunAnahtari === 'function') ? kronometreGunAnahtari(gun.tarih) : '';
+          if(gunlukVeriler[gunAnahtari] > 0) btn.classList.add('kayitli');
           btn.textContent = gun.tarih.getDate();
           btn.addEventListener('click', function(){
             // Sadece seçili günü değiştir; tüm ayı yeniden çizip
@@ -12646,9 +13053,12 @@
             if(oncekiSecili){ oncekiSecili.classList.remove('secili'); }
             btn.classList.add('secili');
             seciliTarih = gun.tarih;
+            gunDetayGuncelle(seciliTarih);
           });
           takvimGunler.appendChild(btn);
         });
+
+        gunDetayGuncelle(seciliTarih);
       }
 
       function ayDegistir(yon){
@@ -12676,6 +13086,10 @@
         gecisIleDegistir(function(){
         hideAllViews();
 
+        // Görünüm her açıldığında, o ana kadar kaydedilmiş en güncel
+        // günlük kronometre sürelerini yansıtacak şekilde takvimi tazele.
+        ciz();
+
         viewTakvim.classList.add('active');
         void viewTakvim.offsetWidth;
         viewTakvim.style.animation = 'none';
@@ -12688,6 +13102,14 @@
         takvimTitle.classList.add('animate');
         takvimCard.classList.add('animate');
         });
+      };
+
+      // Kronometre modülü her yeni süre kaydettiğinde takvim (açıksa) anında
+      // güncellensin diye çağırdığı köprü fonksiyon.
+      window.takvimGunlukVerileriYenile = function(){
+        if(viewTakvim.classList.contains('active')){
+          ciz();
+        }
       };
     })();
 
@@ -13725,6 +14147,169 @@
     });
 
     btnMetniGuncelle(kayitliSureAl());
+  })();
+
+  // ================= SPOR MODU: MOLA SÜRELERİ AYAR PANELİ (tekrar / set / egzersiz arası) =================
+  (function(){
+    const acBtn = document.getElementById('sporMolaAyarlarBtn');
+    const overlay = document.getElementById('molaAyarlarModalOverlay');
+    const kapatBtn = document.getElementById('molaAyarlarKapatBtn');
+    if(!acBtn || !overlay) return;
+
+    const TUR_ETIKET = { tekrar: 'Tekrarlar Arası', set: 'Setler Arası', egzersiz: 'Egzersizler Arası' };
+    const TUR_SECENEKLER = {
+      tekrar: [3, 5, 8, 10, 15, 20, 30],
+      set: [10, 15, 20, 30, 45, 60, 90, 120],
+      egzersiz: [10, 15, 20, 30, 45, 60, 90, 120]
+    };
+    const VARSAYILAN = { tekrar: { acik: true, sure: 5 }, set: { acik: true, sure: 20 }, egzersiz: { acik: true, sure: 15 } };
+
+    function ayarlariAl(){
+      return (window.molaAyarlariAl) ? window.molaAyarlariAl() : JSON.parse(JSON.stringify(VARSAYILAN));
+    }
+    function ayarlariKaydet(ayarlar){
+      if(window.molaAyarlariKaydet){ window.molaAyarlariKaydet(ayarlar); }
+    }
+
+    function panelDoldur(){
+      const ayarlar = ayarlariAl();
+      ['tekrar', 'set', 'egzersiz'].forEach(function(tur){
+        const ayar = ayarlar[tur] || VARSAYILAN[tur];
+        const switchBtn = overlay.querySelector('.mola-ayar-switch[data-mola-tur="' + tur + '"]');
+        const sureBtn = overlay.querySelector('.mola-ayar-sure-btn[data-mola-tur="' + tur + '"]');
+        const sureText = overlay.querySelector('[data-mola-tur-text="' + tur + '"]');
+        if(switchBtn){
+          switchBtn.classList.toggle('on', !!ayar.acik);
+          switchBtn.setAttribute('aria-checked', ayar.acik ? 'true' : 'false');
+        }
+        if(sureBtn){ sureBtn.classList.toggle('devre-disi', !ayar.acik); }
+        if(sureText){ sureText.textContent = ayar.sure + ' saniye'; }
+      });
+    }
+
+    // ---- Süre seçici (iPhone tarzı kaydırmalı seçici), tur bazlı yeniden kullanılır ----
+    const seciciModal = document.getElementById('molaSureSecici');
+    const seciciBaslik = document.getElementById('molaSureSeciciBaslik');
+    const seciciKolon = document.getElementById('molaSureKolon');
+    const seciciVazgecBtn = document.getElementById('molaSureVazgecBtn');
+    const seciciTamamBtn = document.getElementById('molaSureTamamBtn');
+    let seciliTur = null;
+    let seciliDeger = 5;
+
+    function seciciKolonDoldur(secenekler, seciliVal){
+      if(!seciciKolon) return;
+      seciciKolon.innerHTML = '';
+      secenekler.forEach(function(deger){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'mini-zaman-item';
+        if(deger === seciliVal) btn.classList.add('secili');
+        btn.textContent = String(deger);
+        btn.addEventListener('click', function(){
+          seciciKolon.querySelectorAll('.mini-zaman-item').forEach(function(el){ el.classList.remove('secili'); });
+          btn.classList.add('secili');
+          seciliDeger = deger;
+          btn.scrollIntoView({ block:'center', behavior:'smooth' });
+        });
+        seciciKolon.appendChild(btn);
+      });
+    }
+
+    function seciciOrtadakiOgeyiBul(){
+      if(!seciciKolon) return null;
+      const kolonRect = seciciKolon.getBoundingClientRect();
+      const merkezY = kolonRect.top + kolonRect.height / 2;
+      let enYakin = null, enYakinFark = Infinity;
+      seciciKolon.querySelectorAll('.mini-zaman-item').forEach(function(el){
+        const r = el.getBoundingClientRect();
+        const fark = Math.abs((r.top + r.height / 2) - merkezY);
+        if(fark < enYakinFark){ enYakinFark = fark; enYakin = el; }
+      });
+      return enYakin;
+    }
+    let seciciKaydirmaTimer = null;
+    if(seciciKolon){
+      seciciKolon.addEventListener('scroll', function(){
+        if(seciciKaydirmaTimer) clearTimeout(seciciKaydirmaTimer);
+        seciciKaydirmaTimer = setTimeout(function(){
+          const oge = seciciOrtadakiOgeyiBul();
+          if(!oge) return;
+          seciciKolon.querySelectorAll('.mini-zaman-item').forEach(function(el){ el.classList.remove('secili'); });
+          oge.classList.add('secili');
+          seciliDeger = parseInt(oge.textContent, 10);
+        }, 110);
+      }, { passive:true });
+    }
+
+    function molaSureSeciciAc(tur){
+      if(!seciciModal || !seciciKolon) return;
+      seciliTur = tur;
+      const ayarlar = ayarlariAl();
+      const ayar = ayarlar[tur] || VARSAYILAN[tur];
+      seciliDeger = ayar.sure;
+      if(seciciBaslik){ seciciBaslik.textContent = (TUR_ETIKET[tur] || 'Mola') + ' Süresi'; }
+      seciciKolonDoldur(TUR_SECENEKLER[tur] || TUR_SECENEKLER.set, seciliDeger);
+      seciciModal.classList.add('acik');
+      requestAnimationFrame(function(){
+        const oge = seciciKolon.querySelector('.secili');
+        if(oge) oge.scrollIntoView({ block:'center' });
+      });
+    }
+    function molaSureSeciciKapat(){
+      if(seciciModal){ seciciModal.classList.remove('acik'); }
+    }
+    if(seciciVazgecBtn){ seciciVazgecBtn.addEventListener('click', molaSureSeciciKapat); }
+    if(seciciTamamBtn){
+      seciciTamamBtn.addEventListener('click', function(){
+        if(seciliTur){
+          const ayarlar = ayarlariAl();
+          ayarlar[seciliTur] = ayarlar[seciliTur] || JSON.parse(JSON.stringify(VARSAYILAN[seciliTur]));
+          ayarlar[seciliTur].sure = seciliDeger;
+          ayarlariKaydet(ayarlar);
+          panelDoldur();
+        }
+        molaSureSeciciKapat();
+      });
+    }
+    if(seciciModal){
+      seciciModal.addEventListener('click', function(e){
+        if(e.target === seciciModal){ molaSureSeciciKapat(); }
+      });
+    }
+
+    // ---- Panel: aç/kapa anahtarları ve süre satırlarının tıklama yönetimi ----
+    overlay.addEventListener('click', function(e){
+      const switchBtn = e.target.closest('.mola-ayar-switch');
+      if(switchBtn){
+        const tur = switchBtn.getAttribute('data-mola-tur');
+        const ayarlar = ayarlariAl();
+        ayarlar[tur] = ayarlar[tur] || JSON.parse(JSON.stringify(VARSAYILAN[tur]));
+        ayarlar[tur].acik = !ayarlar[tur].acik;
+        ayarlariKaydet(ayarlar);
+        panelDoldur();
+        return;
+      }
+      const sureBtn = e.target.closest('.mola-ayar-sure-btn');
+      if(sureBtn && !sureBtn.classList.contains('devre-disi')){
+        molaSureSeciciAc(sureBtn.getAttribute('data-mola-tur'));
+        return;
+      }
+      if(e.target === overlay){ overlay.classList.remove('active'); }
+    });
+
+    acBtn.addEventListener('click', function(){
+      panelDoldur();
+      overlay.classList.add('active');
+    });
+    if(kapatBtn){
+      kapatBtn.addEventListener('click', function(){ overlay.classList.remove('active'); });
+    }
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){
+        if(seciciModal && seciciModal.classList.contains('acik')){ molaSureSeciciKapat(); return; }
+        if(overlay.classList.contains('active')){ overlay.classList.remove('active'); }
+      }
+    });
   })();
 
   // ================= NAV BAR KONUMU (ÜST / ALT) =================
@@ -14815,6 +15400,7 @@
     const sayacSayi = document.getElementById('kaloriSayacSayi');
     const tekrarSayi = document.getElementById('kaloriTekrarSayi');
     const tekrarAlt = document.getElementById('kaloriTekrarAlt');
+    const setTekrarGosterge = document.getElementById('kaloriSetTekrarGosterge');
     const geriBtn = document.getElementById('kaloriGeriBtn');
     const ileriBtn = document.getElementById('kaloriIleriBtn');
     const duraklatBtn = document.getElementById('kaloriDuraklatBtn');
@@ -14824,7 +15410,6 @@
     if(!paneSecim || !grupListe) return;
 
     const DEPOLAMA_ANAHTARI = 'sessizlik-antrenman-kartlari';
-    const DINLENME_SURESI = 10;
     const HAZIRLIK_SURESI_ANAHTARI = 'sessizlik-hazirlik-suresi';
     function hazirlikSuresiAl(){
       try{
@@ -14833,6 +15418,40 @@
       }catch(e){}
       return 5;
     }
+
+    // ---- Mola ayarları: tekrarlar arası (kısa), setler arası (uzun), egzersizler arası (uzun) ----
+    const MOLA_AYARLARI_ANAHTARI = 'sessizlik-mola-ayarlari';
+    const MOLA_VARSAYILAN = {
+      tekrar:   { acik: true, sure: 5 },
+      set:      { acik: true, sure: 20 },
+      egzersiz: { acik: true, sure: 15 }
+    };
+    function molaAyarlariAl(){
+      const sonuc = {
+        tekrar:   { acik: MOLA_VARSAYILAN.tekrar.acik,   sure: MOLA_VARSAYILAN.tekrar.sure },
+        set:      { acik: MOLA_VARSAYILAN.set.acik,      sure: MOLA_VARSAYILAN.set.sure },
+        egzersiz: { acik: MOLA_VARSAYILAN.egzersiz.acik, sure: MOLA_VARSAYILAN.egzersiz.sure }
+      };
+      try{
+        const ham = localStorage.getItem(MOLA_AYARLARI_ANAHTARI);
+        if(ham){
+          const kayitli = JSON.parse(ham);
+          ['tekrar', 'set', 'egzersiz'].forEach(function(tur){
+            if(kayitli && kayitli[tur]){
+              if(typeof kayitli[tur].acik === 'boolean'){ sonuc[tur].acik = kayitli[tur].acik; }
+              const s = parseInt(kayitli[tur].sure, 10);
+              if(Number.isFinite(s) && s > 0){ sonuc[tur].sure = s; }
+            }
+          });
+        }
+      }catch(e){}
+      return sonuc;
+    }
+    function molaAyarlariKaydet(ayarlar){
+      try{ localStorage.setItem(MOLA_AYARLARI_ANAHTARI, JSON.stringify(ayarlar)); }catch(e){}
+    }
+    window.molaAyarlariAl = molaAyarlariAl;
+    window.molaAyarlariKaydet = molaAyarlariKaydet;
     const VARSAYILAN_IKON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>';
     const ONAY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>';
     const TAMAM_PATH = '<path d="M20 6 9 17l-5-5"></path>';
@@ -14847,6 +15466,9 @@
     let kalanSaniye = 0;
     let toplamSaniye = 0;
     let dinlenmeModu = false;
+    let molaTuru = null; // null | 'tekrar' | 'set' | 'egzersiz' — o an çalışan mola çeşidi
+    let setIndex = 1;    // o an kaçıncı settedeyiz (1 tabanlı)
+    let tekrarIndex = 1; // o an kaçıncı tekrardayız (1 tabanlı)
     let zamanlayici = null;
     let aktifBitisFn = null;
 
@@ -15029,6 +15651,7 @@
           tekrarAlt.textContent = '';
         }
       }
+      setTekrarGostergeGuncelle(eg);
 
       if(hareketGorsel){
         if(eg.gorsel){
@@ -15051,9 +15674,58 @@
       }
     }
 
+    // Set × tekrar ilerleme göstergesini (pill + nokta satırları) günceller.
+    // Kaçıncı sette ve kaçıncı tekrarda olduğumuzu görsel olarak gösterir; hem
+    // hareket sırasında hem de mola sırasında (bir sonraki adımın önizlemesi olarak) çalışır.
+    function setTekrarGostergeGuncelle(eg){
+      if(!setTekrarGosterge) return;
+      const { totalSet, totalTekrar } = egzersizSetTekrarToplam(eg);
+      const gosterilsin = !!eg && (totalSet > 1 || totalTekrar > 1);
+      if(paneCalisma){ paneCalisma.classList.toggle('set-tekrar-aktif', gosterilsin); }
+      if(!gosterilsin){ setTekrarGosterge.innerHTML = ''; return; }
+
+      let html = '<div class="kalori-str-kart">';
+      if(totalSet > 1){
+        html += '<div class="kalori-str-blok">';
+        html += '<div class="kalori-str-baslik"><span class="kalori-str-etiket">Set</span>' +
+          '<span class="kalori-str-sayi">' + setIndex + '<span class="kalori-str-toplam">/' + totalSet + '</span></span></div>';
+        if(totalSet <= 8){
+          html += '<div class="kalori-set-pil-satir">';
+          for(let s = 1; s <= totalSet; s++){
+            let sinif = 'kalori-set-pil';
+            if(s < setIndex) sinif += ' dolu';
+            else if(s === setIndex) sinif += ' aktif';
+            html += '<span class="' + sinif + '"></span>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      if(totalTekrar > 1){
+        // 6'dan fazla tekrarda noktalar yerine yalnızca sayı gösterilir (kompakt).
+        const kompaktMi = totalTekrar > 6;
+        html += '<div class="kalori-str-blok' + (kompaktMi ? ' kalori-str-kompakt' : '') + '">';
+        html += '<div class="kalori-str-baslik"><span class="kalori-str-etiket">Tekrar</span>' +
+          '<span class="kalori-str-sayi">' + tekrarIndex + '<span class="kalori-str-toplam">/' + totalTekrar + '</span></span></div>';
+        if(!kompaktMi){
+          html += '<div class="kalori-tekrar-nokta-satir">';
+          for(let t = 1; t <= totalTekrar; t++){
+            let sinif = 'kalori-tekrar-nokta';
+            if(t < tekrarIndex) sinif += ' dolu';
+            else if(t === tekrarIndex) sinif += ' aktif';
+            html += '<span class="' + sinif + '"></span>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+      setTekrarGosterge.innerHTML = html;
+    }
+
     function zamanlayiciBaslat(bitisFn){
       zamanlayiciTemizle();
-      aktifBitisFn = bitisFn || siradakineGec;
+      aktifBitisFn = bitisFn || egzersizIlerlet;
       zamanlayici = setInterval(function(){
         kalanSaniye--;
         if(kalanSaniye <= 0){
@@ -15067,48 +15739,128 @@
       kontrolDugmesiGuncelle();
     }
 
-    function evreyiBaslat(dinlenmeMi){
-      dinlenmeModu = dinlenmeMi;
+    const MOLA_ETIKETLERI = { tekrar: 'KISA MOLA', set: 'SET MOLASI', egzersiz: 'MOLA' };
+
+    // Bir egzersizin toplam set/tekrar sayısını döndürür (girilmemişse 1 kabul edilir).
+    function egzersizSetTekrarToplam(eg){
+      return {
+        totalSet: (eg && eg.set) ? eg.set : 1,
+        totalTekrar: (eg && eg.tekrar) ? eg.tekrar : 1
+      };
+    }
+
+    // Aktif egzersizin o anki tekrarını başlatır (süreliyse sayaçla, süresizse "Yapıldı" ile manuel).
+    function hareketBaslat(){
+      dinlenmeModu = false;
+      molaTuru = null;
       const eg = akisEgzersizleri[akisIndex];
-      const tekrarModu = !dinlenmeMi && !!eg && !eg.sure;
+      const tekrarModu = !!eg && !eg.sure;
       const hazirliktanCikiyor = paneCalisma && paneCalisma.classList.contains('hazirlik-durumu');
       if(paneCalisma){
-        paneCalisma.classList.toggle('dinlenme-durumu', dinlenmeMi);
+        paneCalisma.classList.remove('dinlenme-durumu', 'mola-tekrar', 'mola-set', 'mola-egzersiz');
         paneCalisma.classList.toggle('tekrar-durumu', tekrarModu);
         paneCalisma.classList.remove('hazirlik-durumu');
       }
       if(hazirliktanCikiyor){ sayacGosterimSifirla(); }
-      if(dinlenmeMi){
-        if(durumEtiket){ durumEtiket.textContent = 'MOLA'; }
-        kalanSaniye = DINLENME_SURESI;
-        toplamSaniye = DINLENME_SURESI;
-      } else {
-        if(durumEtiket){ durumEtiket.textContent = 'HAREKET'; }
-        kalanSaniye = (eg && eg.sure) ? eg.sure : 0;
-        toplamSaniye = kalanSaniye || 1;
-      }
+      if(durumEtiket){ durumEtiket.textContent = 'HAREKET'; }
+      kalanSaniye = (eg && eg.sure) ? eg.sure : 0;
+      toplamSaniye = kalanSaniye || 1;
       hareketiGoster();
-      if(dinlenmeMi){
-        if(hareketIsim){ hareketIsim.textContent = ''; }
-        if(hareketAlt){ hareketAlt.textContent = ''; }
-      }
       if(tekrarModu){
         zamanlayiciTemizle();
         sayacGuncelle();
         kontrolDugmesiGuncelle();
       } else {
         sayacGuncelle();
-        zamanlayiciBaslat();
+        zamanlayiciBaslat(egzersizIlerlet);
       }
+    }
+
+    // Verilen türde molayı başlatır (tekrar/set/egzersiz arası). Mola bitince bir sonraki
+    // hareketi otomatik başlatır. setIndex/tekrarIndex/akisIndex bu çağrılmadan ÖNCE
+    // zaten bir sonraki adıma güncellenmiş olmalı.
+    function molaBaslat(tur, sure){
+      dinlenmeModu = true;
+      molaTuru = tur;
+      const hazirliktanCikiyor = paneCalisma && paneCalisma.classList.contains('hazirlik-durumu');
+      if(paneCalisma){
+        paneCalisma.classList.add('dinlenme-durumu');
+        paneCalisma.classList.remove('tekrar-durumu', 'hazirlik-durumu');
+        paneCalisma.classList.remove('mola-tekrar', 'mola-set', 'mola-egzersiz');
+        paneCalisma.classList.add('mola-' + tur);
+      }
+      if(hazirliktanCikiyor){ sayacGosterimSifirla(); }
+      if(durumEtiket){ durumEtiket.textContent = MOLA_ETIKETLERI[tur] || 'MOLA'; }
+      kalanSaniye = sure;
+      toplamSaniye = sure;
+      hareketiGoster();
+      if(hareketIsim){ hareketIsim.textContent = ''; }
+      if(hareketAlt){ hareketAlt.textContent = ''; }
+      // Setler arası geçişte belirgin bir animasyon tetikle.
+      if(tur === 'set' && paneCalisma){
+        paneCalisma.classList.remove('set-gecis-anim');
+        void paneCalisma.offsetWidth; // reflow: animasyonu baştan tetikle
+        paneCalisma.classList.add('set-gecis-anim');
+      }
+      sayacGuncelle();
+      zamanlayiciBaslat(hareketBaslat);
+    }
+
+    // Bir mola türüne karar verir: ayarlardan açıksa molayı başlatır, kapalıysa
+    // molayı atlayıp doğrudan bir sonraki hareketi başlatır.
+    function molaVeyaHareket(tur){
+      const ayarlar = molaAyarlariAl();
+      const ayar = ayarlar[tur];
+      if(ayar && ayar.acik && ayar.sure > 0){
+        molaBaslat(tur, ayar.sure);
+      } else {
+        hareketBaslat();
+      }
+    }
+
+    // Aktif hareket (tekrar) tamamlandığında çağrılır — ister süre bitince otomatik,
+    // ister "Yapıldı" düğmesiyle manuel. Set × tekrar döngüsünü ilerletir:
+    // tekrar bitmediyse → kısa mola + aynı egzersizin sıradaki tekrarı
+    // set bitmediyse → uzun mola (set arası) + sıradaki setin 1. tekrarı
+    // set de bittiyse → uzun mola (egzersiz arası) + sıradaki egzersiz
+    // molaAtla=true iken (örn. "ileri" düğmesiyle bilinçli atlama) mola gösterilmeden
+    // doğrudan bir sonraki hareket başlatılır.
+    function egzersizIlerlet(molaAtla){
+      zamanlayiciTemizle();
+      const eg = akisEgzersizleri[akisIndex];
+      const { totalSet, totalTekrar } = egzersizSetTekrarToplam(eg);
+
+      if(tekrarIndex < totalTekrar){
+        tekrarIndex++;
+        if(molaAtla){ hareketBaslat(); } else { molaVeyaHareket('tekrar'); }
+        return;
+      }
+      if(setIndex < totalSet){
+        setIndex++;
+        tekrarIndex = 1;
+        if(molaAtla){ hareketBaslat(); } else { molaVeyaHareket('set'); }
+        return;
+      }
+      akisIndex++;
+      setIndex = 1;
+      tekrarIndex = 1;
+      if(akisIndex >= akisEgzersizleri.length){
+        bitir();
+        return;
+      }
+      if(molaAtla){ hareketBaslat(); } else { molaVeyaHareket('egzersiz'); }
     }
 
     // Antrenman başlamadan önce 5-4-3-2-1 hazırlık geri sayımı gösterir,
     // süresi bitince ilk egzersizle otomatik başlar.
     function hazirlikBaslat(){
       akisIndex = 0;
+      setIndex = 1;
+      tekrarIndex = 1;
       dinlenmeModu = false;
+      molaTuru = null;
       if(paneCalisma){
-        paneCalisma.classList.remove('dinlenme-durumu', 'tekrar-durumu');
+        paneCalisma.classList.remove('dinlenme-durumu', 'tekrar-durumu', 'mola-tekrar', 'mola-set', 'mola-egzersiz');
         paneCalisma.classList.add('hazirlik-durumu');
       }
       sayacGosterimSifirla();
@@ -15120,27 +15872,13 @@
       sayacGuncelle();
       zamanlayiciBaslat(function(){
         if(paneCalisma){ paneCalisma.classList.remove('hazirlik-durumu'); }
-        evreyiBaslat(false);
+        hareketBaslat();
       });
     }
 
     function bitir(){
       zamanlayiciTemizle();
       paneGoster(paneBitis);
-    }
-
-    function siradakineGec(){
-      zamanlayiciTemizle();
-      if(dinlenmeModu){
-        evreyiBaslat(false);
-        return;
-      }
-      akisIndex++;
-      if(akisIndex >= akisEgzersizleri.length){
-        bitir();
-        return;
-      }
-      evreyiBaslat(true);
     }
 
     if(baslatBtn){
@@ -15159,7 +15897,7 @@
       hazirlikAtlaBtn.addEventListener('click', function(){
         zamanlayiciTemizle();
         if(paneCalisma){ paneCalisma.classList.remove('hazirlik-durumu'); }
-        evreyiBaslat(false);
+        hareketBaslat();
       });
     }
     if(kapatBtn){
@@ -15169,7 +15907,8 @@
       duraklatBtn.addEventListener('click', function(){
         const tekrarModuAktif = paneCalisma && paneCalisma.classList.contains('tekrar-durumu');
         if(tekrarModuAktif){
-          siradakineGec();
+          // Süresiz (manuel) tekrar modunda "Yapıldı" — set × tekrar döngüsünü ilerlet.
+          egzersizIlerlet();
           return;
         }
         if(zamanlayici){
@@ -15183,17 +15922,34 @@
     if(ileriBtn){
       ileriBtn.addEventListener('click', function(){
         zamanlayiciTemizle();
-        if(dinlenmeModu){ evreyiBaslat(false); return; }
-        akisIndex++;
-        if(akisIndex >= akisEgzersizleri.length){ bitir(); return; }
-        evreyiBaslat(false);
+        if(dinlenmeModu){
+          // Molayı atla, indeksler zaten bir sonraki adıma ayarlanmış durumda.
+          hareketBaslat();
+          return;
+        }
+        // Aktif tekrarı/hareketi atla, set × tekrar döngüsüne göre bir sonraki adıma geç.
+        // molaAtla verilmez: kullanıcı hareketi atlasa bile aradaki mola (kısa/set/egzersiz)
+        // her zaman gösterilir; yalnızca mola sırasında "ileri"ye basılırsa mola atlanır
+        // (yukarıdaki dinlenmeModu dalı).
+        egzersizIlerlet();
       });
     }
     if(geriBtn){
       geriBtn.addEventListener('click', function(){
         zamanlayiciTemizle();
-        if(!dinlenmeModu && akisIndex > 0){ akisIndex--; }
-        evreyiBaslat(false);
+        if(!dinlenmeModu){
+          if(tekrarIndex > 1){
+            tekrarIndex--;
+          } else if(setIndex > 1){
+            setIndex--;
+            tekrarIndex = 1;
+          } else if(akisIndex > 0){
+            akisIndex--;
+            setIndex = 1;
+            tekrarIndex = 1;
+          }
+        }
+        hareketBaslat();
       });
     }
   })();
@@ -15573,6 +16329,59 @@
   })();
 
   // ================= KRONOMETRE =================
+  // Not: Bu modül artık her günün kronometre süresini localStorage'a ayrı
+  // ayrı kaydeder (Takvim ekranında görüntülenebilmesi için) ve gece
+  // saat 00:00'ı geçtiğinde kronometreyi otomatik olarak sıfırlar.
+  const KRONOMETRE_GUNLUK_ANAHTAR = 'sessizlik-kronometre-gunluk-sureler';
+  const KRONOMETRE_DURUM_ANAHTAR = 'sessizlik-kronometre-durum';
+
+  // Türk takvim sırasına göre "GG.AA.YYYY" anahtarı üretir (gün.ay.yıl).
+  function kronometreGunAnahtari(tarih){
+    const y = tarih.getFullYear();
+    const m = String(tarih.getMonth() + 1).padStart(2, '0');
+    const d = String(tarih.getDate()).padStart(2, '0');
+    return d + '.' + m + '.' + y;
+  }
+
+  // Önceki sürümde tarihler "YYYY-MM-DD" biçiminde kaydediliyordu. Eski
+  // kayıtları kaybetmemek için bir kerelik göç: bu biçimdeki anahtarları
+  // yeni "GG.AA.YYYY" biçimine çevirir.
+  function kronometreGunlukSureleriGoçEt(obj){
+    let degisti = false;
+    const eskiBicim = /^(\d{4})-(\d{2})-(\d{2})$/;
+    Object.keys(obj).forEach(function(anahtar){
+      const eslesme = anahtar.match(eskiBicim);
+      if(eslesme){
+        const yeniAnahtar = eslesme[3] + '.' + eslesme[2] + '.' + eslesme[1];
+        if(!(yeniAnahtar in obj)){
+          obj[yeniAnahtar] = obj[anahtar];
+        }
+        delete obj[anahtar];
+        degisti = true;
+      }
+    });
+    return degisti;
+  }
+
+  function kronometreGunlukSureleriYukle(){
+    try{
+      const ham = localStorage.getItem(KRONOMETRE_GUNLUK_ANAHTAR);
+      const veri = ham ? JSON.parse(ham) : {};
+      if(kronometreGunlukSureleriGoçEt(veri)){
+        kronometreGunlukSureleriKaydet(veri);
+      }
+      return veri;
+    }catch(e){
+      return {};
+    }
+  }
+
+  function kronometreGunlukSureleriKaydet(obj){
+    try{
+      localStorage.setItem(KRONOMETRE_GUNLUK_ANAHTAR, JSON.stringify(obj));
+    }catch(e){}
+  }
+
   (function(){
     const widget = document.getElementById('kronometreWidget');
     const widgetSaat = document.getElementById('kronometreWidgetSaat');
@@ -15589,11 +16398,13 @@
     if(!widget || !overlay) return;
 
     let calisiyorMu = false;
-    let baslangicZamani = 0;
+    let baslangicZamani = 0; // Date.now() epoch değeri (performance.now() DEĞİL) — sayfa yenilense de anlamını korur
     let biriktirilenSure = 0;
     let raf = null;
     let turSayisi = 0;
     let sonTurZamani = 0;
+    let suankiGunAnahtari = kronometreGunAnahtari(new Date());
+    let sonKayitZamani = 0;
 
     function ikiHane(n){
       return String(n).padStart(2, '0');
@@ -15611,7 +16422,30 @@
     }
 
     function gecenSure(){
-      return biriktirilenSure + (calisiyorMu ? (performance.now() - baslangicZamani) : 0);
+      return biriktirilenSure + (calisiyorMu ? (Date.now() - baslangicZamani) : 0);
+    }
+
+    // Çalışan/duran durumu ve o anki güne ait süreyi kalıcı olarak kaydeder.
+    function durumuKaydet(){
+      try{
+        localStorage.setItem(KRONOMETRE_DURUM_ANAHTAR, JSON.stringify({
+          calisiyorMu: calisiyorMu,
+          baslangicZamaniEpoch: baslangicZamani,
+          biriktirilenSure: biriktirilenSure,
+          gun: suankiGunAnahtari
+        }));
+      }catch(e){}
+    }
+
+    // O günün toplam süresini günlük kayıtlara yazar ve (açıksa) Takvim
+    // ekranını anında güncellemesi için haber verir.
+    function gunlukSureyiKaydet(){
+      const gunler = kronometreGunlukSureleriYukle();
+      gunler[suankiGunAnahtari] = Math.floor(gecenSure());
+      kronometreGunlukSureleriKaydet(gunler);
+      if(typeof window.takvimGunlukVerileriYenile === 'function'){
+        window.takvimGunlukVerileriYenile();
+      }
     }
 
     function ekraniGuncelle(){
@@ -15625,8 +16459,41 @@
       tamEkranYuzde.textContent = parcali.yuzde;
     }
 
-    function dongu(){
+    // Gece yarısını (00:00) geçildiğini algılar: geçilen günün süresini
+    // günlük kayıtlara yazıp kronometreyi yeni gün için sıfırlar. Çalışma
+    // devam ediyorsa yeni günde 00:00:00'dan saymaya kesintisiz sürer.
+    function gunKontrolEt(){
+      const guncelGun = kronometreGunAnahtari(new Date());
+      if(guncelGun === suankiGunAnahtari) return;
+
+      const gunler = kronometreGunlukSureleriYukle();
+      gunler[suankiGunAnahtari] = Math.floor(gecenSure());
+      kronometreGunlukSureleriKaydet(gunler);
+
+      biriktirilenSure = 0;
+      turSayisi = 0;
+      sonTurZamani = 0;
+      if(turListe) turListe.innerHTML = '';
+      if(calisiyorMu){ baslangicZamani = Date.now(); }
+      suankiGunAnahtari = guncelGun;
+      sifirlaBtn.disabled = true;
+
+      durumuKaydet();
       ekraniGuncelle();
+      if(typeof window.takvimGunlukVerileriYenile === 'function'){
+        window.takvimGunlukVerileriYenile();
+      }
+    }
+
+    function dongu(){
+      gunKontrolEt();
+      ekraniGuncelle();
+      const simdi = Date.now();
+      if(simdi - sonKayitZamani >= 1000){
+        sonKayitZamani = simdi;
+        durumuKaydet();
+        gunlukSureyiKaydet();
+      }
       if(calisiyorMu){
         raf = requestAnimationFrame(dongu);
       }
@@ -15634,21 +16501,23 @@
 
     function baslat(){
       if(calisiyorMu) return;
+      gunKontrolEt();
       calisiyorMu = true;
-      baslangicZamani = performance.now();
+      baslangicZamani = Date.now();
       widget.classList.add('calisiyor');
       baslatBtn.textContent = 'Durdur';
       baslatBtn.classList.remove('kronometre-baslat');
       baslatBtn.classList.add('kronometre-durdur');
       sifirlaBtn.disabled = true;
       turBtn.disabled = false;
+      durumuKaydet();
       raf = requestAnimationFrame(dongu);
     }
 
     function durdur(){
       if(!calisiyorMu) return;
       calisiyorMu = false;
-      biriktirilenSure += performance.now() - baslangicZamani;
+      biriktirilenSure += Date.now() - baslangicZamani;
       widget.classList.remove('calisiyor');
       baslatBtn.textContent = 'Başlat';
       baslatBtn.classList.remove('kronometre-durdur');
@@ -15657,6 +16526,8 @@
       turBtn.disabled = true;
       if(raf) cancelAnimationFrame(raf);
       ekraniGuncelle();
+      durumuKaydet();
+      gunlukSureyiKaydet();
     }
 
     function sifirla(){
@@ -15667,6 +16538,8 @@
       turListe.innerHTML = '';
       sifirlaBtn.disabled = true;
       ekraniGuncelle();
+      durumuKaydet();
+      gunlukSureyiKaydet();
     }
 
     function turEkle(){
@@ -15705,7 +16578,57 @@
     sifirlaBtn.addEventListener('click', sifirla);
     turBtn.addEventListener('click', turEkle);
 
-    ekraniGuncelle();
+    // ---- Sayfa açılışında: daha önce kaydedilmiş kronometre durumunu geri yükle ----
+    (function geriYukle(){
+      try{
+        const ham = localStorage.getItem(KRONOMETRE_DURUM_ANAHTAR);
+        if(ham){
+          const durum = JSON.parse(ham);
+          if(durum && durum.gun){
+            // Önceki sürümden kalma "YYYY-MM-DD" biçimindeki gün anahtarı
+            // varsa, yanlışlıkla "gün değişti" sanılmaması için burada da
+            // yeni "GG.AA.YYYY" biçimine çevir.
+            const eskiBicimEslesme = String(durum.gun).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            suankiGunAnahtari = eskiBicimEslesme ? (eskiBicimEslesme[3] + '.' + eskiBicimEslesme[2] + '.' + eskiBicimEslesme[1]) : durum.gun;
+            biriktirilenSure = durum.biriktirilenSure || 0;
+            if(durum.calisiyorMu){
+              calisiyorMu = true;
+              baslangicZamani = durum.baslangicZamaniEpoch || Date.now();
+            }
+          }
+        }
+      }catch(e){}
+
+      // Kaydedilmiş gün bugünden farklıysa (uygulama gece yarısından önce
+      // kapatılıp sonra açılmışsa) günü kapat ve bugüne sıfırla.
+      gunKontrolEt();
+
+      if(calisiyorMu){
+        widget.classList.add('calisiyor');
+        baslatBtn.textContent = 'Durdur';
+        baslatBtn.classList.remove('kronometre-baslat');
+        baslatBtn.classList.add('kronometre-durdur');
+        sifirlaBtn.disabled = true;
+        turBtn.disabled = false;
+        raf = requestAnimationFrame(dongu);
+      }else{
+        sifirlaBtn.disabled = biriktirilenSure <= 0;
+        turBtn.disabled = true;
+      }
+
+      ekraniGuncelle();
+    })();
+
+    // Sekme yeniden görünür/aktif olduğunda da gün geçişini hemen kontrol et
+    // (RAF döngüsü sadece kronometre çalışırken sürdüğü için, duraklatılmış
+    // haldeyken gece yarısını sekme arka plandayken kaçırmamak içindir).
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden){ gunKontrolEt(); }
+    });
+    window.addEventListener('focus', gunKontrolEt);
+    // Uygulama açık kalıp duraklatılmış haldeyken de gece yarısını yakalamak
+    // için düşük sıklıkta arka plan kontrolü.
+    setInterval(gunKontrolEt, 30000);
   })();
 
   // ================= PWA: SERVICE WORKER KAYDI =================
