@@ -474,7 +474,7 @@
     transition: background 0.6s ease;
   }
   html[data-theme="dark"] .bg-destek{
-    opacity:0.4;
+    display:none;
   }
   @keyframes bgDestekNefes{
     0%,100%{ opacity:0.55; }
@@ -1130,17 +1130,19 @@
     will-change:opacity, transform;
   }
   /* ---- Spor Modu'nda da ana uygulamadaki renk geçişli "destek" ışıması:
-     burada seçili Spor Modu temasının rengini (--sari) kullanır ---- */
+     burada seçili Spor Modu temasının rengini (--sari) kullanır.
+     Sayfanın üstünden aşağı doğru süzülür. Sadece açık temada
+     gösterilir, koyu temada kapalıdır. ---- */
   .spor-modu-overlay::before{
     content:'';
     position:absolute;
     left:-10%;
     right:-10%;
-    bottom:-18%;
+    top:-18%;
     height:60vh;
     pointer-events:none;
     z-index:-1;
-    background: radial-gradient(120% 100% at 50% 100%,
+    background: radial-gradient(120% 100% at 50% 0%,
       rgba(var(--sari-rgb),0.24) 0%,
       rgba(var(--sari-rgb),0.11) 38%,
       rgba(var(--sari-rgb),0) 72%);
@@ -1154,7 +1156,7 @@
     transition: background 0.6s ease;
   }
   html[data-theme="dark"] .spor-modu-overlay::before{
-    opacity:0.4;
+    display:none;
   }
   @media (prefers-reduced-motion: reduce){
     .spor-modu-overlay::before{ animation:none; opacity:0.6; }
