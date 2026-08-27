@@ -1058,11 +1058,8 @@
   #yedekRow.animate{
     animation-delay:1.85s;
   }
-  #bulutYedekRow.animate{
-    animation-delay:2s;
-  }
   #sporModuRow.animate{
-    animation-delay:2.15s;
+    animation-delay:2s;
   }
   .yedek-ac-btn{
     flex-shrink:0;
@@ -7735,16 +7732,6 @@
           <span>Yedekle</span>
         </button>
       </div>
-      <div class="settings-row" id="bulutYedekRow">
-        <div class="settings-row-text">
-          <span class="settings-row-title">Bulut Yedekleme</span>
-          <span class="settings-row-sub" id="bulutYedekStateLabel">Hesabınla senkronize et</span>
-        </div>
-        <button type="button" class="yedek-ac-btn" id="bulutYedekAcBtn" aria-label="Bulut yedekleme sayfasını aç">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
-          <span>Aç</span>
-        </button>
-      </div>
       <div class="settings-row" id="sporModuRow">
         <div class="settings-row-text">
           <span class="settings-row-title">Spor Modu</span>
@@ -9728,7 +9715,6 @@
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
     const yedekRow = document.getElementById('yedekRow');
-    const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
@@ -9816,7 +9802,6 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
-      bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
@@ -9859,7 +9844,6 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
-      bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
@@ -9872,7 +9856,6 @@
       isikEfektiRow.classList.add('animate');
       bganimRow.classList.add('animate');
       yedekRow.classList.add('animate');
-      bulutYedekRow.classList.add('animate');
       sporModuRow.classList.add('animate');
       });
     }
@@ -15619,47 +15602,6 @@
         try{ localStorage.setItem(STORAGE_KEY, secim); }catch(e){}
       });
     }
-  })();
-
-  // ================= BULUT YEDEKLEME (Ayarlar satırı bağlantısı) =================
-  // supabase-yedekleme.js sayfanın altında `defer` ile ayrı ve bağımsız
-  // yüklenir; burada sadece Ayarlar'daki satırı ona bağlıyoruz. Modül
-  // henüz hazır olmasa bile "Aç" tıklandığında hazır olduğu an paneli açar.
-  (function(){
-    const satirBtn = document.getElementById('bulutYedekAcBtn');
-    const etiket = document.getElementById('bulutYedekStateLabel');
-    if(!satirBtn) return;
-
-    satirBtn.addEventListener('click', function(){
-      if(window.bulutYedekleme && typeof window.bulutYedekleme.ac === 'function'){
-        window.bulutYedekleme.ac();
-      }else{
-        // Modül henüz yüklenmediyse (yavaş bağlantı vb.) kısa süre sonra tekrar dene.
-        let denemeSayisi = 0;
-        const dene = setInterval(function(){
-          denemeSayisi++;
-          if(window.bulutYedekleme && typeof window.bulutYedekleme.ac === 'function'){
-            clearInterval(dene);
-            window.bulutYedekleme.ac();
-          }else if(denemeSayisi > 20){
-            clearInterval(dene);
-          }
-        }, 150);
-      }
-    });
-
-    // supabase-yedekleme.js her durum değişiminde bu fonksiyonu çağırır.
-    window.bulutYedekAyarGuncelle = function(ozet){
-      if(!etiket) return;
-      if(!ozet || !ozet.kuruluMu){
-        etiket.textContent = 'Hesabınla senkronize et';
-      }else if(!ozet.girisliMi){
-        etiket.textContent = 'Bağlanmak için hesabına giriş yap';
-      }else{
-        const durumSozluk = { senkron:'Güncel', bekliyor:'Senkronize ediliyor…', hata:'Hata oluştu', kapali:'Bağlı değil' };
-        etiket.textContent = (ozet.eposta || '') + ' · ' + (durumSozluk[ozet.durum] || '');
-      }
-    };
   })();
 
   // ================= VERİ YEDEKLEME (İÇE / DIŞA AKTAR) =================
