@@ -12,12 +12,14 @@
    - Tüm uygulama verisini tek bir bulut kaydına (jsonb) yedekler
    - Değişiklik olduğunda otomatik (debounce'lu) senkron
    - Çevrimdışıyken sessizce bekler, bağlantı gelince tekrar dener
-   - Yeni cihazda "buluttan geri yükle" ile veriyi geri getirir
+   - Girişten sonra yerel/bulut verisini otomatik uzlaştırır: bulutta bu
+     cihazın bilmediği daha yeni bir kayıt varsa sessizce indirir, yoksa
+     hiçbir şey sormaz/göstermez (her açılışta tekrar sormaz)
    - Arayüzü Ayarlar sayfasındaki "Bulut Yedekleme" satırıdır
      (index.html içinde #bulutYedekRow): satırdaki "Yedekle" butonu
-     şimdi yedekler, bulut ikonu buluttan geri yükler, çıkış ikonu
-     hesaptan çıkış yapar. Kurulum/giriş formu ile senkron çakışması
-     seçimi hâlâ küçük bir alt panelde gösterilir.
+     şimdi yedekler, çıkış ikonu hesaptan çıkış yapar (kendi tasarımımızla
+     uyumlu bir onay pop-up'ı gösterilir, tarayıcının window.confirm()'ü
+     değil). Kurulum/giriş formu hâlâ küçük bir alt panelde gösterilir.
 ================================================================= */
 (function () {
   'use strict';
@@ -213,7 +215,12 @@
   }
 
   // Girişten hemen sonra: yerelde veri var mı, buluttta veri var mı
-  // durumuna göre en makul aksiyonu otomatik öner/uygula.
+  // durumuna göre en makul aksiyonu otomatik uygular. Kullanıcıya soru
+  // sormaz — iki tarafta da veri varsa, buluttaki kayıt bu cihazın en son
+  // bildiği kayıttan daha yeniyse (yani başka bir cihazda güncellenmişse)
+  // buluttaki veri sessizce bu cihaza uygulanır; değilse (bu cihaz zaten
+  // günceli biliyorsa) hiçbir şey yapılmaz, her açılışta gereksiz bir
+  // indirme/yeniden başlatma olmaz.
   function girisSonrasiSenkronKontrol() {
     if (!girisliMi()) return;
     var yerel = tumVeriyiTopla();
@@ -228,8 +235,16 @@
         // Yeni/boş cihaz: buluttaki veriyi sessizce indir.
         buluttanGeriYukle(true);
       } else if (!bulutBos && !yerelBos) {
-        // Her iki tarafta da veri var — kullanıcıya sor.
-        panelSecimGoster(r.data.guncellenme_zamani);
+        var bilinenSonYedek = localStorage.getItem(SON_YEDEK_ANAHTARI);
+        var bulutDahaYeniMi = !bilinenSonYedek || new Date(r.data.guncellenme_zamani).getTime() > new Date(bilinenSonYedek).getTime();
+        if (bulutDahaYeniMi) {
+          // Bulutta bu cihazın bilmediği daha yeni bir değişiklik var
+          // (başka bir cihazdan gelmiş olabilir) — sessizce uygula.
+          buluttanGeriYukle(true);
+        } else {
+          senkronDurum = 'senkron';
+          panelGuncelle();
+        }
       } else {
         senkronDurum = 'senkron';
         panelGuncelle();
@@ -352,8 +367,9 @@
   // Eskiden sağ altta/üstte yüzen bir "bulut" butonu vardı; artık bu buton
   // kaldırıldı ve aynı işlevler Ayarlar sayfasındaki satıra taşındı:
   // - Satırın kendisine (Yedekle butonuna) tıklamak => şimdi yedekle
-  // - Bulut (geri yükle) ikonuna tıklamak => buluttan geri yükle
-  // - Çıkış ikonuna tıklamak => hesaptan çıkış yap
+  // - Çıkış ikonuna tıklamak => hesaptan çıkış yap (kendi onay pop-up'ımızla)
+  // Buluttan geri yükleme artık girişten hemen sonra otomatik/sessizce
+  // yapıldığı için ayrı bir "geri yükle" butonuna gerek kalmadı.
   var satirEl = null;
 
   function satirElemanlariAl() {
@@ -363,9 +379,8 @@
     var baglanBtn = document.getElementById('bulutBaglanBtn');
     var iconGrup = document.getElementById('bulutIconGrup');
     var yedekleBtn = document.getElementById('bulutYedekleBtn');
-    var geriYukleBtn = document.getElementById('bulutGeriYukleBtn');
     var cikisBtn = document.getElementById('bulutCikisBtn');
-    if (!baslik || !durum || !baglanBtn || !iconGrup || !yedekleBtn || !geriYukleBtn || !cikisBtn) return false;
+    if (!baslik || !durum || !baglanBtn || !iconGrup || !yedekleBtn || !cikisBtn) return false;
 
     satirEl = {
       baslik: baslik,
@@ -373,7 +388,6 @@
       baglanBtn: baglanBtn,
       iconGrup: iconGrup,
       yedekleBtn: yedekleBtn,
-      geriYukleBtn: geriYukleBtn,
       cikisBtn: cikisBtn
     };
 
@@ -398,20 +412,7 @@
       });
     });
 
-    geriYukleBtn.addEventListener('click', function () { buluttanGeriYukle(false); });
-
-    cikisBtn.addEventListener('click', function () {
-      if (!window.confirm('Hesabından çıkış yapmak istediğine emin misin?')) return;
-      istemci.auth.signOut().then(function () {
-        satirGuncelle();
-        // Küçük bir pop-up açmak yerine kullanıcıyı doğrudan ilk açılışta
-        // gördüğü tam ekran giriş sayfasına yönlendir; oradan tekrar
-        // giriş yapabilir ya da hesapsız devam edebilir.
-        if (typeof window.sessizlikGirisEkraniniYenidenGoster === 'function') {
-          window.sessizlikGirisEkraniniYenidenGoster();
-        }
-      });
-    });
+    cikisBtn.addEventListener('click', function () { cikisOnayGoster(); });
 
     return true;
   }
@@ -444,19 +445,31 @@
     satirEl.iconGrup.style.display = '';
   }
 
-  function panelSecimGoster(bulutZamani) {
+  // Hesaptan çıkış öncesi onay: tarayıcının kendi window.confirm()
+  // penceresi yerine, uygulamanın kendi tasarımıyla uyumlu küçük bir
+  // pop-up gösterir.
+  function cikisOnayGoster() {
     panelAc();
     panelEl.innerHTML =
       '<button class="bulut-kapat" type="button" aria-label="Kapat">✕</button>' +
-      '<h3>Bu cihazda da, buluttada da veri var</h3>' +
-      '<p class="bulut-not">Bulut yedeği: ' + zamanFormatla(bulutZamani) + '<br>Hangisini kullanmak istersin?</p>' +
-      '<button class="bulut-btn ana" id="bulutSecBulut">Buluttaki Veriyi Kullan (bu cihazınkini değiştirir)</button>' +
-      '<button class="bulut-btn" id="bulutSecCihaz">Bu Cihazdakini Kullan (buluta gönder)</button>' +
-      '<button class="bulut-btn" id="bulutSecVazgec">Şimdi Karar Vermeyeyim</button>';
+      '<h3>Hesabından Çıkış Yap</h3>' +
+      '<p class="bulut-not">Bu cihazda hesabından çıkış yapılacak. Verilerin buluttaki hesabında güvende kalmaya devam eder.</p>' +
+      '<button class="bulut-btn tehlike" id="bulutCikisOnaylaBtn">Evet, Çıkış Yap</button>' +
+      '<button class="bulut-btn" id="bulutCikisVazgecBtn">Vazgeç</button>';
     panelEl.querySelector('.bulut-kapat').addEventListener('click', panelKapat);
-    panelEl.querySelector('#bulutSecBulut').addEventListener('click', function () { panelKapat(); buluttanGeriYukle(true); });
-    panelEl.querySelector('#bulutSecCihaz').addEventListener('click', function () { panelKapat(); simdiYedekle(); });
-    panelEl.querySelector('#bulutSecVazgec').addEventListener('click', panelKapat);
+    panelEl.querySelector('#bulutCikisVazgecBtn').addEventListener('click', panelKapat);
+    panelEl.querySelector('#bulutCikisOnaylaBtn').addEventListener('click', function () {
+      panelKapat();
+      istemci.auth.signOut().then(function () {
+        satirGuncelle();
+        // Küçük bir pop-up açmak yerine kullanıcıyı doğrudan ilk açılışta
+        // gördüğü tam ekran giriş sayfasına yönlendir; oradan tekrar
+        // giriş yapabilir ya da hesapsız devam edebilir.
+        if (typeof window.sessizlikGirisEkraniniYenidenGoster === 'function') {
+          window.sessizlikGirisEkraniniYenidenGoster();
+        }
+      });
+    });
   }
 
   function panelCiz() {
@@ -541,10 +554,10 @@
       return;
     }
 
-    // Giriş yapılmış durumda artık işlemler (yedekle / geri yükle / çıkış)
-    // Ayarlar sayfasındaki satırdan yapılıyor; bu panel normalde bu aşamada
-    // açılmaz (yalnızca çakışma seçimi gibi özel durumlarda panelSecimGoster
-    // hemen üzerine yazar), bu yüzden burada sade bir bilgi kartı yeterli.
+    // Giriş yapılmış durumda artık işlemler (yedekle / çıkış) Ayarlar
+    // sayfasındaki satırdan yapılıyor; bu panel normalde bu aşamada açılmaz
+    // (yalnızca çıkış onayı gibi özel durumlarda cikisOnayGoster hemen
+    // üzerine yazar), bu yüzden burada sade bir bilgi kartı yeterli.
     var sonYedek = localStorage.getItem(SON_YEDEK_ANAHTARI);
     panelEl.innerHTML =
       '<button class="bulut-kapat" type="button" aria-label="Kapat">✕</button>' +

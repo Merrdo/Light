@@ -7114,7 +7114,7 @@
   }
 </style>
 <style>
-  html.giris-bekleniyor body{ overflow:hidden; }
+  html.giris-bekleniyor body{ overflow:hidden; overscroll-behavior:none; }
 
   .giris-overlay{
     position:fixed;
@@ -7124,11 +7124,18 @@
     align-items:center;
     justify-content:center;
     overflow:hidden;
+    overscroll-behavior:none;
+    touch-action:none;
+    /* NOT: Bu ekranın arkasında gerçek uygulama sayfası (Ayarlar, Ana Sayfa vb.)
+       göstermiyoruz — arka plan tamamen kendi kararan/parlayan katmanımızdan
+       oluşuyor. Böylece arkadaki sayfa kaydırılsa/hareket etse bile ekranda
+       hiçbir şey oynamaz; "blur" hissi backdrop-filter ile gerçek içeriği
+       bulanıklaştırmak yerine bu yumuşak ışık halkalarıyla veriliyor. */
     background:
-      radial-gradient(circle at 50% 28%, rgba(var(--accent-rgb),0.22), transparent 55%),
-      rgba(var(--bg-rgb),0.86);
-    -webkit-backdrop-filter:blur(18px) saturate(1.15);
-    backdrop-filter:blur(18px) saturate(1.15);
+      radial-gradient(circle at 50% 22%, rgba(var(--accent-rgb),0.28), transparent 58%),
+      radial-gradient(circle at 12% 88%, rgba(var(--accent-rgb),0.16), transparent 52%),
+      radial-gradient(circle at 90% 82%, rgba(var(--accent-rgb),0.12), transparent 50%),
+      var(--bg);
     padding:6vw;
     opacity:0;
   }
@@ -7138,12 +7145,9 @@
   }
   @keyframes girisOverlayIn{ to{ opacity:1; } }
 
-  /* Giriş ekranındayken arka plandaki hareketli ışık/yıldız katmanı
-     (.field, body seviyesinde ve overlay'in tam arkasında durur) buzlu
-     cam efektinin ardında biraz daha belirgin süzülsün diye hafifçe
-     güçlendirilir. */
-  html.giris-bekleniyor .bg-destek{ opacity:0.9; }
-  html.giris-bekleniyor .ray{ animation-duration:8s; }
+  /* Not: Giriş ekranı artık kendi opak/parlak katmanını kullandığı için
+     arkadaki .field (ışık huzmesi/yıldız) katmanı bu ekranın altında hiç
+     görünmüyor; bu yüzden eskiden onu belirginleştiren kurallar kaldırıldı. */
 
   .giris-adim-wrap{
     position:relative;
@@ -7795,9 +7799,6 @@
             <button type="button" class="yedek-ac-btn" id="bulutYedekleBtn" aria-label="Şimdi yedekle">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line></svg>
               <span>Yedekle</span>
-            </button>
-            <button type="button" class="bulut-mini-btn" id="bulutGeriYukleBtn" aria-label="Buluttan geri yükle" title="Buluttan Geri Yükle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path><path d="M8 17l4 4 4-4"></path><line x1="12" y1="12" x2="12" y2="21"></line></svg>
             </button>
             <button type="button" class="bulut-mini-btn tehlike" id="bulutCikisBtn" aria-label="Hesaptan çıkış yap" title="Çıkış Yap">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
