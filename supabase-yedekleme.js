@@ -13,8 +13,11 @@
    - Değişiklik olduğunda otomatik (debounce'lu) senkron
    - Çevrimdışıyken sessizce bekler, bağlantı gelince tekrar dener
    - Yeni cihazda "buluttan geri yükle" ile veriyi geri getirir
-   - Mevcut açık/koyu tema ve vurgu rengiyle uyumlu, kayan bir
-     buton + panel arayüzü sağlar
+   - Arayüzü Ayarlar sayfasındaki "Bulut Yedekleme" satırıdır
+     (index.html içinde #bulutYedekRow): satırdaki "Yedekle" butonu
+     şimdi yedekler, bulut ikonu buluttan geri yükler, çıkış ikonu
+     hesaptan çıkış yapar. Kurulum/giriş formu ile senkron çakışması
+     seçimi hâlâ küçük bir alt panelde gösterilir.
 ================================================================= */
 (function () {
   'use strict';
@@ -274,15 +277,6 @@
   function stilEkle() {
     var s = document.createElement('style');
     s.textContent = [
-      '.bulut-fab{position:fixed;right:1.1rem;z-index:9998;width:3rem;height:3rem;border-radius:50%;',
-      'background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;',
-      'cursor:pointer;box-shadow:0 2px 10px rgba(var(--shadow-rgb),0.14);transition:transform .2s ease;}',
-      '.bulut-fab:active{transform:scale(0.93);}',
-      'html[data-navbar="bottom"] .bulut-fab{bottom:calc(6.4rem + env(safe-area-inset-bottom,0px));}',
-      'html[data-navbar="top"] .bulut-fab{top:calc(1rem + env(safe-area-inset-top,0px));}',
-      '.bulut-fab svg{width:1.3rem;height:1.3rem;stroke:var(--ink-soft);}',
-      '.bulut-fab .nokta{position:absolute;top:0.35rem;right:0.35rem;width:0.5rem;height:0.5rem;border-radius:50%;background:var(--ink-soft);border:2px solid var(--bg);}',
-      '.bulut-fab .nokta.senkron{background:var(--dogru);} .bulut-fab .nokta.bekliyor{background:var(--sari);} .bulut-fab .nokta.hata{background:var(--yanlis);}',
       '.bulut-panel-overlay{position:fixed;inset:0;background:rgba(var(--shadow-rgb),0.35);z-index:9999;display:none;align-items:flex-end;justify-content:center;}',
       '.bulut-panel-overlay.acik{display:flex;}',
       '@media(min-width:640px){.bulut-panel-overlay{align-items:center;}}',
@@ -328,18 +322,8 @@
     mesajEl.classList.add('gorunur');
   }
 
-  function ikonSvg() {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9Z"/></svg>';
-  }
-
   function domOlustur() {
     kokEl = document.createElement('div');
-    var fab = document.createElement('button');
-    fab.type = 'button';
-    fab.className = 'bulut-fab';
-    fab.setAttribute('aria-label', 'Bulut Yedekleme');
-    fab.innerHTML = ikonSvg() + '<span class="nokta kapali"></span>';
-    fab.addEventListener('click', function () { panelAc(); });
 
     var overlay = document.createElement('div');
     overlay.className = 'bulut-panel-overlay';
@@ -349,11 +333,9 @@
     panelEl.className = 'bulut-panel';
     overlay.appendChild(panelEl);
 
-    kokEl.appendChild(fab);
     kokEl.appendChild(overlay);
     document.body.appendChild(kokEl);
 
-    kokEl._fab = fab;
     kokEl._overlay = overlay;
   }
 
@@ -361,10 +343,86 @@
   function panelKapat() { kokEl._overlay.classList.remove('acik'); }
 
   function panelGuncelle() {
+    satirGuncelle();
     if (!kokEl) return;
-    var nokta = kokEl._fab.querySelector('.nokta');
-    nokta.className = 'nokta ' + senkronDurum;
     if (kokEl._overlay.classList.contains('acik')) panelCiz();
+  }
+
+  /* ---------------- Ayarlar sayfasındaki bulut yedekleme satırı ---------------- */
+  // Eskiden sağ altta/üstte yüzen bir "bulut" butonu vardı; artık bu buton
+  // kaldırıldı ve aynı işlevler Ayarlar sayfasındaki satıra taşındı:
+  // - Satırın kendisine (Yedekle butonuna) tıklamak => şimdi yedekle
+  // - Bulut (geri yükle) ikonuna tıklamak => buluttan geri yükle
+  // - Çıkış ikonuna tıklamak => hesaptan çıkış yap
+  var satirEl = null;
+
+  function satirElemanlariAl() {
+    if (satirEl) return true;
+    var baslik = document.getElementById('bulutBaslikLabel');
+    var durum = document.getElementById('bulutDurumLabel');
+    var baglanBtn = document.getElementById('bulutBaglanBtn');
+    var iconGrup = document.getElementById('bulutIconGrup');
+    var yedekleBtn = document.getElementById('bulutYedekleBtn');
+    var geriYukleBtn = document.getElementById('bulutGeriYukleBtn');
+    var cikisBtn = document.getElementById('bulutCikisBtn');
+    if (!baslik || !durum || !baglanBtn || !iconGrup || !yedekleBtn || !geriYukleBtn || !cikisBtn) return false;
+
+    satirEl = {
+      baslik: baslik,
+      durum: durum,
+      baglanBtn: baglanBtn,
+      iconGrup: iconGrup,
+      yedekleBtn: yedekleBtn,
+      geriYukleBtn: geriYukleBtn,
+      cikisBtn: cikisBtn
+    };
+
+    baglanBtn.addEventListener('click', function () { panelAc(); });
+
+    yedekleBtn.addEventListener('click', function () {
+      satirEl.durum.textContent = 'Yedekleniyor…';
+      simdiYedekle().then(function (basarili) {
+        if (!basarili) { satirEl.durum.textContent = 'Yedekleme başarısız oldu.'; return; }
+        satirGuncelle();
+      });
+    });
+
+    geriYukleBtn.addEventListener('click', function () { buluttanGeriYukle(false); });
+
+    cikisBtn.addEventListener('click', function () {
+      if (!window.confirm('Hesabından çıkış yapmak istediğine emin misin?')) return;
+      istemci.auth.signOut().then(function () { satirGuncelle(); });
+    });
+
+    return true;
+  }
+
+  function satirGuncelle() {
+    if (!satirElemanlariAl()) return;
+    var ayar = ayarlariOku();
+
+    if (!ayar) {
+      satirEl.baslik.textContent = 'Bulut Yedekleme';
+      satirEl.durum.textContent = 'Kurulum yap ve hesabına bağlan';
+      satirEl.baglanBtn.style.display = '';
+      satirEl.iconGrup.style.display = 'none';
+      return;
+    }
+
+    if (!girisliMi()) {
+      satirEl.baslik.textContent = 'Bulut Yedekleme';
+      satirEl.durum.textContent = 'Hesabına giriş yap';
+      satirEl.baglanBtn.style.display = '';
+      satirEl.iconGrup.style.display = 'none';
+      return;
+    }
+
+    var sonYedek = localStorage.getItem(SON_YEDEK_ANAHTARI);
+    var noktaSinif = (senkronDurum === 'senkron' || senkronDurum === 'bekliyor' || senkronDurum === 'hata') ? senkronDurum : '';
+    satirEl.baslik.textContent = oturum.user.email;
+    satirEl.durum.innerHTML = '<span class="bulut-durum-noktasi ' + noktaSinif + '"></span>Son yedek: ' + zamanFormatla(sonYedek);
+    satirEl.baglanBtn.style.display = 'none';
+    satirEl.iconGrup.style.display = '';
   }
 
   function panelSecimGoster(bulutZamani) {
@@ -464,27 +522,17 @@
       return;
     }
 
+    // Giriş yapılmış durumda artık işlemler (yedekle / geri yükle / çıkış)
+    // Ayarlar sayfasındaki satırdan yapılıyor; bu panel normalde bu aşamada
+    // açılmaz (yalnızca çakışma seçimi gibi özel durumlarda panelSecimGoster
+    // hemen üzerine yazar), bu yüzden burada sade bir bilgi kartı yeterli.
     var sonYedek = localStorage.getItem(SON_YEDEK_ANAHTARI);
-    var durumMetni = { senkron: 'Güncel', bekliyor: 'Senkronize ediliyor…', hata: 'Hata oluştu', kapali: 'Bağlı değil' }[senkronDurum] || '';
     panelEl.innerHTML =
       '<button class="bulut-kapat" type="button" aria-label="Kapat">✕</button>' +
       '<h3>Bulut Yedekleme</h3>' +
       '<p class="bulut-not">' + oturum.user.email + '</p>' +
-      '<p class="bulut-durum">Durum: ' + durumMetni + ' · Son yedek: ' + zamanFormatla(sonYedek) + '</p>' +
-      '<button class="bulut-btn ana" id="bulutYedekleBtn">Şimdi Yedekle</button>' +
-      '<button class="bulut-btn" id="bulutGeriYukleBtn">Buluttan Geri Yükle</button>' +
-      '<button class="bulut-btn tehlike" id="bulutCikisBtn">Çıkış Yap</button>' +
-      '<div class="bulut-mesaj" id="bulutMesaj"></div>';
-    mesajEl = panelEl.querySelector('#bulutMesaj');
+      '<p class="bulut-durum">Son yedek: ' + zamanFormatla(sonYedek) + '</p>';
     panelEl.querySelector('.bulut-kapat').addEventListener('click', panelKapat);
-    panelEl.querySelector('#bulutYedekleBtn').addEventListener('click', function () {
-      mesajGoster('Yedekleniyor…');
-      simdiYedekle().then(function (ok) { mesajGoster(ok ? 'Yedeklendi.' : 'Yedekleme başarısız oldu.'); });
-    });
-    panelEl.querySelector('#bulutGeriYukleBtn').addEventListener('click', function () { buluttanGeriYukle(false); });
-    panelEl.querySelector('#bulutCikisBtn').addEventListener('click', function () {
-      istemci.auth.signOut().then(function () { panelCiz(); });
-    });
   }
 
   /* ---------------- Başlat ---------------- */
@@ -492,6 +540,7 @@
   function baslat() {
     stilEkle();
     domOlustur();
+    satirGuncelle();
     localStorageIzle();
     baglantiyiKur().then(function (basarili) {
       if (basarili && girisliMi()) girisSonrasiSenkronKontrol();

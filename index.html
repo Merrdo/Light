@@ -1058,8 +1058,11 @@
   #yedekRow.animate{
     animation-delay:1.85s;
   }
+  #bulutYedekRow.animate{
+    animation-delay:1.95s;
+  }
   #sporModuRow.animate{
-    animation-delay:2s;
+    animation-delay:2.1s;
   }
   .yedek-ac-btn{
     flex-shrink:0;
@@ -1084,6 +1087,45 @@
   }
   .yedek-ac-btn:active{ transform:scale(0.96); }
   .yedek-ac-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
+  .bulut-icon-grup{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    flex-wrap:wrap;
+  }
+  .bulut-mini-btn{
+    flex-shrink:0;
+    width:2.5rem;
+    height:2.5rem;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:transform 0.22s cubic-bezier(.22,1,.36,1), color 0.2s ease, border-color 0.2s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .bulut-mini-btn:hover{ color:var(--accent); border-color:rgba(var(--accent-rgb),0.55); }
+    .bulut-mini-btn.tehlike:hover{ color:var(--yanlis); border-color:rgba(var(--yanlis-rgb),0.55); }
+  }
+  .bulut-mini-btn:active{ transform:scale(0.92); }
+  .bulut-mini-btn svg{ width:1.05rem; height:1.05rem; flex-shrink:0; }
+  .bulut-mini-btn.tehlike{ color:var(--yanlis); border-color:rgba(var(--yanlis-rgb),0.35); }
+  .bulut-durum-noktasi{
+    display:inline-block;
+    width:0.42rem;
+    height:0.42rem;
+    border-radius:50%;
+    background:var(--ink-soft);
+    margin-right:0.4rem;
+    vertical-align:middle;
+  }
+  .bulut-durum-noktasi.senkron{ background:var(--dogru); }
+  .bulut-durum-noktasi.bekliyor{ background:var(--sari); }
+  .bulut-durum-noktasi.hata{ background:var(--yanlis); }
   .spor-modu-btn{
     flex-shrink:0;
     display:flex;
@@ -7732,6 +7774,30 @@
           <span>Yedekle</span>
         </button>
       </div>
+      <div class="settings-row wrap-row" id="bulutYedekRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title" id="bulutBaslikLabel">Bulut Yedekleme</span>
+          <span class="settings-row-sub" id="bulutDurumLabel">Kurulum yap ve hesabına bağlan</span>
+        </div>
+        <div class="bulut-satir-aksiyon" id="bulutSatirAksiyon">
+          <button type="button" class="yedek-ac-btn" id="bulutBaglanBtn" aria-label="Bulut hesabına bağlan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+            <span>Bağlan</span>
+          </button>
+          <div class="bulut-icon-grup" id="bulutIconGrup" style="display:none;">
+            <button type="button" class="yedek-ac-btn" id="bulutYedekleBtn" aria-label="Şimdi yedekle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line></svg>
+              <span>Yedekle</span>
+            </button>
+            <button type="button" class="bulut-mini-btn" id="bulutGeriYukleBtn" aria-label="Buluttan geri yükle" title="Buluttan Geri Yükle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path><path d="M8 17l4 4 4-4"></path><line x1="12" y1="12" x2="12" y2="21"></line></svg>
+            </button>
+            <button type="button" class="bulut-mini-btn tehlike" id="bulutCikisBtn" aria-label="Hesaptan çıkış yap" title="Çıkış Yap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+          </div>
+        </div>
+      </div>
       <div class="settings-row" id="sporModuRow">
         <div class="settings-row-text">
           <span class="settings-row-title">Spor Modu</span>
@@ -9715,6 +9781,7 @@
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
     const yedekRow = document.getElementById('yedekRow');
+    const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
@@ -9802,6 +9869,7 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
+      bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
@@ -9844,6 +9912,7 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
+      bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       void emptyWord.offsetWidth;
       emptyWord.classList.add('animate');
@@ -9856,6 +9925,7 @@
       isikEfektiRow.classList.add('animate');
       bganimRow.classList.add('animate');
       yedekRow.classList.add('animate');
+      bulutYedekRow.classList.add('animate');
       sporModuRow.classList.add('animate');
       });
     }
