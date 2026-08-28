@@ -377,7 +377,18 @@
       cikisBtn: cikisBtn
     };
 
-    baglanBtn.addEventListener('click', function () { panelAc(); });
+    baglanBtn.addEventListener('click', function () {
+      // Supabase projesi hiç yapılandırılmamışsa (istisnai/teknik durum)
+      // küçük kurulum panelini aç; aksi halde kullanıcı sadece giriş
+      // yapması gerektiği için uygulamanın kendi tam ekran giriş
+      // sayfasını (ilk açılışta gördüğü ekranı) tekrar göster.
+      if (!ayarlariOku()) { panelAc(); return; }
+      if (typeof window.sessizlikGirisEkraniniYenidenGoster === 'function') {
+        window.sessizlikGirisEkraniniYenidenGoster();
+      } else {
+        panelAc();
+      }
+    });
 
     yedekleBtn.addEventListener('click', function () {
       satirEl.durum.textContent = 'Yedekleniyor…';
@@ -391,7 +402,15 @@
 
     cikisBtn.addEventListener('click', function () {
       if (!window.confirm('Hesabından çıkış yapmak istediğine emin misin?')) return;
-      istemci.auth.signOut().then(function () { satirGuncelle(); });
+      istemci.auth.signOut().then(function () {
+        satirGuncelle();
+        // Küçük bir pop-up açmak yerine kullanıcıyı doğrudan ilk açılışta
+        // gördüğü tam ekran giriş sayfasına yönlendir; oradan tekrar
+        // giriş yapabilir ya da hesapsız devam edebilir.
+        if (typeof window.sessizlikGirisEkraniniYenidenGoster === 'function') {
+          window.sessizlikGirisEkraniniYenidenGoster();
+        }
+      });
     });
 
     return true;

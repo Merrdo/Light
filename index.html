@@ -7162,7 +7162,14 @@
     animation-delay:0.1s;
   }
   .giris-adim-wrap .giris-box{ position:relative; }
-  .giris-adim-wrap .giris-box + .giris-box{ position:absolute; top:0; left:0; }
+  /* Not: adımlar arasında geçiş sırayla (önce çıkış animasyonu bitip
+     kutu gizlenir, sonra bir sonraki kutu gösterilir) yapıldığı için iki
+     kutu asla aynı anda ekranda değildir. Önceden ikinci kutuyu mutlak
+     konumlandıran bir kural vardı; bu, isim adımı gösterilirken sarmalayıcının
+     yüksekliğinin çökmesine ve içeriğin ekranın alt yarısına doğru
+     hizalanmasına yol açıyordu. Kural kaldırıldığı için artık görünen adım
+     normal akışta kalıp sarmalayıcının yüksekliğini belirliyor ve dikey
+     olarak doğru şekilde ortalanıyor. */
   @keyframes girisBoxIn{ to{ transform:translateY(0); opacity:1; } }
   .giris-adim-cikis{
     animation: girisAdimCikis 0.28s cubic-bezier(.4,0,.2,1) forwards !important;
@@ -16148,6 +16155,31 @@
     }
 
     sekmeGuncelle();
+
+    // Başka bir modülün (ör. bulut yedekleme satırındaki "Bağlan" veya
+    // "Çıkış Yap") bu tam ekran giriş akışını yeniden açabilmesi için
+    // dışarıya açılan kanca. Küçük bir pop-up yerine kullanıcının ilk
+    // açılışta gördüğü bu ekranı tekrar gösterir; e-posta/şifre alanlarını
+    // temizler ve doğrudan "hesap" adımına döner.
+    window.sessizlikGirisEkraniniYenidenGoster = function(){
+      mod = 'giris';
+      sekmeGuncelle();
+      if(epostaInput) epostaInput.value = '';
+      if(sifreInput) sifreInput.value = '';
+      girisFormGecerliligiKontrolEt();
+      durumGoster('');
+      if(adimIsim && !adimIsim.hidden){
+        adimIsim.hidden = true;
+        adimIsim.classList.remove('giris-adim-giris', 'giris-adim-cikis');
+      }
+      if(adimHesap){
+        adimHesap.hidden = false;
+        adimHesap.classList.remove('giris-adim-cikis');
+        adimHesap.classList.add('giris-adim-giris');
+      }
+      ekraniGoster();
+      setTimeout(function(){ if(epostaInput){ epostaInput.focus(); } }, 380);
+    };
 
     if(girisTamamlandiMi()){
       ekraniGizle();
