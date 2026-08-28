@@ -9,7 +9,11 @@
 
    Ne yapar:
    - E-posta/şifre ile hesap oluşturma & giriş
-   - Tüm uygulama verisini tek bir bulut kaydına (jsonb) yedekler
+   - Tüm uygulama verisini tek bir bulut kaydına (jsonb) yedekler — hem
+     localStorage'daki "sessizlik-" verilerini hem de soru görselleri, havuz
+     görselleri ve cevap anahtarı gibi IndexedDB'de saklanan dosyaların
+     kendisini (base64 olarak). Böylece bir cihazda eklenen bir soru
+     görseli başka bir cihazda da görünür.
    - Değişiklik olduğunda otomatik (debounce'lu) senkron
    - Çevrimdışıyken sessizce bekler, bağlantı gelince tekrar dener
    - Girişten sonra yerel/bulut verisini otomatik uzlaştırır: bulutta bu
@@ -62,18 +66,97 @@
     localStorage.setItem(AYAR_ANAHTARI, JSON.stringify({ url: url, anonKey: anonKey }));
   }
 
+  // localStorage sadece küçük metin verisini (soru referansları vb.) tutar; asıl
+  // fotoğraf/PDF içerikleri (soru görselleri, havuz görselleri, cevap anahtarı)
+  // uygulama tarafında ayrı bir IndexedDB katmanında saklanır (index.html,
+  // "sessizlik-dosyalar" veritabanı). Bu yüzden yalnızca localStorage'ı yedeklemek
+  // yeterli değildir: bir cihazda eklenen görsel, referansı (bir kimlik/ID) bulutta
+  // görünse bile, görselin kendisi o cihazın IndexedDB'sinde kaldığı için başka bir
+  // cihaza inmiyordu. Aşağıdaki üç fonksiyon (blobBase64Cevir/base64Blob'aCevir ve
+  // güncellenmiş tumVeriyiTopla/veriyiYerelUygula) bu IndexedDB içeriğini de
+  // yedeğe dahil eder. window.__sessizlikDosyaTumIcerigiAl / __sessizlikDosyaKaydet /
+  // __sessizlikDosyaSil, index.html içinde bu amaçla dışa açılmış köprülerdir.
+  var YEDEK_SURUMU = 2;
+
+  function blobBase64eCevir(blob) {
+    return new Promise(function (resolve, reject) {
+      var okuyucu = new FileReader();
+      okuyucu.onload = function () { resolve(okuyucu.result); }; // "data:<mime>;base64,...."
+      okuyucu.onerror = function () { reject(okuyucu.error || new Error('Dosya okunamadı')); };
+      okuyucu.readAsDataURL(blob);
+    });
+  }
+
+  function base64tenBlobaCevir(dataUrl) {
+    return fetch(dataUrl).then(function (r) { return r.blob(); });
+  }
+
+  function tumDosyalariTopla() {
+    if (typeof window.__sessizlikDosyaTumIcerigiAl !== 'function') return Promise.resolve({});
+    return window.__sessizlikDosyaTumIcerigiAl().then(function (bloblar) {
+      var idler = Object.keys(bloblar);
+      return Promise.all(idler.map(function (id) {
+        return blobBase64eCevir(bloblar[id]).then(function (dataUrl) {
+          return [id, dataUrl];
+        }).catch(function () {
+          return null; // tek bir dosya okunamazsa yedeğin tamamını bozmasın
+        });
+      })).then(function (ciftler) {
+        var sonuc = {};
+        ciftler.forEach(function (cift) {
+          if (cift) sonuc[cift[0]] = cift[1];
+        });
+        return sonuc;
+      });
+    }).catch(function () {
+      return {};
+    });
+  }
+
   function tumVeriyiTopla() {
-    var veri = {};
+    var yerel = {};
     for (var i = 0; i < localStorage.length; i++) {
       var k = localStorage.key(i);
       if (k && k.indexOf(ONEK) === 0) {
-        veri[k] = localStorage.getItem(k);
+        yerel[k] = localStorage.getItem(k);
       }
     }
-    return veri;
+    return tumDosyalariTopla().then(function (dosyalar) {
+      return { __surum: YEDEK_SURUMU, localStorage: yerel, dosyalar: dosyalar };
+    });
+  }
+
+  function dosyalariYerelUygula(dosyalar) {
+    dosyalar = dosyalar || {};
+    var kaydetSoz = (typeof window.__sessizlikDosyaKaydet === 'function')
+      ? Promise.all(Object.keys(dosyalar).map(function (id) {
+          return base64tenBlobaCevir(dosyalar[id]).then(function (blob) {
+            return window.__sessizlikDosyaKaydet(id, blob);
+          }).catch(function (e) {
+            console.error('Dosya geri yüklenemedi:', id, e);
+          });
+        }))
+      : Promise.resolve();
+
+    // Buluttaki yedekte artık bulunmayan (başka bir cihazda silinmiş) dosyaları
+    // bu cihazdan da temizle — tam geri yükleme davranışı localStorage ile aynı olsun.
+    return kaydetSoz.then(function () {
+      if (typeof window.__sessizlikDosyaTumIcerigiAl !== 'function' || typeof window.__sessizlikDosyaSil !== 'function') return;
+      return window.__sessizlikDosyaTumIcerigiAl().then(function (mevcutBloblar) {
+        var silinecekler = Object.keys(mevcutBloblar).filter(function (id) { return !(id in dosyalar); });
+        return Promise.all(silinecekler.map(function (id) { return window.__sessizlikDosyaSil(id); }));
+      }).catch(function () {});
+    });
   }
 
   function veriyiYerelUygula(veri) {
+    // Eski yedekler (bu güncellemeden önce alınmış) düz bir { "sessizlik-...": "..." }
+    // nesnesiydi ve dosya içeriği hiç içermiyordu; geriye dönük uyumluluk için
+    // __surum alanı yoksa veriyi doğrudan localStorage nesnesi olarak ele al.
+    var surumluMu = veri && veri.__surum === YEDEK_SURUMU;
+    var yerelVeri = surumluMu ? (veri.localStorage || {}) : (veri || {});
+    var dosyaVeri = surumluMu ? (veri.dosyalar || {}) : {};
+
     // Önce bulutta olmayan yerel "sessizlik-" anahtarlarını temizle
     // (tam geri yükleme = cihazı buluttaki hâle birebir eşitler)
     var mevcutAnahtarlar = [];
@@ -82,15 +165,23 @@
       if (k && k.indexOf(ONEK) === 0) mevcutAnahtarlar.push(k);
     }
     mevcutAnahtarlar.forEach(function (k) {
-      if (!(k in veri)) localStorage.removeItem(k);
+      if (!(k in yerelVeri)) localStorage.removeItem(k);
     });
-    Object.keys(veri).forEach(function (k) {
-      localStorage.setItem(k, veri[k]);
+    Object.keys(yerelVeri).forEach(function (k) {
+      localStorage.setItem(k, yerelVeri[k]);
     });
+
+    return dosyalariYerelUygula(dosyaVeri);
   }
 
   function veriBosMu(veri) {
-    return !veri || Object.keys(veri).length === 0;
+    if (!veri) return true;
+    if (veri.__surum === YEDEK_SURUMU) {
+      var yerel = veri.localStorage || {};
+      var dosyalar = veri.dosyalar || {};
+      return Object.keys(yerel).length === 0 && Object.keys(dosyalar).length === 0;
+    }
+    return Object.keys(veri).length === 0;
   }
 
   function hataMesajiCevir(ham) {
@@ -165,13 +256,14 @@
     if (!girisliMi() || !navigator.onLine) return Promise.resolve(false);
     senkronDurum = 'bekliyor';
     panelGuncelle();
-    var veri = tumVeriyiTopla();
-    return istemci.from(TABLO).upsert({
-      user_id: oturum.user.id,
-      veri: veri,
-      guncellenme_zamani: new Date().toISOString(),
-      cihaz_etiketi: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'bilinmiyor'
-    }, { onConflict: 'user_id' }).then(function (r) {
+    return tumVeriyiTopla().then(function (veri) {
+      return istemci.from(TABLO).upsert({
+        user_id: oturum.user.id,
+        veri: veri,
+        guncellenme_zamani: new Date().toISOString(),
+        cihaz_etiketi: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'bilinmiyor'
+      }, { onConflict: 'user_id' });
+    }).then(function (r) {
       if (r.error) throw r.error;
       senkronDurum = 'senkron';
       localStorage.setItem(SON_YEDEK_ANAHTARI, new Date().toISOString());
@@ -194,11 +286,13 @@
           mesajGoster('Bulutta henüz bir yedek bulunamadı.');
           return false;
         }
-        veriyiYerelUygula(r.data.veri);
-        localStorage.setItem(SON_YEDEK_ANAHTARI, r.data.guncellenme_zamani);
-        mesajGoster('Veriler geri yüklendi. Uygulama yeniden başlatılıyor…');
-        setTimeout(function () { window.location.reload(); }, 900);
-        return true;
+        mesajGoster('Görseller de dahil veriler indiriliyor…');
+        return Promise.resolve(veriyiYerelUygula(r.data.veri)).then(function () {
+          localStorage.setItem(SON_YEDEK_ANAHTARI, r.data.guncellenme_zamani);
+          mesajGoster('Veriler geri yüklendi. Uygulama yeniden başlatılıyor…');
+          setTimeout(function () { window.location.reload(); }, 900);
+          return true;
+        });
       }).catch(function (e) {
         senkronDurum = 'hata';
         console.error('Geri yükleme hatası:', e);
@@ -223,32 +317,33 @@
   // indirme/yeniden başlatma olmaz.
   function girisSonrasiSenkronKontrol() {
     if (!girisliMi()) return;
-    var yerel = tumVeriyiTopla();
-    var yerelBos = veriBosMu(yerel);
-    buluttakiYedegiGetir().then(function (r) {
-      if (r.error) { senkronDurum = 'hata'; panelGuncelle(); return; }
-      var bulutBos = !r.data || veriBosMu(r.data.veri);
-      if (bulutBos && !yerelBos) {
-        // İlk kez bağlanıyor: bu cihazdaki veriyi buluta gönder.
-        simdiYedekle();
-      } else if (!bulutBos && yerelBos) {
-        // Yeni/boş cihaz: buluttaki veriyi sessizce indir.
-        buluttanGeriYukle(true);
-      } else if (!bulutBos && !yerelBos) {
-        var bilinenSonYedek = localStorage.getItem(SON_YEDEK_ANAHTARI);
-        var bulutDahaYeniMi = !bilinenSonYedek || new Date(r.data.guncellenme_zamani).getTime() > new Date(bilinenSonYedek).getTime();
-        if (bulutDahaYeniMi) {
-          // Bulutta bu cihazın bilmediği daha yeni bir değişiklik var
-          // (başka bir cihazdan gelmiş olabilir) — sessizce uygula.
+    tumVeriyiTopla().then(function (yerel) {
+      var yerelBos = veriBosMu(yerel);
+      buluttakiYedegiGetir().then(function (r) {
+        if (r.error) { senkronDurum = 'hata'; panelGuncelle(); return; }
+        var bulutBos = !r.data || veriBosMu(r.data.veri);
+        if (bulutBos && !yerelBos) {
+          // İlk kez bağlanıyor: bu cihazdaki veriyi buluta gönder.
+          simdiYedekle();
+        } else if (!bulutBos && yerelBos) {
+          // Yeni/boş cihaz: buluttaki veriyi sessizce indir.
           buluttanGeriYukle(true);
+        } else if (!bulutBos && !yerelBos) {
+          var bilinenSonYedek = localStorage.getItem(SON_YEDEK_ANAHTARI);
+          var bulutDahaYeniMi = !bilinenSonYedek || new Date(r.data.guncellenme_zamani).getTime() > new Date(bilinenSonYedek).getTime();
+          if (bulutDahaYeniMi) {
+            // Bulutta bu cihazın bilmediği daha yeni bir değişiklik var
+            // (başka bir cihazdan gelmiş olabilir) — sessizce uygula.
+            buluttanGeriYukle(true);
+          } else {
+            senkronDurum = 'senkron';
+            panelGuncelle();
+          }
         } else {
           senkronDurum = 'senkron';
           panelGuncelle();
         }
-      } else {
-        senkronDurum = 'senkron';
-        panelGuncelle();
-      }
+      });
     });
   }
 
