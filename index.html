@@ -7439,6 +7439,100 @@
   .giris-isim-input::placeholder{ color:var(--ink-soft); opacity:0.6; }
   .giris-isim-input:focus{ border-color:var(--accent); }
 
+  /* ---- Alan (Sayısal / Eşit Ağırlık / Henüz karar vermedim) ve
+     müfredat (ders) seçim listeleri: hem giriş akışında hem de
+     Ayarlar'daki "Alan" değiştirme penceresinde kullanılır. ---- */
+  .alan-secim-liste{
+    margin-top:1.6rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.6rem;
+    opacity:0;
+    transform:translateY(10px);
+    animation: girisBoxIn 0.45s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.22s;
+  }
+  .alan-secim-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:0.15rem;
+    width:100%;
+    text-align:left;
+    padding:0.75rem 1rem;
+    border-radius:1rem;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .alan-secim-btn:hover{ border-color:rgba(var(--accent-rgb),0.5); }
+  .alan-secim-btn:active{ transform:scale(0.99); }
+  .alan-secim-btn.secili{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.1);
+  }
+  .alan-secim-baslik{
+    font-size:0.98rem;
+    font-weight:500;
+    color:var(--ink);
+  }
+  .alan-secim-aciklama{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+  }
+  /* Çoklu seçim (müfredat) varyantı: seçili derslerin başına küçük bir
+     onay işareti eklenir, tek satıra sığdırılabilir daha kompakt hâl. */
+  .alan-secim-cok{
+    max-height:15rem;
+    overflow-y:auto;
+    padding-right:0.15rem;
+    scrollbar-width:none;
+  }
+  .alan-secim-cok::-webkit-scrollbar{ display:none; width:0; height:0; }
+  .alan-secim-cok .alan-secim-btn{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    padding:0.65rem 1rem;
+  }
+  .alan-secim-cok .alan-secim-onay{
+    width:1.1rem;
+    height:1.1rem;
+    border-radius:50%;
+    border:1px solid var(--line);
+    flex-shrink:0;
+    position:relative;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .alan-secim-cok .alan-secim-btn.secili .alan-secim-onay{
+    border-color:var(--accent);
+    background:var(--accent);
+  }
+  .alan-secim-cok .alan-secim-btn.secili .alan-secim-onay::after{
+    content:'';
+    position:absolute;
+    left:50%; top:46%;
+    width:0.28rem; height:0.5rem;
+    border:solid var(--bg);
+    border-width:0 2px 2px 0;
+    transform:translate(-50%,-50%) rotate(45deg);
+  }
+  /* Seçili alana (Sayısal / Eşit Ağırlık) dahil olmayan dersler: soluk ve
+     tıklanamaz gösterilir — yalnızca "Henüz karar vermedim" seçiliyken
+     dersler serbestçe seçilebilir olur. */
+  .alan-secim-cok .alan-secim-btn:disabled{
+    cursor:not-allowed;
+  }
+  .alan-secim-cok .alan-secim-btn.devre-disi{
+    opacity:0.35;
+  }
+  .alan-secim-cok .alan-secim-btn.sabit-secili{
+    cursor:default;
+  }
+
   .giris-devam-btn{
     margin-top:2rem;
     width:100%;
@@ -7656,6 +7750,39 @@
         </button>
       </div>
 
+      <!-- Adım 3: Alan sorma (Sayısal / Eşit Ağırlık / Henüz karar vermedim) -->
+      <div class="giris-box" id="girisAdimAlan" data-adim="alan" hidden>
+        <h1 class="giris-title">Alanın ne?</h1>
+        <p class="giris-sub">Bu, AYT ders takibini sana göre ayarlar. İstersen sonra Ayarlar'dan değiştirebilirsin.</p>
+        <div class="alan-secim-liste" id="girisAlanSecim" role="radiogroup" aria-label="Alan seçimi">
+          <button type="button" class="alan-secim-btn" data-alan="sayisal" role="radio" aria-checked="false">
+            <span class="alan-secim-baslik">Sayısal</span>
+            <span class="alan-secim-aciklama">Matematik, Fizik, Kimya, Biyoloji</span>
+          </button>
+          <button type="button" class="alan-secim-btn" data-alan="esit-agirlik" role="radio" aria-checked="false">
+            <span class="alan-secim-baslik">Eşit Ağırlık</span>
+            <span class="alan-secim-aciklama">Matematik, Edebiyat, Tarih-1, Coğrafya-1</span>
+          </button>
+          <button type="button" class="alan-secim-btn" data-alan="kararsiz" role="radio" aria-checked="false">
+            <span class="alan-secim-baslik">Henüz karar vermedim</span>
+            <span class="alan-secim-aciklama">Ders müfredatımı kendim seçeceğim</span>
+          </button>
+        </div>
+        <button type="button" class="giris-devam-btn" id="girisAlanDevamBtn" disabled>
+          <span>Devam Et</span>
+        </button>
+      </div>
+
+      <!-- Adım 4: Kendi müfredatını seç (yalnızca "Henüz karar vermedim" seçilirse gösterilir) -->
+      <div class="giris-box" id="girisAdimMufredat" data-adim="mufredat" hidden>
+        <h1 class="giris-title">Derslerini seç</h1>
+        <p class="giris-sub">AYT'de çalışacağın dersleri işaretle. İstediğin zaman Ayarlar'dan değiştirebilirsin.</p>
+        <div class="alan-secim-liste alan-secim-cok" id="girisMufredatSecim" role="group" aria-label="Ders seçimi"></div>
+        <button type="button" class="giris-devam-btn" id="girisMufredatDevamBtn" disabled>
+          <span>Bitir</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -7792,6 +7919,16 @@
           <span class="settings-row-sub" id="isimStateLabel">—</span>
         </div>
         <button type="button" class="yedek-ac-btn" id="isimDuzenleBtn" aria-label="İsmini değiştir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+          <span>Değiştir</span>
+        </button>
+      </div>
+      <div class="settings-row" id="alanRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Alanın</span>
+          <span class="settings-row-sub" id="alanStateLabel">—</span>
+        </div>
+        <button type="button" class="yedek-ac-btn" id="alanDuzenleBtn" aria-label="Alanını değiştir">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
           <span>Değiştir</span>
         </button>
@@ -8572,6 +8709,36 @@
     </div>
   </div>
 
+  <!-- Ayarlar: alan (Sayısal / Eşit Ağırlık / Henüz karar vermedim) değiştirme penceresi -->
+  <div class="modal-overlay" id="alanDegistirModalOverlay">
+    <div class="modal-box" style="position:relative;">
+      <button class="modal-close" id="alanDegistirModalClose" type="button" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+      <span class="modal-eyebrow">Profil</span>
+      <h3 class="modal-title">Alanını Değiştir</h3>
+      <div class="alan-secim-liste" id="alanDegistirSecim" role="radiogroup" aria-label="Alan seçimi" style="margin-top:1rem; opacity:1; transform:none; animation:none;">
+        <button type="button" class="alan-secim-btn" data-alan="sayisal" role="radio" aria-checked="false">
+          <span class="alan-secim-baslik">Sayısal</span>
+          <span class="alan-secim-aciklama">Matematik, Fizik, Kimya, Biyoloji</span>
+        </button>
+        <button type="button" class="alan-secim-btn" data-alan="esit-agirlik" role="radio" aria-checked="false">
+          <span class="alan-secim-baslik">Eşit Ağırlık</span>
+          <span class="alan-secim-aciklama">Matematik, Edebiyat, Tarih-1, Coğrafya-1</span>
+        </button>
+        <button type="button" class="alan-secim-btn" data-alan="kararsiz" role="radio" aria-checked="false">
+          <span class="alan-secim-baslik">Henüz karar vermedim</span>
+          <span class="alan-secim-aciklama">Ders müfredatımı kendim seçeceğim</span>
+        </button>
+      </div>
+      <div class="alan-secim-liste alan-secim-cok" id="alanDegistirMufredatSecim" role="group" aria-label="Ders seçimi" style="margin-top:0.9rem; opacity:1; transform:none; animation:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="alanDegistirVazgec">Vazgeç</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="alanDegistirKaydet">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Takvimden bir tarihe tekrar tıklanınca açılan pop-up: sayaç ismi girilince geri sayım o tarih için kurulur ve başlar -->
   <div class="modal-overlay" id="sayacBaslatModalOverlay">
     <div class="modal-box" style="position:relative;">
@@ -9282,6 +9449,143 @@
     });
   })();
 
+  // ================= ALAN YÖNETİMİ (Ayarlardan Sayısal / Eşit Ağırlık / Henüz karar vermedim değiştirme) =================
+  // Giriş akışında bir kez sorulan alan tercihini, Ayarlar sayfasındaki
+  // "Alanın" satırından istendiği zaman değiştirebilir. "Henüz karar
+  // vermedim" seçilirse ders müfredatı listesi de burada gösterilir.
+  (function(){
+    const ALAN_ANAHTARI = 'sessizlik-alan';
+    const AYT_MUFREDAT_ANAHTARI = 'sessizlik-ayt-mufredat';
+    const ALAN_ETIKETLERI = { 'sayisal':'Sayısal', 'esit-agirlik':'Eşit Ağırlık', 'kararsiz':'Kendi seçtiğim dersler' };
+    const ALAN_HAZIR_MUFREDAT = {
+      'sayisal': ['Matematik', 'Fizik', 'Kimya', 'Biyoloji'],
+      'esit-agirlik': ['Matematik', 'Edebiyat', 'Tarih-1', 'Coğrafya-1']
+    };
+
+    const alanStateLabel = document.getElementById('alanStateLabel');
+    const alanDuzenleBtn = document.getElementById('alanDuzenleBtn');
+    const modalOverlay = document.getElementById('alanDegistirModalOverlay');
+    const modalClose = document.getElementById('alanDegistirModalClose');
+    const modalVazgec = document.getElementById('alanDegistirVazgec');
+    const modalKaydet = document.getElementById('alanDegistirKaydet');
+    const modalAlanSecim = document.getElementById('alanDegistirSecim');
+    const modalMufredatSecim = document.getElementById('alanDegistirMufredatSecim');
+
+    let seciliAlan = null;
+    let seciliMufredat = [];
+
+    function kayitliAlan(){
+      try{ return localStorage.getItem(ALAN_ANAHTARI) || 'sayisal'; }catch(e){ return 'sayisal'; }
+    }
+    function kayitliMufredat(){
+      try{
+        const ham = JSON.parse(localStorage.getItem(AYT_MUFREDAT_ANAHTARI) || '[]');
+        return Array.isArray(ham) ? ham.slice() : [];
+      }catch(e){ return []; }
+    }
+
+    function etiketiGuncelle(){
+      if(!alanStateLabel) return;
+      alanStateLabel.textContent = ALAN_ETIKETLERI[kayitliAlan()] || 'Sayısal';
+    }
+    etiketiGuncelle();
+
+    function alanBtnleriniCiz(){
+      if(!modalAlanSecim) return;
+      Array.from(modalAlanSecim.children).forEach(function(btn){
+        const seciliMi = btn.dataset.alan === seciliAlan;
+        btn.classList.toggle('secili', seciliMi);
+        btn.setAttribute('aria-checked', seciliMi ? 'true' : 'false');
+      });
+      mufredatBtnleriniCiz();
+    }
+    // Ders listesi her zaman gösterilir. Sayısal/Eşit Ağırlık seçiliyken
+    // yalnızca o alana ait dersler işaretli ve dokunulamaz (soluk) hâlde
+    // görünür; "Henüz karar vermedim" seçiliyken tüm dersler serbestçe
+    // işaretlenip kaldırılabilir.
+    function mufredatBtnleriniCiz(){
+      if(!modalMufredatSecim) return;
+      modalMufredatSecim.innerHTML = '';
+      const havuz = (window.AYT_DERS_SIRASI || ['Matematik','Fizik','Kimya','Biyoloji','Edebiyat','Tarih-1','Coğrafya-1']);
+      const sabitListe = ALAN_HAZIR_MUFREDAT[seciliAlan] || null;
+      const serbestMi = seciliAlan === 'kararsiz';
+      havuz.forEach(function(ad){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'alan-secim-btn';
+        btn.setAttribute('role', 'checkbox');
+        const seciliMi = serbestMi ? (seciliMufredat.indexOf(ad) !== -1) : !!(sabitListe && sabitListe.indexOf(ad) !== -1);
+        btn.classList.toggle('secili', seciliMi);
+        btn.setAttribute('aria-checked', seciliMi ? 'true' : 'false');
+        if(!serbestMi){
+          btn.disabled = true;
+          btn.classList.toggle('sabit-secili', seciliMi);
+          btn.classList.toggle('devre-disi', !seciliMi);
+        }
+        btn.innerHTML = '<span class="alan-secim-baslik">' + ad + '</span><span class="alan-secim-onay"></span>';
+        if(serbestMi){
+          btn.addEventListener('click', function(){
+            const i = seciliMufredat.indexOf(ad);
+            if(i === -1){ seciliMufredat.push(ad); } else { seciliMufredat.splice(i, 1); }
+            const simdiSeciliMi = seciliMufredat.indexOf(ad) !== -1;
+            btn.classList.toggle('secili', simdiSeciliMi);
+            btn.setAttribute('aria-checked', simdiSeciliMi ? 'true' : 'false');
+          });
+        }
+        modalMufredatSecim.appendChild(btn);
+      });
+    }
+
+    function modalAc(){
+      if(!modalOverlay) return;
+      seciliAlan = kayitliAlan();
+      seciliMufredat = kayitliMufredat();
+      mufredatBtnleriniCiz();
+      alanBtnleriniCiz();
+      modalOverlay.classList.add('active');
+    }
+    function modalKapat(){
+      if(modalOverlay){ modalOverlay.classList.remove('active'); }
+    }
+    function kaydet(){
+      if(!seciliAlan) return;
+      if(seciliAlan === 'kararsiz' && !seciliMufredat.length){ return; }
+      try{ localStorage.setItem(ALAN_ANAHTARI, seciliAlan); }catch(e){}
+      if(seciliAlan === 'kararsiz'){
+        try{ localStorage.setItem(AYT_MUFREDAT_ANAHTARI, JSON.stringify(seciliMufredat)); }catch(e){}
+      } else {
+        try{ localStorage.removeItem(AYT_MUFREDAT_ANAHTARI); }catch(e){}
+      }
+      if(typeof window.aytMufredatGuncelle === 'function'){ window.aytMufredatGuncelle(); }
+      etiketiGuncelle();
+      modalKapat();
+    }
+
+    if(modalAlanSecim){
+      Array.from(modalAlanSecim.children).forEach(function(btn){
+        btn.addEventListener('click', function(){
+          seciliAlan = btn.dataset.alan;
+          alanBtnleriniCiz();
+        });
+      });
+    }
+
+    if(alanDuzenleBtn){ alanDuzenleBtn.addEventListener('click', modalAc); }
+    if(modalClose){ modalClose.addEventListener('click', modalKapat); }
+    if(modalVazgec){ modalVazgec.addEventListener('click', modalKapat); }
+    if(modalKaydet){ modalKaydet.addEventListener('click', kaydet); }
+    if(modalOverlay){
+      modalOverlay.addEventListener('click', function(e){
+        if(e.target === modalOverlay){ modalKapat(); }
+      });
+    }
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('active')){
+        modalKapat();
+      }
+    });
+  })();
+
   // ================= ANA SAYFA GİRİŞ ANİMASYONU GÜVENLİK AĞI =================
   // Uygulama arka plandan dönerken ya da ikinci kez açılırken (bfcache / PWA
   // yeniden etkinleşmesi) CSS animation-delay zamanlayıcıları bazen hiç
@@ -9422,6 +9726,49 @@
         { ad:'Biyoloji', soru:13 }
       ]
     };
+
+    // ---- Alan (Sayısal / Eşit Ağırlık / Henüz karar vermedim) ve buna göre
+    // kişiselleşen AYT müfredatı. Giriş akışında ve Ayarlar > "Alanın"
+    // satırından seçilir; seçime göre BRANS_YAPISI.AYT burada yeniden kurulur.
+    const ALAN_ANAHTARI = 'sessizlik-alan';
+    const AYT_MUFREDAT_ANAHTARI = 'sessizlik-ayt-mufredat';
+    const AYT_DERS_HAVUZU = {
+      'Matematik': 40, 'Fizik': 14, 'Kimya': 13, 'Biyoloji': 13,
+      'Edebiyat': 24, 'Tarih-1': 10, 'Coğrafya-1': 6
+    };
+    const AYT_DERS_SIRASI = ['Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Edebiyat', 'Tarih-1', 'Coğrafya-1'];
+    const ALAN_HAZIR_MUFREDAT = {
+      'sayisal': ['Matematik', 'Fizik', 'Kimya', 'Biyoloji'],
+      'esit-agirlik': ['Matematik', 'Edebiyat', 'Tarih-1', 'Coğrafya-1']
+    };
+
+    function kayitliAlan(){
+      try{ return localStorage.getItem(ALAN_ANAHTARI) || 'sayisal'; }catch(e){ return 'sayisal'; }
+    }
+    function kayitliOzelMufredat(){
+      try{
+        const ham = JSON.parse(localStorage.getItem(AYT_MUFREDAT_ANAHTARI) || '[]');
+        return Array.isArray(ham) ? ham.filter(function(ad){ return AYT_DERS_HAVUZU.hasOwnProperty(ad); }) : [];
+      }catch(e){ return []; }
+    }
+    // Seçilen alana göre BRANS_YAPISI.AYT listesini yeniden kurar. Uygulamanın
+    // her yerinde AYT branşları BRANS_YAPISI.AYT üzerinden anlık okunduğu için
+    // (bkz. arama sonuçları), burada listeyi yeniden atamak yeterlidir.
+    function aytMufredatGuncelle(){
+      const alan = kayitliAlan();
+      let secili = ALAN_HAZIR_MUFREDAT[alan];
+      if(!secili){
+        secili = kayitliOzelMufredat();
+        if(!secili.length){ secili = ALAN_HAZIR_MUFREDAT.sayisal; }
+      }
+      BRANS_YAPISI.AYT = AYT_DERS_SIRASI
+        .filter(function(ad){ return secili.indexOf(ad) !== -1; })
+        .map(function(ad){ return { ad: ad, soru: AYT_DERS_HAVUZU[ad] }; });
+    }
+    aytMufredatGuncelle();
+    window.aytMufredatGuncelle = aytMufredatGuncelle;
+    window.AYT_DERS_HAVUZU = AYT_DERS_HAVUZU;
+    window.AYT_DERS_SIRASI = AYT_DERS_SIRASI;
 
     // id -> { isim, tarih, alan, cevaplar:{branşAdı:[0|1|2,...]}, video, cevapAnahtari }
     // durum kodları: 0 = boş, 1 = doğru, 2 = yanlış
@@ -9869,6 +10216,7 @@
     const emptySub = document.getElementById('emptySub');
     const settingsRow = document.getElementById('settingsRow');
     const isimRow = document.getElementById('isimRow');
+    const alanRow = document.getElementById('alanRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
     const renkRow = document.getElementById('renkRow');
     const isikEfektiRow = document.getElementById('isikEfektiRow');
@@ -9997,7 +10345,7 @@
 
       // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
       // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
-      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
       ayarOgeleri.forEach(function(el){
         el.classList.remove('animate');
         el.style.animation = 'none';
@@ -16164,9 +16512,21 @@
     const SUPA_URL = 'https://jyrvvyiwlavqquxbodab.supabase.co';
     const SUPA_ANON = 'sb_publishable_3_9QRSOx-HHZ2vq_ZZd0Bw_rpEGMeCm';
 
+    const ALAN_ANAHTARI = 'sessizlik-alan';
+    const AYT_MUFREDAT_ANAHTARI = 'sessizlik-ayt-mufredat';
+
     const overlay = document.getElementById('girisEkraniOverlay');
     const adimHesap = document.getElementById('girisAdimHesap');
     const adimIsim = document.getElementById('girisAdimIsim');
+    const adimAlan = document.getElementById('girisAdimAlan');
+    const adimMufredat = document.getElementById('girisAdimMufredat');
+
+    const alanSecim = document.getElementById('girisAlanSecim');
+    const alanDevamBtn = document.getElementById('girisAlanDevamBtn');
+    const mufredatSecim = document.getElementById('girisMufredatSecim');
+    const mufredatDevamBtn = document.getElementById('girisMufredatDevamBtn');
+    let seciliAlan = null;
+    let seciliMufredat = [];
 
     const sekmeGiris = document.getElementById('girisSekmeGirisBtn');
     const sekmeKayit = document.getElementById('girisSekmeKayitBtn');
@@ -16206,6 +16566,19 @@
     }
     function isimVarMi(){
       try{ return !!(localStorage.getItem(ISIM_ANAHTARI) || '').trim(); }catch(e){ return false; }
+    }
+    function alanVarMi(){
+      try{ return !!(localStorage.getItem(ALAN_ANAHTARI) || '').trim(); }catch(e){ return false; }
+    }
+    function mufredatEksikMi(){
+      try{
+        if(localStorage.getItem(ALAN_ANAHTARI) !== 'kararsiz') return false;
+        const liste = JSON.parse(localStorage.getItem(AYT_MUFREDAT_ANAHTARI) || '[]');
+        return !(Array.isArray(liste) && liste.length > 0);
+      }catch(e){ return true; }
+    }
+    function mufredatGuncelle(){
+      if(typeof window.aytMufredatGuncelle === 'function'){ window.aytMufredatGuncelle(); }
     }
 
     // İsmi düzgün Türkçe kurallarına göre biçimlendiren fonksiyon, isim
@@ -16306,11 +16679,102 @@
       });
     }
 
+    // ---- Alan seçim adımı (Sayısal / Eşit Ağırlık / Henüz karar vermedim) ----
+    function alanAdiminiCiz(){
+      if(!alanSecim) return;
+      const mevcut = seciliAlan;
+      Array.from(alanSecim.children).forEach(function(btn){
+        const seciliMi = btn.dataset.alan === mevcut;
+        btn.classList.toggle('secili', seciliMi);
+        btn.setAttribute('aria-checked', seciliMi ? 'true' : 'false');
+      });
+      if(alanDevamBtn){ alanDevamBtn.disabled = !mevcut; }
+    }
+    if(alanSecim){
+      Array.from(alanSecim.children).forEach(function(btn){
+        btn.addEventListener('click', function(){
+          seciliAlan = btn.dataset.alan;
+          alanAdiminiCiz();
+        });
+      });
+    }
+
+    // ---- Müfredat (ders) seçim adımı: yalnızca "Henüz karar vermedim" seçilirse ----
+    function mufredatAdiminiCiz(){
+      if(!mufredatSecim) return;
+      mufredatSecim.innerHTML = '';
+      const havuz = (window.AYT_DERS_SIRASI || ['Matematik','Fizik','Kimya','Biyoloji','Edebiyat','Tarih-1','Coğrafya-1']);
+      havuz.forEach(function(ad){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'alan-secim-btn';
+        btn.setAttribute('role', 'checkbox');
+        const seciliMi = seciliMufredat.indexOf(ad) !== -1;
+        btn.classList.toggle('secili', seciliMi);
+        btn.setAttribute('aria-checked', seciliMi ? 'true' : 'false');
+        btn.innerHTML = '<span class="alan-secim-baslik">' + ad + '</span><span class="alan-secim-onay"></span>';
+        btn.addEventListener('click', function(){
+          const i = seciliMufredat.indexOf(ad);
+          if(i === -1){ seciliMufredat.push(ad); } else { seciliMufredat.splice(i, 1); }
+          const simdiSeciliMi = seciliMufredat.indexOf(ad) !== -1;
+          btn.classList.toggle('secili', simdiSeciliMi);
+          btn.setAttribute('aria-checked', simdiSeciliMi ? 'true' : 'false');
+          if(mufredatDevamBtn){ mufredatDevamBtn.disabled = seciliMufredat.length === 0; }
+        });
+        mufredatSecim.appendChild(btn);
+      });
+      if(mufredatDevamBtn){ mufredatDevamBtn.disabled = seciliMufredat.length === 0; }
+    }
+
+    // Kayıtlı duruma göre bir sonraki adıma geçer ya da girişi tamamlar.
+    // Hem hesap/misafir/isim adımlarından hem de tekrar giriş (oturum
+    // devam ediyor) durumunda çağrılır; hangi adımda tamamlanacağını
+    // localStorage'daki kayıtlı bilgiye göre kendisi belirler.
+    function akistaIlerle(mevcutKutu){
+      if(!isimVarMi()){
+        adimaGec(mevcutKutu, adimIsim, isimInput);
+        return;
+      }
+      if(!alanVarMi()){
+        seciliAlan = null;
+        alanAdiminiCiz();
+        adimaGec(mevcutKutu, adimAlan, null);
+        return;
+      }
+      if(mufredatEksikMi()){
+        seciliMufredat = [];
+        mufredatAdiminiCiz();
+        adimaGec(mevcutKutu, adimMufredat, null);
+        return;
+      }
+      girisTamamlandiIsaretle();
+      ekraniGizle();
+      if(typeof window.hosgeldinBasligiOlustur === 'function'){ window.hosgeldinBasligiOlustur(); }
+    }
+
+    if(alanDevamBtn){
+      alanDevamBtn.addEventListener('click', function(){
+        if(!seciliAlan) return;
+        try{ localStorage.setItem(ALAN_ANAHTARI, seciliAlan); }catch(e){}
+        if(seciliAlan !== 'kararsiz'){
+          try{ localStorage.removeItem(AYT_MUFREDAT_ANAHTARI); }catch(e){}
+        }
+        mufredatGuncelle();
+        akistaIlerle(adimAlan);
+      });
+    }
+    if(mufredatDevamBtn){
+      mufredatDevamBtn.addEventListener('click', function(){
+        if(!seciliMufredat.length) return;
+        try{ localStorage.setItem(AYT_MUFREDAT_ANAHTARI, JSON.stringify(seciliMufredat)); }catch(e){}
+        mufredatGuncelle();
+        akistaIlerle(adimMufredat);
+      });
+    }
+
     function isimAdiminaGecVeyaBitir(){
       if(isimVarMi()){
-        girisTamamlandiIsaretle();
-        ekraniGizle();
-        if(typeof window.hosgeldinBasligiOlustur === 'function'){ window.hosgeldinBasligiOlustur(); }
+        akistaIlerle(adimHesap);
       } else {
         adimaGec(adimHesap, adimIsim, isimInput);
       }
@@ -16386,9 +16850,7 @@
           ? window.turkceDuzgunAd(isimInput.value)
           : isimInput.value.trim();
         try{ localStorage.setItem(ISIM_ANAHTARI, duzgunIsim); }catch(e){}
-        girisTamamlandiIsaretle();
-        ekraniGizle();
-        if(typeof window.hosgeldinBasligiOlustur === 'function'){ window.hosgeldinBasligiOlustur(); }
+        akistaIlerle(adimIsim);
       });
     }
 
@@ -16406,10 +16868,12 @@
       if(sifreInput) sifreInput.value = '';
       girisFormGecerliligiKontrolEt();
       durumGoster('');
-      if(adimIsim && !adimIsim.hidden){
-        adimIsim.hidden = true;
-        adimIsim.classList.remove('giris-adim-giris', 'giris-adim-cikis');
-      }
+      [adimIsim, adimAlan, adimMufredat].forEach(function(kutu){
+        if(kutu && !kutu.hidden){
+          kutu.hidden = true;
+          kutu.classList.remove('giris-adim-giris', 'giris-adim-cikis');
+        }
+      });
       if(adimHesap){
         adimHesap.hidden = false;
         adimHesap.classList.remove('giris-adim-cikis');
@@ -16418,6 +16882,15 @@
       ekraniGoster();
       setTimeout(function(){ if(epostaInput){ epostaInput.focus(); } }, 380);
     };
+
+    // Bu güncellemeden önce girişini tamamlamış eski kullanıcılar için:
+    // isim zaten var ama alan hiç sorulmamışsa, uygulamanın önceki
+    // davranışıyla tutarlı kalması için sessizce "Sayısal" varsayılır.
+    // Kullanıcı dilediği zaman Ayarlar > "Alanın" satırından değiştirebilir.
+    if(girisTamamlandiMi() && isimVarMi() && !alanVarMi()){
+      try{ localStorage.setItem(ALAN_ANAHTARI, 'sayisal'); }catch(e){}
+      mufredatGuncelle();
+    }
 
     if(girisTamamlandiMi()){
       ekraniGizle();
