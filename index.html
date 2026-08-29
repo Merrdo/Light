@@ -16631,16 +16631,17 @@
     const ilerlemeWrap = document.getElementById('girisIlerlemeWrap');
     const ilerlemeDolu = document.getElementById('girisIlerlemeDolu');
     const ilerlemeSayac = document.getElementById('girisIlerlemeSayac');
-    const ADIM_SIRASI = ['hesap', 'isim', 'alan', 'mufredat'];
+    const ADIM_SIRASI = ['isim', 'alan', 'mufredat'];
 
     // Toplam sayfa sayısı sabit değil: "Henüz karar vermedim" seçilirse
     // (ya da daha önce öyle seçilmişse) müfredat seçim sayfası da eklenip
-    // toplam 4 olur, aksi halde 3 sayfa sürer (Hesap / İsim / Alan).
+    // toplam 3 olur, aksi halde 2 sayfa sürer (İsim / Alan). Giriş/Kayıt
+    // sayfası barda gösterilmediği için sayıma dahil edilmez.
     function girisToplamAdimSayisi(){
       const kararsizMi = seciliAlan === 'kararsiz' || (function(){
         try{ return localStorage.getItem(ALAN_ANAHTARI) === 'kararsiz'; }catch(e){ return false; }
       })();
-      return kararsizMi ? 4 : 3;
+      return kararsizMi ? 3 : 2;
     }
 
     // Görünen kutuya göre üstteki ilerleme çubuğunu ve X/X sayacını günceller.
