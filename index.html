@@ -3351,6 +3351,11 @@
     .kart-kopyala-btn:hover{ background:rgba(var(--accent-rgb),0.1); }
   }
   .kart-kopyala-btn:active{ background:rgba(var(--accent-rgb),0.16); }
+  .kart-kopyala-ayrac{
+    height:1px;
+    background:var(--line);
+    margin:0.25rem 0.2rem;
+  }
 
   .kisa-bildirim{
     position:fixed;
@@ -8362,11 +8367,16 @@
 
   <footer id="pageFooter"></footer>
 
-  <!-- Rutinler / Yapılacaklar: kart basılı tutulunca çıkan Kopyala menüsü -->
+  <!-- Rutinler / Yapılacaklar: kart basılı tutulunca çıkan Kopyala / Düzenle menüsü -->
   <div class="kart-kopyala-menu" id="kartKopyalaMenu">
     <button type="button" class="kart-kopyala-btn" id="kartKopyalaBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
       <span>Kopyala</span>
+    </button>
+    <div class="kart-kopyala-ayrac"></div>
+    <button type="button" class="kart-kopyala-btn" id="kartDuzenleBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+      <span>Düzenle</span>
     </button>
   </div>
   <div class="kisa-bildirim" id="kisaBildirim">Kopyalandı</div>
@@ -9911,11 +9921,6 @@
     // çağrının içerik fonksiyonunu çalıştırmasını garanti ederek bu yarışı ortadan
     // kaldırıyor.
     let gecisBekleyenId = null;
-
-    // Ayarlar (viewEmpty) ekranı ilk açılışta hoş bir giriş animasyonuyla belirir;
-    // sonraki her açılışta ise ana sayfadaki gibi beklemeden anında görünür hale
-    // getirilir (bkz. showEmptyView).
-    let ayarlarIlkGosterimYapildi = false;
     function gecisIleDegistir(icerikFn){
       const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
       const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
@@ -9990,30 +9995,16 @@
       void viewEmpty.offsetWidth;
       viewEmpty.style.animation = '';
 
+      // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
+      // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
       const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
-
-      if(ayarlarIlkGosterimYapildi){
-        // Ana sayfaya her dönüşte olduğu gibi: uzun giriş animasyonunu tekrar
-        // oynatmadan öğeleri doğrudan son (görünür) haline getir, ekran hızlı gelsin.
-        ayarOgeleri.forEach(function(el){
-          el.classList.remove('animate');
-          el.style.animation = 'none';
-          el.style.opacity = '1';
-          el.style.filter = 'none';
-          el.style.transform = 'none';
-        });
-      } else {
-        ayarOgeleri.forEach(function(el){
-          el.style.animation = '';
-          el.style.opacity = '';
-          el.style.filter = '';
-          el.style.transform = '';
-          el.classList.remove('animate');
-        });
-        void emptyWord.offsetWidth;
-        ayarOgeleri.forEach(function(el){ el.classList.add('animate'); });
-        ayarlarIlkGosterimYapildi = true;
-      }
+      ayarOgeleri.forEach(function(el){
+        el.classList.remove('animate');
+        el.style.animation = 'none';
+        el.style.opacity = '1';
+        el.style.filter = 'none';
+        el.style.transform = 'none';
+      });
       });
     }
 
@@ -11174,9 +11165,11 @@
       // işi tek dokunuşla yaptığı için serbest seçim kaldırıldı (bkz. ilgili CSS).
       const kartKopyalaMenu = document.getElementById('kartKopyalaMenu');
       const kartKopyalaBtn = document.getElementById('kartKopyalaBtn');
+      const kartDuzenleBtn = document.getElementById('kartDuzenleBtn');
       const kisaBildirimEl = document.getElementById('kisaBildirim');
       let kisaBildirimZamanlayici = null;
       let kartKopyalaAktifMetin = '';
+      let kartKopyalaAktifDuzenle = null;
 
       function kisaBildirimGoster(mesaj){
         if(!kisaBildirimEl) return;
@@ -11217,9 +11210,11 @@
         kartKopyalaMenu.classList.remove('acik');
       }
 
-      function kartKopyalaMenusuAc(x, y, metin){
+      function kartKopyalaMenusuAc(x, y, metin, duzenleFn){
         if(!kartKopyalaMenu) return;
         kartKopyalaAktifMetin = metin;
+        kartKopyalaAktifDuzenle = (typeof duzenleFn === 'function') ? duzenleFn : null;
+        if(kartDuzenleBtn){ kartDuzenleBtn.style.display = kartKopyalaAktifDuzenle ? '' : 'none'; }
         kartKopyalaMenu.style.display = 'block';
         // Önce ölçüm için görünür yapılıp konumlandırılır, sonra 'acik' sınıfıyla belirir.
         const genislik = kartKopyalaMenu.offsetWidth || 150;
@@ -11241,6 +11236,13 @@
         });
       }
 
+      if(kartDuzenleBtn){
+        kartDuzenleBtn.addEventListener('click', function(){
+          kartKopyalaMenusuKapat();
+          if(kartKopyalaAktifDuzenle){ kartKopyalaAktifDuzenle(); }
+        });
+      }
+
       document.addEventListener('touchstart', function(e){
         if(kartKopyalaMenu && kartKopyalaMenu.classList.contains('acik') && !kartKopyalaMenu.contains(e.target)){
           kartKopyalaMenusuKapat();
@@ -11256,7 +11258,7 @@
       // Bir öğeye basılı tutma (uzun basma) davranışı bağlar; belirtilen süre
       // dolduğunda (parmak/işaretçi belirgin şekilde oynamadıysa) verilen metni
       // Kopyala menüsüyle birlikte gösterir.
-      function kartBasiliTutmaBagla(el, metinAl){
+      function kartBasiliTutmaBagla(el, metinAl, duzenleAl){
         let zamanlayici = null;
         let baslangicX = 0, baslangicY = 0;
         let basiliNoktaX = 0, basiliNoktaY = 0;
@@ -11271,7 +11273,7 @@
           zamanlayici = window.setTimeout(function(){
             zamanlayici = null;
             if(navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} }
-            kartKopyalaMenusuAc(basiliNoktaX, basiliNoktaY, metinAl());
+            kartKopyalaMenusuAc(basiliNoktaX, basiliNoktaY, metinAl(), duzenleAl);
           }, 500);
         }
         function hareket(x, y){
@@ -11303,7 +11305,7 @@
         el.addEventListener('contextmenu', function(e){
           if(e.target.closest('button')) return;
           e.preventDefault();
-          kartKopyalaMenusuAc(e.clientX, e.clientY, metinAl());
+          kartKopyalaMenusuAc(e.clientX, e.clientY, metinAl(), duzenleAl);
         });
       }
 
@@ -11313,7 +11315,7 @@
         satir.dataset.id = madde.id;
 
         // Kart basılı tutulduğunda kartın güncel metnini kopyalama menüsüyle sun.
-        kartBasiliTutmaBagla(satir, function(){ return madde.text; });
+        kartBasiliTutmaBagla(satir, function(){ return madde.text; }, function(){ duzenlemeyeBaslat(); });
 
         const check = document.createElement('button');
         check.type = 'button';
