@@ -2981,19 +2981,22 @@
   }
   .gundelik-madde.kaydiriliyor .gundelik-madde-icerik{ transition:none; }
 
-  /* ---- Kartı sola kaydırınca sağda beliren silme paneli ---- */
+  /* ---- Kartı sola kaydırınca sağda beliren silme paneli: kapalıyken
+     genişliği tam 0'dır (üst üste bindirme + saydamlıkla gizlemek yerine),
+     böylece kaydırma başlamadan hiçbir şey sızıp görünmez. ---- */
   .gundelik-madde-swipe-panel{
     position:absolute;
     top:0; right:0; bottom:0;
-    width:5.25rem;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    width:0;
+    overflow:hidden;
     background:linear-gradient(135deg, var(--yanlis), rgba(var(--yanlis-rgb),0.82));
+    transition: width 0.22s cubic-bezier(.22,1,.36,1);
   }
+  .gundelik-madde.kaydiriliyor .gundelik-madde-swipe-panel{ transition:none; }
   .gundelik-madde-swipe-sil{
-    width:100%;
-    height:100%;
+    position:absolute;
+    top:0; right:0; bottom:0;
+    width:5.25rem;
     border:none;
     background:transparent;
     color:#fff;
@@ -11455,8 +11458,9 @@
       }
 
       // Bir gündelik kartına sola-kaydır-sil davranışını bağlar.
-      function gundelikSwipeSilBagla(satir, icerik, silBtn, onSil){
-        const PANEL_GENISLIK = 84; // px — .gundelik-madde-swipe-panel genişliğiyle (5.25rem) eşleşir
+      function gundelikSwipeSilBagla(satir, icerik, panel, silBtn, onSil){
+        const PANEL_GENISLIK = 84; // px — .gundelik-madde-swipe-sil genişliğiyle (5.25rem) eşleşir
+
         const ESIK = PANEL_GENISLIK * 0.45;
 
         let basladiX = 0, basladiY = 0, referansX = 0;
@@ -11467,9 +11471,13 @@
           const eslesme = stil && stil.match(/-?\d+(\.\d+)?/);
           return eslesme ? parseFloat(eslesme[0]) : 0;
         }
+        function genislikUygula(x){
+          panel.style.width = Math.min(PANEL_GENISLIK, Math.max(0, -x)) + 'px';
+        }
         function kapat(){
           acikMi = false;
           icerik.style.transform = 'translateX(0px)';
+          genislikUygula(0);
           satir.classList.remove('kaydiriliyor', 'swipe-acik');
           if(gundelikAcikSwipeyiKapat === kapat){ gundelikAcikSwipeyiKapat = null; gundelikAcikSwipeSatir = null; }
         }
@@ -11477,6 +11485,7 @@
           if(gundelikAcikSwipeyiKapat && gundelikAcikSwipeyiKapat !== kapat){ gundelikAcikSwipeyiKapat(); }
           acikMi = true;
           icerik.style.transform = 'translateX(-' + PANEL_GENISLIK + 'px)';
+          genislikUygula(-PANEL_GENISLIK);
           satir.classList.remove('kaydiriliyor');
           satir.classList.add('swipe-acik');
           gundelikAcikSwipeyiKapat = kapat;
@@ -11504,6 +11513,7 @@
           if(yeniX > 0) yeniX = 0;
           if(yeniX < -PANEL_GENISLIK){ yeniX = -PANEL_GENISLIK - (Math.abs(yeniX + PANEL_GENISLIK) * 0.25); }
           icerik.style.transform = 'translateX(' + yeniX + 'px)';
+          genislikUygula(yeniX);
         }
         function bitir(){
           if(!suruklemeAktif) return;
@@ -11854,7 +11864,7 @@
         satir.appendChild(swipePanel);
         satir.appendChild(icerik);
 
-        gundelikSwipeSilBagla(satir, icerik, swipeSil, function(){
+        gundelikSwipeSilBagla(satir, icerik, swipePanel, swipeSil, function(){
           gundelikSatiriSilAnimasyonuIleKaldir(satir, function(){
             veriYaz(veriOku().filter(function(m){ return m.id !== madde.id; }));
             yenidenCiz();
