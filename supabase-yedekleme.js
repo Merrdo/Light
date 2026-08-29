@@ -375,7 +375,13 @@
     document.addEventListener('visibilitychange', function () {
       if (document.hidden && girisliMi()) simdiYedekle();
     });
+    window.addEventListener('offline', function () {
+      wifiIkonuGoster();
+      toastGoster('İnternet bağlantısı kesildi', 'hata');
+    });
     window.addEventListener('online', function () {
+      wifiIkonuGizle();
+      toastGoster('İnternet bağlantısı geri geldi', 'basarili');
       if (girisliMi()) simdiYedekle();
     });
   }
@@ -421,7 +427,45 @@
       'border-radius:0.5rem;margin-top:0.8rem;display:none;}',
       '.bulut-mesaj.gorunur{display:block;}',
       '.bulut-not{font-size:0.75rem;color:var(--ink-soft);line-height:1.4;margin-top:0.5rem;}',
-      '.bulut-panel a{color:var(--accent);}'
+      '.bulut-panel a{color:var(--accent);}',
+
+      /* ---- İnternet bağlantısı kesildiğinde beliren kırmızı wifi ikonu ---- */
+      '.bulut-wifi-durum{display:none;align-items:center;justify-content:center;',
+      'width:2.05rem;height:2.05rem;flex-shrink:0;color:var(--yanlis);}',
+      '.bulut-wifi-durum.gorunur{display:inline-flex;animation:bulutWifiNabiz 1.8s ease-in-out 0.9s infinite;}',
+      '.bulut-wifi-svg{width:1.3rem;height:1.3rem;overflow:visible;}',
+      '.bulut-wifi-durum.gorunur .bulut-wifi-svg{animation:bulutWifiZiplama 0.7s ease-out;}',
+      '.bulut-wifi-durum.gorunur .b-wifi-arc-l{stroke-dasharray:1;stroke-dashoffset:1;opacity:0;',
+      'animation:bulutWifiCiz 0.4s ease-out 0.36s forwards;}',
+      '.bulut-wifi-durum.gorunur .b-wifi-arc-m{stroke-dasharray:1;stroke-dashoffset:1;opacity:0;',
+      'animation:bulutWifiCiz 0.35s ease-out 0.24s forwards;}',
+      '.bulut-wifi-durum.gorunur .b-wifi-arc-s{stroke-dasharray:1;stroke-dashoffset:1;opacity:0;',
+      'animation:bulutWifiCiz 0.3s ease-out 0.12s forwards;}',
+      '.bulut-wifi-durum.gorunur .b-wifi-slash{stroke-dasharray:1;stroke-dashoffset:1;opacity:0;',
+      'animation:bulutWifiCiz 0.5s ease-in-out 0.02s forwards;}',
+      '.bulut-wifi-durum.gorunur .b-wifi-dot{transform-box:fill-box;transform-origin:center;opacity:0;',
+      'animation:bulutWifiNokta 0.35s ease-out forwards;}',
+      '@keyframes bulutWifiZiplama{0%{transform:scale(1);}50%{transform:scale(1.05);}80%{transform:scale(0.99);}100%{transform:scale(1);}}',
+      '@keyframes bulutWifiCiz{to{stroke-dashoffset:0;opacity:1;}}',
+      '@keyframes bulutWifiNokta{0%{transform:scale(0.4);opacity:0;}60%{transform:scale(1.25);opacity:1;}100%{transform:scale(1);opacity:1;}}',
+      '@keyframes bulutWifiNabiz{0%,100%{opacity:1;}50%{opacity:0.5;}}',
+      '@media(prefers-reduced-motion:reduce){',
+      '.bulut-wifi-durum.gorunur, .bulut-wifi-durum.gorunur .bulut-wifi-svg,',
+      '.bulut-wifi-durum.gorunur .b-wifi-arc-l, .bulut-wifi-durum.gorunur .b-wifi-arc-m,',
+      '.bulut-wifi-durum.gorunur .b-wifi-arc-s, .bulut-wifi-durum.gorunur .b-wifi-slash,',
+      '.bulut-wifi-durum.gorunur .b-wifi-dot{animation:none;opacity:1;stroke-dashoffset:0;}',
+      '}',
+
+      /* ---- Bağlantı değişikliği bildirimi (küçük toast) ---- */
+      '.bulut-toast{position:fixed;left:50%;bottom:calc(1.3rem + env(safe-area-inset-bottom,0px));',
+      'transform:translateX(-50%) translateY(0.4rem);max-width:88vw;padding:0.65rem 1.05rem;',
+      'border-radius:0.8rem;font-size:0.85rem;font-family:inherit;line-height:1.3;text-align:center;',
+      'background:var(--ink);color:var(--bg);box-shadow:0 10px 26px rgba(var(--shadow-rgb),0.28);',
+      'z-index:10070;opacity:0;pointer-events:none;',
+      'transition:opacity 0.22s ease, transform 0.22s cubic-bezier(.22,1,.36,1);}',
+      '.bulut-toast.gorunur{opacity:1;transform:translateX(-50%) translateY(0);}',
+      '.bulut-toast.hata{background:var(--yanlis);color:#fff;}',
+      '.bulut-toast.basarili{background:var(--dogru);color:#fff;}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -430,6 +474,69 @@
     if (!mesajEl) return;
     mesajEl.textContent = m;
     mesajEl.classList.add('gorunur');
+  }
+
+  /* ---------------- Bağlantı durumu: kırmızı wifi ikonu + toast bildirimi ----------------
+     Bulut Yedekleme satırında, internet bağlantısı kesildiğinde beliren
+     animasyonlu bir uyarı ikonu (bağlantı gelince otomatik kaybolur) ve her
+     iki yönde de (kesildi/geri geldi) kısa bir uygulama içi bildirim. */
+  var wifiIkonEl = null;
+
+  function wifiIkonuOlustur() {
+    if (wifiIkonEl) return wifiIkonEl;
+    var hedef = document.getElementById('bulutSatirAksiyon');
+    if (!hedef) return null;
+    var el = document.createElement('div');
+    el.className = 'bulut-wifi-durum';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-label', 'İnternet bağlantısı yok');
+    el.title = 'İnternet bağlantısı yok — yedekleme bağlantı gelince devam edecek';
+    el.innerHTML =
+      '<svg class="bulut-wifi-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path class="b-wifi-dot" d="M12 20h.01"></path>' +
+      '<path class="b-wifi-arc-s" pathLength="1" d="M8.5 16.429a5 5 0 0 1 7 0"></path>' +
+      '<path class="b-wifi-arc-m" pathLength="1" d="M5 12.859a10 10 0 0 1 5.17-2.69"></path>' +
+      '<path class="b-wifi-arc-m" pathLength="1" d="M19 12.859a10 10 0 0 0-2.007-1.523"></path>' +
+      '<path class="b-wifi-arc-l" pathLength="1" d="M2 8.82a15 15 0 0 1 4.177-2.643"></path>' +
+      '<path class="b-wifi-arc-l" pathLength="1" d="M22 8.82a15 15 0 0 0-11.288-3.764"></path>' +
+      '<path class="b-wifi-slash" pathLength="1" d="m2 2 20 20"></path>' +
+      '</svg>';
+    hedef.insertBefore(el, hedef.firstChild);
+    wifiIkonEl = el;
+    return el;
+  }
+
+  function wifiIkonuGoster() {
+    var el = wifiIkonuOlustur();
+    if (!el) return;
+    // Her belirişte "çizim" animasyonu baştan oynasın diye sınıfı kaldırıp
+    // (araya bir reflow sokup) yeniden ekliyoruz.
+    el.classList.remove('gorunur');
+    void el.offsetWidth;
+    el.classList.add('gorunur');
+  }
+
+  function wifiIkonuGizle() {
+    if (wifiIkonEl) wifiIkonEl.classList.remove('gorunur');
+  }
+
+  var toastEl = null;
+  var toastZamanlayici = null;
+
+  function toastGoster(mesaj, tur) {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.setAttribute('role', 'status');
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = mesaj;
+    toastEl.className = 'bulut-toast' + (tur ? ' ' + tur : '');
+    void toastEl.offsetWidth;
+    toastEl.classList.add('gorunur');
+    if (toastZamanlayici) window.clearTimeout(toastZamanlayici);
+    toastZamanlayici = window.setTimeout(function () {
+      toastEl.classList.remove('gorunur');
+    }, 3200);
   }
 
   function domOlustur() {
@@ -669,6 +776,9 @@
     domOlustur();
     satirGuncelle();
     localStorageIzle();
+    // Uygulama zaten bağlantısızken açıldıysa, "az önce kesildi" bildirimi
+    // göstermeden (bu bir geçiş değil, başlangıç durumu) ikonu sessizce göster.
+    if (!navigator.onLine) wifiIkonuGoster();
     baglantiyiKur().then(function (basarili) {
       if (basarili && girisliMi()) girisSonrasiSenkronKontrol();
       panelGuncelle();
