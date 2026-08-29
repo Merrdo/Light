@@ -429,6 +429,13 @@
       '.bulut-not{font-size:0.75rem;color:var(--ink-soft);line-height:1.4;margin-top:0.5rem;}',
       '.bulut-panel a{color:var(--accent);}',
 
+      /* ---- Yedekle/Çıkış/Bağlan butonlarının satırı: index.html'de bu
+         konteynere (.bulut-satir-aksiyon) hiç düzen (layout) verilmemiş,
+         bu yüzden içine eklediğimiz wifi ikonu satır dışına taşıp butonların
+         ÜSTÜNDE beliriyordu. Aynı satırda yan yana dizilsinler diye flex
+         düzeni burada tamamlanıyor (index.html'in kendisine dokunmadan). ---- */
+      '.bulut-satir-aksiyon{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}',
+
       /* ---- İnternet bağlantısı kesildiğinde beliren kırmızı wifi ikonu ---- */
       '.bulut-wifi-durum{display:none;align-items:center;justify-content:center;',
       'width:2.05rem;height:2.05rem;flex-shrink:0;color:var(--yanlis);}',
@@ -456,16 +463,26 @@
       '.bulut-wifi-durum.gorunur .b-wifi-dot{animation:none;opacity:1;stroke-dashoffset:0;}',
       '}',
 
-      /* ---- Bağlantı değişikliği bildirimi (küçük toast) ---- */
+      /* ---- Bağlantı değişikliği bildirimi (küçük toast) ----
+         Giriş: hafif "sekerek" yukarı kayan bir animasyon (bulutToastGir).
+         Çıkış: sade bir opacity/transform geçişi (transition) yeterli,
+         çünkü animasyon kaldırılınca eleman zaten taban stile döner. */
       '.bulut-toast{position:fixed;left:50%;bottom:calc(1.3rem + env(safe-area-inset-bottom,0px));',
-      'transform:translateX(-50%) translateY(0.4rem);max-width:88vw;padding:0.65rem 1.05rem;',
+      'transform:translateX(-50%) translateY(14px) scale(0.92);max-width:88vw;padding:0.65rem 1.05rem;',
       'border-radius:0.8rem;font-size:0.85rem;font-family:inherit;line-height:1.3;text-align:center;',
       'background:var(--ink);color:var(--bg);box-shadow:0 10px 26px rgba(var(--shadow-rgb),0.28);',
       'z-index:10070;opacity:0;pointer-events:none;',
-      'transition:opacity 0.22s ease, transform 0.22s cubic-bezier(.22,1,.36,1);}',
-      '.bulut-toast.gorunur{opacity:1;transform:translateX(-50%) translateY(0);}',
+      'transition:opacity 0.3s ease, transform 0.3s ease;}',
+      '.bulut-toast.gorunur{opacity:1;transform:translateX(-50%) translateY(0) scale(1);',
+      'animation:bulutToastGir 0.55s cubic-bezier(.34,1.56,.64,1);}',
+      '@keyframes bulutToastGir{',
+      '0%{opacity:0;transform:translateX(-50%) translateY(18px) scale(0.85);}',
+      '55%{opacity:1;transform:translateX(-50%) translateY(-5px) scale(1.03);}',
+      '100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}',
+      '}',
       '.bulut-toast.hata{background:var(--yanlis);color:#fff;}',
-      '.bulut-toast.basarili{background:var(--dogru);color:#fff;}'
+      '.bulut-toast.basarili{background:var(--dogru);color:#fff;}',
+      '@media(prefers-reduced-motion:reduce){.bulut-toast.gorunur{animation:none;}}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -501,7 +518,7 @@
       '<path class="b-wifi-arc-l" pathLength="1" d="M22 8.82a15 15 0 0 0-11.288-3.764"></path>' +
       '<path class="b-wifi-slash" pathLength="1" d="m2 2 20 20"></path>' +
       '</svg>';
-    hedef.insertBefore(el, hedef.firstChild);
+    hedef.appendChild(el);
     wifiIkonEl = el;
     return el;
   }
