@@ -211,15 +211,11 @@
     -webkit-tap-highlight-color:transparent;
   }
 
-  /* ---- İstisna: Rutinler ve Yapılacaklar bölümlerinde yazdığımız yazılar seçilebilir/kopyalanabilir olsun ---- */
-  #rutinBolum, #rutinBolum *,
-  #todoBolum, #todoBolum *{
-    -webkit-user-select:text;
-    -moz-user-select:text;
-    -ms-user-select:text;
-    user-select:text;
-    -webkit-touch-callout:default;
-  }
+  /* ---- Not: Rutinler ve Yapılacaklar bölümlerinde daha önce burada metni
+     seçilebilir/kopyalanabilir yapan bir istisna vardı. Artık bu bölümlerdeki
+     kartlarda basılı tutunca açılan özel "Kopyala" menüsü aynı işi gördüğü
+     için serbest metin seçimine gerek kalmadı; kartlar da diğer her yer gibi
+     seçilemez durumda kalıyor (bkz. .kart-kopyala-menu). ---- */
 
   body{
     display:flex;
@@ -3297,6 +3293,8 @@
   .gundelik-madde-metin-input{
     flex:1;
     min-width:0;
+    width:100%;
+    display:block;
     font-family:inherit;
     font-size:0.93rem;
     line-height:1.4;
@@ -3306,6 +3304,73 @@
     border-bottom:1px solid var(--accent);
     padding:0 0 0.1rem;
     outline:none;
+    resize:none;
+    overflow:hidden;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+
+  /* ================= KART BASILI TUTUNCA: KOPYALA MENÜSÜ ================= */
+  /* Rutinler ve Yapılacaklar kartlarında basılı tutulduğunda beliren, kartın
+     tüm metnini panoya kopyalamayı sağlayan küçük bağlam menüsü. */
+  .kart-kopyala-menu{
+    position:fixed;
+    z-index:10060;
+    display:none;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:0.9rem;
+    box-shadow:0 14px 34px rgba(var(--shadow-rgb),0.28);
+    padding:0.35rem;
+    opacity:0;
+    transform:translateY(6px) scale(0.96);
+    transition: opacity 0.16s ease, transform 0.16s cubic-bezier(.22,1,.36,1);
+  }
+  .kart-kopyala-menu.acik{
+    display:block;
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+  .kart-kopyala-btn{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    width:100%;
+    white-space:nowrap;
+    padding:0.6rem 0.9rem;
+    border:none;
+    background:transparent;
+    border-radius:0.6rem;
+    color:var(--ink);
+    font-family:inherit;
+    font-size:0.87rem;
+    cursor:pointer;
+  }
+  .kart-kopyala-btn svg{ width:1rem; height:1rem; flex-shrink:0; color:var(--accent); }
+  @media (hover:hover) and (pointer:fine){
+    .kart-kopyala-btn:hover{ background:rgba(var(--accent-rgb),0.1); }
+  }
+  .kart-kopyala-btn:active{ background:rgba(var(--accent-rgb),0.16); }
+
+  .kisa-bildirim{
+    position:fixed;
+    left:50%;
+    bottom:calc(6vh + env(safe-area-inset-bottom, 0px));
+    transform:translate(-50%, 12px);
+    z-index:10070;
+    background:var(--ink);
+    color:var(--bg);
+    font-size:0.82rem;
+    padding:0.7rem 1.1rem;
+    border-radius:9999px;
+    box-shadow:0 10px 26px rgba(var(--shadow-rgb),0.3);
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(.22,1,.36,1);
+  }
+  .kisa-bildirim.gorunur{
+    opacity:1;
+    transform:translate(-50%, 0);
   }
 
   .gundelik-ekle-btn{
@@ -8297,6 +8362,15 @@
 
   <footer id="pageFooter"></footer>
 
+  <!-- Rutinler / Yapılacaklar: kart basılı tutulunca çıkan Kopyala menüsü -->
+  <div class="kart-kopyala-menu" id="kartKopyalaMenu">
+    <button type="button" class="kart-kopyala-btn" id="kartKopyalaBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      <span>Kopyala</span>
+    </button>
+  </div>
+  <div class="kisa-bildirim" id="kisaBildirim">Kopyalandı</div>
+
   <!-- ================= TAM EKRAN KRONOMETRE ================= -->
   <div class="kronometre-tam-ekran-overlay" id="kronometreTamEkranOverlay">
     <button type="button" class="kronometre-kapat-btn" id="kronometreKapatBtn" aria-label="Kronometreyi kapat">
@@ -9837,6 +9911,11 @@
     // çağrının içerik fonksiyonunu çalıştırmasını garanti ederek bu yarışı ortadan
     // kaldırıyor.
     let gecisBekleyenId = null;
+
+    // Ayarlar (viewEmpty) ekranı ilk açılışta hoş bir giriş animasyonuyla belirir;
+    // sonraki her açılışta ise ana sayfadaki gibi beklemeden anında görünür hale
+    // getirilir (bkz. showEmptyView).
+    let ayarlarIlkGosterimYapildi = false;
     function gecisIleDegistir(icerikFn){
       const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
       const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
@@ -9911,31 +9990,30 @@
       void viewEmpty.offsetWidth;
       viewEmpty.style.animation = '';
 
-      emptyWord.classList.remove('animate');
-      emptyRule.classList.remove('animate');
-      emptySub.classList.remove('animate');
-      isimRow.classList.remove('animate');
-      settingsRow.classList.remove('animate');
-      navbarPositionRow.classList.remove('animate');
-      renkRow.classList.remove('animate');
-      isikEfektiRow.classList.remove('animate');
-      bganimRow.classList.remove('animate');
-      yedekRow.classList.remove('animate');
-      bulutYedekRow.classList.remove('animate');
-      sporModuRow.classList.remove('animate');
-      void emptyWord.offsetWidth;
-      emptyWord.classList.add('animate');
-      emptyRule.classList.add('animate');
-      emptySub.classList.add('animate');
-      isimRow.classList.add('animate');
-      settingsRow.classList.add('animate');
-      navbarPositionRow.classList.add('animate');
-      renkRow.classList.add('animate');
-      isikEfektiRow.classList.add('animate');
-      bganimRow.classList.add('animate');
-      yedekRow.classList.add('animate');
-      bulutYedekRow.classList.add('animate');
-      sporModuRow.classList.add('animate');
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
+
+      if(ayarlarIlkGosterimYapildi){
+        // Ana sayfaya her dönüşte olduğu gibi: uzun giriş animasyonunu tekrar
+        // oynatmadan öğeleri doğrudan son (görünür) haline getir, ekran hızlı gelsin.
+        ayarOgeleri.forEach(function(el){
+          el.classList.remove('animate');
+          el.style.animation = 'none';
+          el.style.opacity = '1';
+          el.style.filter = 'none';
+          el.style.transform = 'none';
+        });
+      } else {
+        ayarOgeleri.forEach(function(el){
+          el.style.animation = '';
+          el.style.opacity = '';
+          el.style.filter = '';
+          el.style.transform = '';
+          el.classList.remove('animate');
+        });
+        void emptyWord.offsetWidth;
+        ayarOgeleri.forEach(function(el){ el.classList.add('animate'); });
+        ayarlarIlkGosterimYapildi = true;
+      }
       });
     }
 
@@ -11090,10 +11168,152 @@
         return degisti;
       }
 
+      // ---- Rutinler / Yapılacaklar: kart basılı tutulunca "Kopyala" menüsü ----
+      // Daha önce bu bölümlerde metin serbestçe seçilip kopyalanabiliyordu;
+      // artık kartı basılı tutunca çıkan bu menüdeki "Kopyala" seçeneği aynı
+      // işi tek dokunuşla yaptığı için serbest seçim kaldırıldı (bkz. ilgili CSS).
+      const kartKopyalaMenu = document.getElementById('kartKopyalaMenu');
+      const kartKopyalaBtn = document.getElementById('kartKopyalaBtn');
+      const kisaBildirimEl = document.getElementById('kisaBildirim');
+      let kisaBildirimZamanlayici = null;
+      let kartKopyalaAktifMetin = '';
+
+      function kisaBildirimGoster(mesaj){
+        if(!kisaBildirimEl) return;
+        kisaBildirimEl.textContent = mesaj;
+        kisaBildirimEl.classList.add('gorunur');
+        if(kisaBildirimZamanlayici){ window.clearTimeout(kisaBildirimZamanlayici); }
+        kisaBildirimZamanlayici = window.setTimeout(function(){
+          kisaBildirimEl.classList.remove('gorunur');
+        }, 1600);
+      }
+
+      function kartMetniPanoyaKopyala(metin){
+        function basarili(){ kisaBildirimGoster('Kopyalandı'); }
+        function basarisiz(){
+          // Clipboard API kullanılamıyorsa (izin/eski tarayıcı) eski yöntemle dene.
+          try{
+            const gecici = document.createElement('textarea');
+            gecici.value = metin;
+            gecici.style.position = 'fixed';
+            gecici.style.opacity = '0';
+            document.body.appendChild(gecici);
+            gecici.focus();
+            gecici.select();
+            document.execCommand('copy');
+            document.body.removeChild(gecici);
+            basarili();
+          }catch(e){ kisaBildirimGoster('Kopyalanamadı'); }
+        }
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(metin).then(basarili, basarisiz);
+        } else {
+          basarisiz();
+        }
+      }
+
+      function kartKopyalaMenusuKapat(){
+        if(!kartKopyalaMenu) return;
+        kartKopyalaMenu.classList.remove('acik');
+      }
+
+      function kartKopyalaMenusuAc(x, y, metin){
+        if(!kartKopyalaMenu) return;
+        kartKopyalaAktifMetin = metin;
+        kartKopyalaMenu.style.display = 'block';
+        // Önce ölçüm için görünür yapılıp konumlandırılır, sonra 'acik' sınıfıyla belirir.
+        const genislik = kartKopyalaMenu.offsetWidth || 150;
+        const yukseklik = kartKopyalaMenu.offsetHeight || 46;
+        const kenarBosluk = 10;
+        let hedefX = x - genislik / 2;
+        let hedefY = y - yukseklik - 14;
+        hedefX = Math.max(kenarBosluk, Math.min(hedefX, window.innerWidth - genislik - kenarBosluk));
+        if(hedefY < kenarBosluk){ hedefY = y + 14; }
+        kartKopyalaMenu.style.left = hedefX + 'px';
+        kartKopyalaMenu.style.top = hedefY + 'px';
+        requestAnimationFrame(function(){ kartKopyalaMenu.classList.add('acik'); });
+      }
+
+      if(kartKopyalaBtn){
+        kartKopyalaBtn.addEventListener('click', function(){
+          kartKopyalaMenusuKapat();
+          if(kartKopyalaAktifMetin){ kartMetniPanoyaKopyala(kartKopyalaAktifMetin); }
+        });
+      }
+
+      document.addEventListener('touchstart', function(e){
+        if(kartKopyalaMenu && kartKopyalaMenu.classList.contains('acik') && !kartKopyalaMenu.contains(e.target)){
+          kartKopyalaMenusuKapat();
+        }
+      }, {passive:true});
+      document.addEventListener('mousedown', function(e){
+        if(kartKopyalaMenu && kartKopyalaMenu.classList.contains('acik') && !kartKopyalaMenu.contains(e.target)){
+          kartKopyalaMenusuKapat();
+        }
+      });
+      window.addEventListener('scroll', kartKopyalaMenusuKapat, {passive:true, capture:true});
+
+      // Bir öğeye basılı tutma (uzun basma) davranışı bağlar; belirtilen süre
+      // dolduğunda (parmak/işaretçi belirgin şekilde oynamadıysa) verilen metni
+      // Kopyala menüsüyle birlikte gösterir.
+      function kartBasiliTutmaBagla(el, metinAl){
+        let zamanlayici = null;
+        let baslangicX = 0, baslangicY = 0;
+        let basiliNoktaX = 0, basiliNoktaY = 0;
+
+        function iptalEt(){
+          if(zamanlayici){ window.clearTimeout(zamanlayici); zamanlayici = null; }
+        }
+        function baslat(x, y){
+          baslangicX = x; baslangicY = y;
+          basiliNoktaX = x; basiliNoktaY = y;
+          iptalEt();
+          zamanlayici = window.setTimeout(function(){
+            zamanlayici = null;
+            if(navigator.vibrate){ try{ navigator.vibrate(10); }catch(e){} }
+            kartKopyalaMenusuAc(basiliNoktaX, basiliNoktaY, metinAl());
+          }, 500);
+        }
+        function hareket(x, y){
+          if(!zamanlayici) return;
+          if(Math.abs(x - baslangicX) > 10 || Math.abs(y - baslangicY) > 10){ iptalEt(); }
+        }
+
+        el.addEventListener('touchstart', function(e){
+          if(e.target.closest('button')) return;
+          const t = e.touches[0];
+          baslat(t.clientX, t.clientY);
+        }, {passive:true});
+        el.addEventListener('touchmove', function(e){
+          const t = e.touches[0];
+          hareket(t.clientX, t.clientY);
+        }, {passive:true});
+        el.addEventListener('touchend', iptalEt, {passive:true});
+        el.addEventListener('touchcancel', iptalEt, {passive:true});
+
+        el.addEventListener('mousedown', function(e){
+          if(e.button !== 0) return;
+          if(e.target.closest('button')) return;
+          baslat(e.clientX, e.clientY);
+        });
+        el.addEventListener('mousemove', function(e){ hareket(e.clientX, e.clientY); });
+        el.addEventListener('mouseup', iptalEt);
+        el.addEventListener('mouseleave', iptalEt);
+
+        el.addEventListener('contextmenu', function(e){
+          if(e.target.closest('button')) return;
+          e.preventDefault();
+          kartKopyalaMenusuAc(e.clientX, e.clientY, metinAl());
+        });
+      }
+
       function gundelikMaddeSatiriOlustur(madde, tur){
         const satir = document.createElement('div');
         satir.className = 'gundelik-madde' + (madde.tamam ? ' tamam' : '');
         satir.dataset.id = madde.id;
+
+        // Kart basılı tutulduğunda kartın güncel metnini kopyalama menüsüyle sun.
+        kartBasiliTutmaBagla(satir, function(){ return madde.text; });
 
         const check = document.createElement('button');
         check.type = 'button';
@@ -11312,13 +11532,27 @@
           if(satir.classList.contains('duzenleniyor')) return;
           satir.classList.add('duzenleniyor');
 
-          const input = document.createElement('input');
-          input.type = 'text';
+          // Not: Önceden tek satırlık bir <input> kullanılıyordu; metin uzun
+          // olduğunda kutu içeriği yalnızca yatayda kayıyordu ve imleci
+          // metnin başına götürmek/orayı düzenlemek zorlaşıyordu. Bunun yerine
+          // satır kaydıran ve içeriğe göre otomatik yükselen bir <textarea>
+          // kullanılıyor; böylece metin görünüm modundaki gibi alt alta sarıyor
+          // ve imleç nereye gidilirse gidilsin her zaman görünür kalıyor.
+          const input = document.createElement('textarea');
+          input.rows = 1;
           input.className = 'gundelik-madde-metin-input';
           input.value = madde.text;
           input.autocomplete = 'off';
 
           satir.replaceChild(input, metin);
+
+          function yukseklikAyarla(){
+            input.style.height = 'auto';
+            input.style.height = input.scrollHeight + 'px';
+          }
+          input.addEventListener('input', yukseklikAyarla);
+          yukseklikAyarla();
+
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
 
