@@ -7226,6 +7226,45 @@
     z-index:1;
   }
 
+  /* ---- Onboarding ilerleme çubuğu: üstte, sayfa geçtikçe animasyonlu dolan bar ---- */
+  .giris-ilerleme-wrap{
+    position:absolute;
+    top:calc(6vw + env(safe-area-inset-top, 0px));
+    left:6vw;
+    right:6vw;
+    max-width:380px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:0.65rem;
+    z-index:2;
+    opacity:0;
+    animation: girisBoxIn 0.45s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.05s;
+  }
+  .giris-ilerleme-track{
+    flex:1 1 auto;
+    height:5px;
+    border-radius:9999px;
+    background:rgba(var(--ink-rgb),0.09);
+    overflow:hidden;
+  }
+  .giris-ilerleme-dolu{
+    height:100%;
+    width:0%;
+    border-radius:9999px;
+    background:var(--accent);
+    transition: width 0.45s cubic-bezier(.22,1,.36,1);
+  }
+  .giris-ilerleme-sayac{
+    flex:0 0 auto;
+    font-size:0.74rem;
+    font-variant-numeric: tabular-nums;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    letter-spacing:0.01em;
+  }
+
   .giris-box{
     width:100%;
     max-width:380px;
@@ -7700,6 +7739,12 @@
 
   <!-- ================= GİRİŞ / KAYIT EKRANI ================= -->
   <div class="giris-overlay" id="girisEkraniOverlay">
+    <div class="giris-ilerleme-wrap" id="girisIlerlemeWrap">
+      <div class="giris-ilerleme-track">
+        <div class="giris-ilerleme-dolu" id="girisIlerlemeDolu"></div>
+      </div>
+      <span class="giris-ilerleme-sayac" id="girisIlerlemeSayac">1/3</span>
+    </div>
     <div class="giris-adim-wrap" id="girisAdimWrap">
 
       <!-- Adım 1: Giriş yap / Hesap oluştur -->
@@ -7739,7 +7784,7 @@
 
       <!-- Adım 2: İsim sorma -->
       <div class="giris-box" id="girisAdimIsim" data-adim="isim" hidden>
-        <h1 class="giris-title">Son bir adım</h1>
+        <h1 class="giris-title">Seni tanıyalım</h1>
         <p class="giris-sub">Verilerin yalnızca bu cihazda, tamamen yerel olarak saklanır.</p>
         <div class="giris-isim-alan">
           <label for="girisIsimInput" class="giris-isim-label">Sana nasıl seslenelim?</label>
@@ -9402,6 +9447,10 @@
       isimStateLabel.textContent = isim || 'Henüz eklenmedi';
     }
     etiketiGuncelle();
+    // Ayarlar sayfası her açıldığında da (bu betik ilk çalıştığında henüz
+    // localStorage'a yazılmamış olabilecek değerleri kaçırmamak için)
+    // etiketin güncellenebilmesi için dışarıya açılan kanca.
+    window.sessizlikIsimEtiketiGuncelle = etiketiGuncelle;
 
     function modalAc(){
       if(!modalOverlay) return;
@@ -9489,6 +9538,12 @@
       alanStateLabel.textContent = ALAN_ETIKETLERI[kayitliAlan()] || 'Sayısal';
     }
     etiketiGuncelle();
+    // Bu betik sayfa yüklenir yüklenmez çalışır; ancak yeni bir hesapta
+    // alan seçimi giriş akışı bitene kadar localStorage'a yazılmamış
+    // olabiliyor. Bu durumda etiket burada geçici olarak "Sayısal"
+    // (varsayılan) gösterip öyle kalıyordu. Ayarlar sayfası her açıldığında
+    // etiketi güncel değere göre yeniden çizebilmek için dışarıya açılan kanca.
+    window.sessizlikAlanEtiketiGuncelle = etiketiGuncelle;
 
     function alanBtnleriniCiz(){
       if(!modalAlanSecim) return;
@@ -9764,6 +9819,12 @@
       BRANS_YAPISI.AYT = AYT_DERS_SIRASI
         .filter(function(ad){ return secili.indexOf(ad) !== -1; })
         .map(function(ad){ return { ad: ad, soru: AYT_DERS_HAVUZU[ad] }; });
+      // Soru Havuzu'nun kendi branş listesini de (varsa) aynı seçime göre
+      // yeniden kurar. İlk sayfa yüklemesinde bu fonksiyon henüz
+      // tanımlanmamış olabilir; sonraki her çağrıda (alan değiştirildiğinde) hazırdır.
+      if(typeof window.havuzAytBranslariniYenidenKur === 'function'){
+        window.havuzAytBranslariniYenidenKur();
+      }
     }
     aytMufredatGuncelle();
     window.aytMufredatGuncelle = aytMufredatGuncelle;
@@ -10334,6 +10395,15 @@
     }
 
     function showEmptyView(){
+      // Ayarlar sayfası her açıldığında "İsmin" / "Alanın" etiketlerini
+      // localStorage'daki güncel değere göre tazele (bkz. ilgili modüllerin
+      // sonundaki window.sessizlik...EtiketiGuncelle kancaları). Bu, örn.
+      // yeni hesap oluşturulduktan hemen sonra "Alanın" satırının hep
+      // "Sayısal" görünüp ancak Alanını Değiştir penceresine girilince
+      // düzelen eski hatayı gideriyor.
+      if(typeof window.sessizlikIsimEtiketiGuncelle === 'function'){ window.sessizlikIsimEtiketiGuncelle(); }
+      if(typeof window.sessizlikAlanEtiketiGuncelle === 'function'){ window.sessizlikAlanEtiketiGuncelle(); }
+
       gecisIleDegistir(function(){
       hideAllViews();
 
@@ -12433,6 +12503,19 @@
         console.log('Soru havuzu branşları kaydedilemedi (depolama alanı dolu olabilir):', e);
       }
     }
+
+    // Alan (Sayısal / Eşit Ağırlık / Henüz karar vermedim) değiştiğinde
+    // BRANS_YAPISI.AYT güncellenir; Soru Havuzu'nun kendi (ayrıca saklanan)
+    // AYT branş listesi de burada aynı şekilde yeniden kurulur, aksi hâlde
+    // eski alanın branşlarıyla kalmış olurdu. window.aytMufredatGuncelle
+    // tarafından çağrılır.
+    function havuzAytBranslariniYenidenKur(){
+      havuzOzelBranslar.AYT = (BRANS_YAPISI.AYT || []).map(function(b){ return b.ad; });
+      havuzBranslarKaydet();
+      if(havuzSeciliMod === 'branslar' && typeof branslarModuCiz === 'function'){ branslarModuCiz(); }
+      if(havuzSeciliMod === 'havuz' && typeof havuzFiltreCiz === 'function'){ havuzFiltreCiz(); havuzListeCiz(); }
+    }
+    window.havuzAytBranslariniYenidenKur = havuzAytBranslariniYenidenKur;
 
     function havuzBransListesi(){
       const liste = [];
@@ -16545,6 +16628,37 @@
     const devamBtn = document.getElementById('girisDevamBtn');
     const isimInput = document.getElementById('girisIsimInput');
 
+    const ilerlemeWrap = document.getElementById('girisIlerlemeWrap');
+    const ilerlemeDolu = document.getElementById('girisIlerlemeDolu');
+    const ilerlemeSayac = document.getElementById('girisIlerlemeSayac');
+    const ADIM_SIRASI = ['hesap', 'isim', 'alan', 'mufredat'];
+
+    // Toplam sayfa sayısı sabit değil: "Henüz karar vermedim" seçilirse
+    // (ya da daha önce öyle seçilmişse) müfredat seçim sayfası da eklenip
+    // toplam 4 olur, aksi halde 3 sayfa sürer (Hesap / İsim / Alan).
+    function girisToplamAdimSayisi(){
+      const kararsizMi = seciliAlan === 'kararsiz' || (function(){
+        try{ return localStorage.getItem(ALAN_ANAHTARI) === 'kararsiz'; }catch(e){ return false; }
+      })();
+      return kararsizMi ? 4 : 3;
+    }
+
+    // Görünen kutuya göre üstteki ilerleme çubuğunu ve X/X sayacını günceller.
+    function ilerlemeyiGuncelle(kutu){
+      const adim = kutu && kutu.dataset ? kutu.dataset.adim : 'hesap';
+      // İlk ekrandaki Giriş Yap / Kayıt Ol sayfasında bar gösterilmez;
+      // yalnızca isim/alan/müfredat adımlarında görünür.
+      if(ilerlemeWrap){ ilerlemeWrap.style.display = (adim === 'hesap') ? 'none' : 'flex'; }
+      if(!ilerlemeDolu && !ilerlemeSayac) return;
+      let index = ADIM_SIRASI.indexOf(adim) + 1;
+      if(index < 1) index = 1;
+      let toplam = girisToplamAdimSayisi();
+      if(index > toplam) toplam = index;
+      const yuzde = toplam > 0 ? Math.round((index / toplam) * 100) : 0;
+      if(ilerlemeDolu){ ilerlemeDolu.style.width = yuzde + '%'; }
+      if(ilerlemeSayac){ ilerlemeSayac.textContent = index + '/' + toplam; }
+    }
+
     let mod = 'giris'; // 'giris' | 'kayit'
     let istemci = null;
     let supabaseYukleniyor = null;
@@ -16599,6 +16713,7 @@
         gosterilecek.classList.add('giris-adim-giris');
         if(odaklanacakInput){ setTimeout(function(){ odaklanacakInput.focus(); }, 200); }
       }, 280);
+      ilerlemeyiGuncelle(gosterilecek);
     }
 
     // ---- "Giriş Yap" / "Kayıt Ol" sekmesi ----
@@ -16689,6 +16804,7 @@
         btn.setAttribute('aria-checked', seciliMi ? 'true' : 'false');
       });
       if(alanDevamBtn){ alanDevamBtn.disabled = !mevcut; }
+      ilerlemeyiGuncelle(adimAlan);
     }
     if(alanSecim){
       Array.from(alanSecim.children).forEach(function(btn){
@@ -16855,6 +16971,7 @@
     }
 
     sekmeGuncelle();
+    ilerlemeyiGuncelle(adimHesap);
 
     // Başka bir modülün (ör. bulut yedekleme satırındaki "Bağlan" veya
     // "Çıkış Yap") bu tam ekran giriş akışını yeniden açabilmesi için
@@ -16878,6 +16995,7 @@
         adimHesap.hidden = false;
         adimHesap.classList.remove('giris-adim-cikis');
         adimHesap.classList.add('giris-adim-giris');
+        ilerlemeyiGuncelle(adimHesap);
       }
       ekraniGoster();
       setTimeout(function(){ if(epostaInput){ epostaInput.focus(); } }, 380);
