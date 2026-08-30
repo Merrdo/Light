@@ -3000,7 +3000,7 @@
     z-index:-2;
     background-color:var(--bg);
     background-size:cover;
-    background-position:center;
+    background-position:var(--ozel-arkaplan-dikey-konum, center);
     background-repeat:no-repeat;
     opacity:1;
     pointer-events:none;
@@ -3014,8 +3014,9 @@
     -webkit-transform:translateZ(0);
     will-change:opacity, transform;
   }
-  /* Kullanıcının Ayarlar'dan seçtiği yatay mod odak noktası, sadece cihaz
-     yatay konumdayken devreye girer; dikey modda her zaman "center" kalır. */
+  /* Kullanıcının görsel eklerken seçtiği yatay (manzara) odak noktası, sadece
+     cihaz yatay konumdayken devreye girer; dikey modda kullanıcının aynı akışta
+     seçtiği dikey odak noktası (ya da hiç seçmediyse "center") kullanılır. */
   @media (orientation:landscape){
     html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman{
       background-position:var(--ozel-arkaplan-yatay-konum, center);
@@ -3161,7 +3162,7 @@
     inset:0;
     z-index:-1;
     background-size:cover;
-    background-position:center;
+    background-position:var(--ozel-arkaplan-dikey-konum, center);
     background-repeat:no-repeat;
     opacity:0;
     pointer-events:none;
@@ -11193,11 +11194,8 @@
     const parlaklikLabel = document.getElementById('ozelArkaPlanParlaklikLabel');
     const PARLAKLIK_ANAHTARI = 'sessizlik-arkaplan-parlaklik';
     const PARLAKLIK_VARSAYILAN = 18;
-    const yatayKonumSatir = document.getElementById('ozelArkaPlanYatayKonumSatir');
-    const yatayKonumOnizleme = document.getElementById('ozelArkaPlanYatayKonumOnizleme');
-    const yatayKonumNokta = document.getElementById('ozelArkaPlanYatayKonumNokta');
-    const yatayKonumSifirlaBtn = document.getElementById('ozelArkaPlanYatayKonumSifirlaBtn');
     const YATAY_KONUM_ANAHTARI = 'sessizlik-arkaplan-yatay-konum';
+    const DIKEY_KONUM_ANAHTARI = 'sessizlik-arkaplan-dikey-konum';
     const root = document.documentElement;
     if(!katman || !secBtn || !input) return;
 
@@ -11271,71 +11269,41 @@
       });
     }
 
-    // ---- Yatay Mod Konumu: kullanıcının önizleme kutusunda sürükleyerek
-    // seçtiği odak noktası, cihaz yatay konumdayken background-position
-    // olarak kullanılır (bkz. "@media (orientation:landscape)" kuralı).
-    // Yüzde olarak saklanır (x%, y%) böylece farklı ekran boyutlarında da
-    // aynı göreli konum korunur.
+    // ---- Konum (odak noktası): görsel eklerken kullanıcının sürükle/yakınlaştır
+    // akışında seçtiği nokta, dikey modda .ozel-arkaplan-dikey-konum, cihaz yatay
+    // konumdayken .ozel-arkaplan-yatay-konum olarak "background-position" şeklinde
+    // kullanılır (bkz. "@media (orientation:landscape)" kuralı). Yüzde olarak
+    // saklanır (x%, y%) böylece farklı ekran boyutlarında da aynı göreli konum korunur.
     function yatayKonumUygula(xYuzde, yYuzde){
       const x = Math.min(100, Math.max(0, xYuzde));
       const y = Math.min(100, Math.max(0, yYuzde));
       root.style.setProperty('--ozel-arkaplan-yatay-konum', x.toFixed(1) + '% ' + y.toFixed(1) + '%');
-      root.style.setProperty('--ozel-arkaplan-yatay-konum-x', x.toFixed(1) + '%');
-      root.style.setProperty('--ozel-arkaplan-yatay-konum-y', y.toFixed(1) + '%');
+    }
+    function dikeyKonumUygula(xYuzde, yYuzde){
+      const x = Math.min(100, Math.max(0, xYuzde));
+      const y = Math.min(100, Math.max(0, yYuzde));
+      root.style.setProperty('--ozel-arkaplan-dikey-konum', x.toFixed(1) + '% ' + y.toFixed(1) + '%');
     }
 
     (function(){
-      let kayitliKonum = null;
-      try{ kayitliKonum = localStorage.getItem(YATAY_KONUM_ANAHTARI); }catch(e){}
-      if(kayitliKonum){
-        try{
-          const ayrik = JSON.parse(kayitliKonum);
-          yatayKonumUygula(ayrik.x, ayrik.y);
-        }catch(e){ yatayKonumUygula(50, 50); }
+      let kayitliYatay = null;
+      try{ kayitliYatay = localStorage.getItem(YATAY_KONUM_ANAHTARI); }catch(e){}
+      if(kayitliYatay){
+        try{ const ayrik = JSON.parse(kayitliYatay); yatayKonumUygula(ayrik.x, ayrik.y); }
+        catch(e){ yatayKonumUygula(50, 50); }
       } else {
         yatayKonumUygula(50, 50);
       }
+
+      let kayitliDikey = null;
+      try{ kayitliDikey = localStorage.getItem(DIKEY_KONUM_ANAHTARI); }catch(e){}
+      if(kayitliDikey){
+        try{ const ayrik = JSON.parse(kayitliDikey); dikeyKonumUygula(ayrik.x, ayrik.y); }
+        catch(e){ dikeyKonumUygula(50, 50); }
+      } else {
+        dikeyKonumUygula(50, 50);
+      }
     })();
-
-    if(yatayKonumOnizleme){
-      let suruklemeAktif = false;
-
-      function konumHesaplaVeUygula(clientX, clientY){
-        const dikdortgen = yatayKonumOnizleme.getBoundingClientRect();
-        if(dikdortgen.width <= 0 || dikdortgen.height <= 0) return;
-        const xYuzde = ((clientX - dikdortgen.left) / dikdortgen.width) * 100;
-        const yYuzde = ((clientY - dikdortgen.top) / dikdortgen.height) * 100;
-        const x = Math.min(100, Math.max(0, xYuzde));
-        const y = Math.min(100, Math.max(0, yYuzde));
-        yatayKonumUygula(x, y);
-        try{ localStorage.setItem(YATAY_KONUM_ANAHTARI, JSON.stringify({ x: x, y: y })); }catch(e){}
-      }
-
-      function noktadanBaslat(e){
-        suruklemeAktif = true;
-        yatayKonumOnizleme.setPointerCapture && e.pointerId != null && yatayKonumOnizleme.setPointerCapture(e.pointerId);
-        konumHesaplaVeUygula(e.clientX, e.clientY);
-      }
-      function noktayiTasi(e){
-        if(!suruklemeAktif) return;
-        konumHesaplaVeUygula(e.clientX, e.clientY);
-      }
-      function suruklemeyiBitir(){
-        suruklemeAktif = false;
-      }
-
-      yatayKonumOnizleme.addEventListener('pointerdown', noktadanBaslat);
-      yatayKonumOnizleme.addEventListener('pointermove', noktayiTasi);
-      window.addEventListener('pointerup', suruklemeyiBitir);
-      window.addEventListener('pointercancel', suruklemeyiBitir);
-    }
-
-    if(yatayKonumSifirlaBtn){
-      yatayKonumSifirlaBtn.addEventListener('click', function(){
-        yatayKonumUygula(50, 50);
-        try{ localStorage.setItem(YATAY_KONUM_ANAHTARI, JSON.stringify({ x: 50, y: 50 })); }catch(e){}
-      });
-    }
 
     // Görsel her değiştiğinde önceki blob: URL serbest bırakılır (bellek sızıntısını önler).
     let aktifObjectUrl = null;
@@ -11351,7 +11319,6 @@
         if(label){ label.textContent = 'Özel görsel aktif'; }
         if(kaldirBtn){ kaldirBtn.hidden = false; }
         if(parlaklikSatir){ parlaklikSatir.hidden = false; }
-        if(yatayKonumSatir){ yatayKonumSatir.hidden = false; }
       } else {
         katman.style.backgroundImage = '';
         root.style.removeProperty('--ozel-arkaplan-img');
@@ -11359,7 +11326,6 @@
         if(label){ label.textContent = 'Seçilmedi'; }
         if(kaldirBtn){ kaldirBtn.hidden = true; }
         if(parlaklikSatir){ parlaklikSatir.hidden = true; }
-        if(yatayKonumSatir){ yatayKonumSatir.hidden = true; }
       }
     }
 
@@ -11390,14 +11356,20 @@
       });
     }
 
-    // yatayX/yatayY: arka plan akışının 2. adımında (yatay) kullanıcının seçtiği
-    // odak noktası, yüzde olarak (0-100). Verilmezse (ör. eski davranışa dönülen
-    // yedek akışta) görsel ortalanır.
-    function boyutlaVeKaydet(kaynakImg, kirpX, kirpY, kirpW, kirpH, yatayX, yatayY){
+    // Arka plan görseli fiziksel olarak kırpılmıyor: aynı görsel hem dikey hem
+    // yatay modda (farklı bir "background-position" odak noktasıyla) kullanılacağı
+    // için tek bir sabit piksel kırpması doğru olmaz — bu, önceden yatay modda
+    // seçilen noktanın gerçek ekranda görünmemesine ve gerçek cihaz en-boy
+    // oranı kadraja tam oturmadığında görselin gereğinden fazla yakınlaşmış
+    // görünmesine yol açıyordu. Bunun yerine orijinal görsel (yeniden
+    // boyutlandırılmış olarak) olduğu gibi saklanır; dikeyX/dikeyY ve
+    // yatayX/yatayY, sırasıyla dikey ve yatay modda kullanılacak odak
+    // noktalarıdır (0-100 arası yüzde). Verilmezlerse görsel ortalanır.
+    function tamGorseliKaydet(kaynakImg, natW, natH, dikeyX, dikeyY, yatayX, yatayY){
       try{
         const maksKenar = 1600;
-        let genislik = kirpW;
-        let yukseklik = kirpH;
+        let genislik = natW;
+        let yukseklik = natH;
         if(genislik > maksKenar || yukseklik > maksKenar){
           if(genislik >= yukseklik){
             yukseklik = Math.round(yukseklik * (maksKenar / genislik));
@@ -11411,7 +11383,7 @@
         canvas.width = genislik;
         canvas.height = yukseklik;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(kaynakImg, kirpX, kirpY, kirpW, kirpH, 0, 0, genislik, yukseklik);
+        ctx.drawImage(kaynakImg, 0, 0, natW, natH, 0, 0, genislik, yukseklik);
 
         canvas.toBlob(function(blob){
           if(!blob){
@@ -11419,17 +11391,19 @@
             return;
           }
           gorselKaydet(blob).then(function(){
-            // Yatay adımda bir odak noktası seçildiyse o kaydedilir; seçilmediyse
-            // (ör. yedek/eski akış) görsel ortalanır.
-            const x = (typeof yatayX === 'number') ? yatayX : 50;
-            const y = (typeof yatayY === 'number') ? yatayY : 50;
-            yatayKonumUygula(x, y);
-            try{ localStorage.setItem(YATAY_KONUM_ANAHTARI, JSON.stringify({ x: x, y: y })); }catch(e){}
+            const dx = (typeof dikeyX === 'number') ? dikeyX : 50;
+            const dy = (typeof dikeyY === 'number') ? dikeyY : 50;
+            const yx = (typeof yatayX === 'number') ? yatayX : 50;
+            const yy = (typeof yatayY === 'number') ? yatayY : 50;
+            dikeyKonumUygula(dx, dy);
+            yatayKonumUygula(yx, yy);
+            try{ localStorage.setItem(DIKEY_KONUM_ANAHTARI, JSON.stringify({ x: dx, y: dy })); }catch(e){}
+            try{ localStorage.setItem(YATAY_KONUM_ANAHTARI, JSON.stringify({ x: yx, y: yy })); }catch(e){}
             uygula(blob);
           }).catch(function(){
             if(label){ label.textContent = 'Görsel kaydedilemedi'; }
           });
-        }, 'image/jpeg', 0.8);
+        }, 'image/jpeg', 0.85);
       }catch(e){
         if(label){ label.textContent = 'Görsel işlenemedi'; }
       }
@@ -11439,18 +11413,18 @@
       if(!dosya || !/^image\//.test(dosya.type)) return;
       if(typeof window.sessizlikFotoAyarAc === 'function'){
         window.sessizlikFotoAyarAc(dosya, 'arkaplan', function(sonuc){
-          boyutlaVeKaydet(sonuc.img, sonuc.kirpX, sonuc.kirpY, sonuc.kirpW, sonuc.kirpH, sonuc.yatayX, sonuc.yatayY);
+          tamGorseliKaydet(sonuc.img, sonuc.natW, sonuc.natH, sonuc.dikeyX, sonuc.dikeyY, sonuc.yatayX, sonuc.yatayY);
         });
         return;
       }
       // Fotoğraf ayar penceresi yüklenmemişse eski davranışa (görselin tamamı,
-      // kırpılmadan) geri dönülür.
+      // ortalanmış olarak) geri dönülür.
       const url = URL.createObjectURL(dosya);
       const image = new Image();
       image.onload = function(){
         const genislik = image.naturalWidth;
         const yukseklik = image.naturalHeight;
-        if(genislik && yukseklik){ boyutlaVeKaydet(image, 0, 0, genislik, yukseklik); }
+        if(genislik && yukseklik){ tamGorseliKaydet(image, genislik, yukseklik); }
         URL.revokeObjectURL(url);
       };
       image.onerror = function(){ URL.revokeObjectURL(url); };
@@ -11482,10 +11456,14 @@
 
   // ================= FOTOĞRAF KONUMLANDIRMA (profil fotoğrafı + arka plan görseli ortak) =================
   // Kullanıcı bir fotoğraf seçtiğinde, otomatik orta kırpma yerine bu pencere açılır:
-  // görseli sürükleyerek konumunu, kaydırıcıyla yakınlığını ayarlayabilir. "Kaydet"e
-  // basıldığında, ekranda görünen kadrajın kaynak görseldeki karşılığı (piksel
-  // cinsinden kırpma dikdörtgeni) hesaplanıp çağıran modüle geri verilir; asıl
-  // kanvasa çizip kaydetme işini her modül (profil fotoğrafı / arka plan) kendisi yapar.
+  // görseli sürükleyerek konumunu, kaydırıcıyla yakınlığını ayarlayabilir.
+  // Profil fotoğrafında "Kaydet"e basıldığında, ekranda görünen kadrajın kaynak
+  // görseldeki karşılığı (piksel cinsinden kırpma dikdörtgeni) hesaplanıp çağıran
+  // modüle geri verilir; kanvasa çizip kaydetme işini profil modülü kendisi yapar.
+  // Arka plan görselinde ise fiziksel kırpma yapılmaz (aynı görsel hem dikey hem
+  // yatay modda kullanılacağından tek bir sabit kırpma doğru olmaz): bunun yerine
+  // her iki adımda seçilen kadrajın merkezi, orijinal görselin yüzdesi olarak
+  // hesaplanıp "background-position" odak noktası olarak geri verilir.
   (function(){
     const overlay = document.getElementById('fotoAyarOverlay');
     const stage = document.getElementById('fotoAyarStage');
@@ -11584,8 +11562,10 @@
 
     // dosya: input'tan seçilen File. mod: 'profil' (yuvarlak çerçeve) ya da
     // 'arkaplan' (önce dikey, sonra yatay çerçeve). onKaydet(sonuc): kullanıcı
-    // akışı tamamlayınca çağrılır. Profilde sonuç { img, kirpX, kirpY, kirpW, kirpH };
-    // arkaplanda ayrıca yatay konum yüzdeleri de eklenir: { ..., yatayX, yatayY }.
+    // akışı tamamlayınca çağrılır. Profilde sonuç { img, kirpX, kirpY, kirpW, kirpH }
+    // (fiziksel kırpma için piksel dikdörtgeni); arkaplanda ise sonuç
+    // { img, natW, natH, dikeyX, dikeyY, yatayX, yatayY } (fiziksel kırpma yok,
+    // sadece orijinal görselin yüzdesi cinsinden iki odak noktası).
     function ac(dosya, mod, onKaydet){
       const url = URL.createObjectURL(dosya);
       const probe = new Image();
@@ -11638,27 +11618,32 @@
       const kirpH = s.h / durum.scale;
       const kirpX = (durum.natW / 2) - (durum.x / durum.scale) - (kirpW / 2);
       const kirpY = (durum.natH / 2) - (durum.y / durum.scale) - (kirpH / 2);
+      // Bu adımda seçilen kadrajın merkezi, orijinal görselin yüzdesi olarak
+      // hesaplanır; bu, "background-position" için doğrudan kullanılabilir bir
+      // odak noktasıdır (background-size:cover ile aynı mantıkla çalışır).
+      const merkezXYuzde = Math.min(100, Math.max(0, ((kirpX + kirpW / 2) / durum.natW) * 100));
+      const merkezYYuzde = Math.min(100, Math.max(0, ((kirpY + kirpH / 2) / durum.natH) * 100));
 
       // Arka plan akışında 1. adım (dikey) bittiğinde kapatmak yerine
       // aynı sürükle/yakınlaştır mekanizmasıyla 2. adıma (yatay) geçilir.
       if(girisMod === 'arkaplan' && adim === 1){
-        dikeySonuc = { kirpX:kirpX, kirpY:kirpY, kirpW:kirpW, kirpH:kirpH };
+        dikeySonuc = { x:merkezXYuzde, y:merkezYYuzde };
         adimAc(2);
         return;
       }
 
       let sonuc;
       if(girisMod === 'arkaplan' && adim === 2){
-        // Yatay adımda seçilen kadrajın merkezi, orijinal görselin yüzdesi
-        // olarak hesaplanır; bu, "background-position" için doğrudan kullanılabilir
-        // bir odak noktasıdır (background-size:cover ile aynı mantıkla çalışır).
-        const merkezXYuzde = ((kirpX + kirpW / 2) / durum.natW) * 100;
-        const merkezYYuzde = ((kirpY + kirpH / 2) / durum.natH) * 100;
+        // Arka plan görseli fiziksel olarak kırpılmıyor: orijinal görsel (yeniden
+        // boyutlandırılmış olarak) saklanır, dikey ve yatay modlar sadece farklı
+        // bir odak noktasıyla (background-position) gösterilir. Böylece her iki
+        // adımda seçilen kadraj, gerçek cihaz ekranının en-boy oranından bağımsız
+        // olarak doğru şekilde uygulanır.
         sonuc = {
           img: img,
-          kirpX: dikeySonuc.kirpX, kirpY: dikeySonuc.kirpY, kirpW: dikeySonuc.kirpW, kirpH: dikeySonuc.kirpH,
-          yatayX: Math.min(100, Math.max(0, merkezXYuzde)),
-          yatayY: Math.min(100, Math.max(0, merkezYYuzde))
+          natW: durum.natW, natH: durum.natH,
+          dikeyX: dikeySonuc.x, dikeyY: dikeySonuc.y,
+          yatayX: merkezXYuzde, yatayY: merkezYYuzde
         };
       } else {
         sonuc = { img:img, kirpX:kirpX, kirpY:kirpY, kirpW:kirpW, kirpH:kirpH };
