@@ -2366,6 +2366,11 @@
     .kalori-pane-calisma.set-gecis-anim .kalori-durum-etiket{ animation:none; }
   }
 
+  /* ---- Program: Kronometre veya Sayaç kullanılırken tam ekran — Spor Modu dock'u gizlenir ---- */
+  .spor-modu-overlay.program-tam-ekran .spor-modu-dock-wrap{
+    display:none;
+  }
+
   /* ---- Program: Antrenman/Seans akışından bağımsız Kronometre + Geri Sayım ---- */
   .spor-modu-view-program{
     justify-content:flex-start;
@@ -2788,6 +2793,182 @@
     border-color:var(--accent);
     background:rgba(var(--accent-rgb),0.16);
     color:var(--ink);
+  }
+
+  /* ================= ÖZEL ARKA PLAN GÖRSELİ ================= */
+  .ozel-arkaplan-btn-grup{
+    display:flex;
+    gap:0.5rem;
+    flex-shrink:0;
+  }
+  .ozel-arkaplan-kaldir-btn{
+    color:var(--yanlis, #c1443c);
+    border-color:rgba(var(--yanlis-rgb,193,68,60),0.4);
+  }
+  .ozel-arkaplan-kaldir-btn:hover{
+    border-color:var(--yanlis, #c1443c);
+    background:rgba(var(--yanlis-rgb,193,68,60),0.1);
+  }
+  /* Kullanıcının seçtiği görsel, tüm uygulamanın en arkasında (ışık/yıldız/kar
+     efektlerinin de gerisinde) sabit biçimde durur. Okunabilirlik için üstüne
+     temanın arka plan rengiyle uyumlu, yarı saydam bir katman biner. */
+  .ozel-arkaplan-katman{
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.4s ease;
+  }
+  .ozel-arkaplan-katman::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:rgba(var(--bg-rgb),0.82);
+  }
+  html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman{
+    opacity:1;
+  }
+
+  /* ================= PROFİL SAYFASI ================= */
+  .profil-overlay{
+    position:fixed;
+    inset:0;
+    z-index:98;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    transform:scale(0.97);
+    pointer-events:none;
+    visibility:hidden;
+    transition: opacity 0.16s ease, transform 0.16s cubic-bezier(.4,0,1,1), visibility 0s linear 0.16s;
+  }
+  .profil-overlay.active{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+    visibility:visible;
+    transition: opacity 0.24s ease, transform 0.24s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .profil-overlay{ transition:opacity 0.12s ease, visibility 0s linear 0.12s; transform:none; }
+    .profil-overlay.active{ transition:opacity 0.12s ease, visibility 0s linear 0s; transform:none; }
+  }
+  .profil-header{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.8rem;
+    padding:calc(1.1rem + env(safe-area-inset-top, 0px)) 1.2rem 1rem;
+    border-bottom:1px solid var(--line);
+  }
+  .profil-kapat-btn{
+    width:2.2rem;
+    height:2.2rem;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background 0.2s ease, border-color 0.2s ease;
+  }
+  .profil-kapat-btn:hover{ background:rgba(var(--ink-rgb),0.06); border-color:var(--ink-soft); }
+  .profil-kapat-btn:active{ transform:scale(0.94); }
+  .profil-kapat-btn svg{ width:1.15rem; height:1.15rem; }
+  .profil-header-baslik{
+    font-size:1.05rem;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .profil-header-bosluk{ width:2.2rem; flex-shrink:0; }
+  .profil-icerik{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:2rem 1.4rem calc(2.4rem + env(safe-area-inset-bottom, 0px));
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .profil-foto-wrap{
+    position:relative;
+    width:6.2rem;
+    height:6.2rem;
+    flex-shrink:0;
+  }
+  .profil-foto-cerceve{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(var(--accent-rgb),0.16);
+    color:var(--accent);
+    border:1px solid var(--line);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:2.1rem;
+    font-weight:600;
+  }
+  .profil-foto-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .profil-foto-duzenle-btn{
+    position:absolute;
+    right:-0.15rem;
+    bottom:-0.15rem;
+    width:2.2rem;
+    height:2.2rem;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--accent);
+    color:var(--bg);
+    border:2px solid var(--bg);
+    cursor:pointer;
+    box-shadow:0 6px 14px -4px rgba(var(--shadow-rgb),0.35);
+    transition:transform 0.15s ease;
+  }
+  .profil-foto-duzenle-btn:hover{ filter:brightness(1.06); }
+  .profil-foto-duzenle-btn:active{ transform:scale(0.92); }
+  .profil-foto-duzenle-btn svg{ width:1rem; height:1rem; }
+  .profil-foto-kaldir-btn{
+    margin-top:0.9rem;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    letter-spacing:0.03em;
+    color:var(--ink-soft);
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    padding:0.3rem 0.5rem;
+    transition:color 0.2s ease;
+  }
+  .profil-foto-kaldir-btn:hover{ color:var(--yanlis, #c1443c); }
+  .profil-satirlar{
+    width:100%;
+    max-width:26rem;
+    margin-top:1.6rem;
+  }
+  .profil-satirlar .settings-row{
+    opacity:1;
+    transform:none;
+    margin-top:0;
+  }
+  .profil-satirlar .settings-row + .settings-row{
+    margin-top:0.9rem;
   }
 
   /* ================= GÜNDELİK GÖRÜNÜMÜ - DOCK NAVBAR ================= */
@@ -8355,6 +8536,9 @@
 </head>
 <body>
 
+  <!-- Kullanıcının seçtiği özel arka plan görseli: tüm uygulamanın en arkasında sabit durur -->
+  <div class="ozel-arkaplan-katman" id="ozelArkaPlanKatman" aria-hidden="true"></div>
+
   <!-- ================= GİRİŞ / KAYIT EKRANI ================= -->
   <div class="giris-overlay" id="girisEkraniOverlay">
     <div class="giris-ilerleme-wrap" id="girisIlerlemeWrap">
@@ -8576,24 +8760,14 @@
       <span class="empty-word" id="emptyWord">Ayarlar</span>
       <div class="empty-rule" id="emptyRule"></div>
       <p class="empty-sub" id="emptySub">Görünüm tercihini burada yönetebilirsin</p>
-      <div class="settings-row" id="isimRow">
+      <div class="settings-row" id="profilRow">
         <div class="settings-row-text">
-          <span class="settings-row-title">İsmin</span>
-          <span class="settings-row-sub" id="isimStateLabel">—</span>
+          <span class="settings-row-title">Profil</span>
+          <span class="settings-row-sub" id="profilStateLabel">—</span>
         </div>
-        <button type="button" class="yedek-ac-btn" id="isimDuzenleBtn" aria-label="İsmini değiştir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
-          <span>Değiştir</span>
-        </button>
-      </div>
-      <div class="settings-row" id="alanRow">
-        <div class="settings-row-text">
-          <span class="settings-row-title">Alanın</span>
-          <span class="settings-row-sub" id="alanStateLabel">—</span>
-        </div>
-        <button type="button" class="yedek-ac-btn" id="alanDuzenleBtn" aria-label="Alanını değiştir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
-          <span>Değiştir</span>
+        <button type="button" class="yedek-ac-btn" id="profilAcBtn" aria-label="Profilimi özelleştir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="8" r="5"></circle></svg>
+          <span>Profilimi Özelleştir</span>
         </button>
       </div>
       <div class="settings-row" id="settingsRow">
@@ -8654,6 +8828,23 @@
           <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
           <button type="button" class="bganim-btn" data-bganim="kar">Kar Yağışı</button>
         </div>
+      </div>
+      <div class="settings-row wrap-row" id="ozelArkaPlanRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Arka Plan Görseli</span>
+          <span class="settings-row-sub" id="ozelArkaPlanStateLabel">Seçilmedi</span>
+        </div>
+        <div class="ozel-arkaplan-btn-grup">
+          <button type="button" class="yedek-ac-btn" id="ozelArkaPlanSecBtn" aria-label="Arka plan görseli seç">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>
+            <span>Seç</span>
+          </button>
+          <button type="button" class="yedek-ac-btn ozel-arkaplan-kaldir-btn" id="ozelArkaPlanKaldirBtn" aria-label="Arka plan görselini kaldır" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>
+            <span>Kaldır</span>
+          </button>
+        </div>
+        <input type="file" accept="image/*" id="ozelArkaPlanInput" hidden>
       </div>
       <div class="settings-row" id="yedekRow">
         <div class="settings-row-text">
@@ -9443,6 +9634,53 @@
     </div>
   </div>
 
+  <!-- ================= PROFİL SAYFASI: fotoğraf, isim ve alan tek yerden ================= -->
+  <div class="profil-overlay" id="profilOverlay">
+    <div class="profil-header">
+      <button type="button" class="profil-kapat-btn" id="profilKapatBtn" aria-label="Profili kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <span class="profil-header-baslik">Profilim</span>
+      <span class="profil-header-bosluk"></span>
+    </div>
+    <div class="profil-icerik">
+      <div class="profil-foto-wrap">
+        <div class="profil-foto-cerceve" id="profilFotoCerceve">
+          <img src="" alt="Profil fotoğrafı" class="profil-foto-img" id="profilFotoImg" hidden>
+          <span id="profilFotoYer">?</span>
+        </div>
+        <button type="button" class="profil-foto-duzenle-btn" id="profilFotoSecBtn" aria-label="Profil fotoğrafını değiştir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        </button>
+        <input type="file" accept="image/*" id="profilFotoInput" hidden>
+      </div>
+      <button type="button" class="profil-foto-kaldir-btn" id="profilFotoKaldirBtn" hidden>Fotoğrafı Kaldır</button>
+
+      <div class="profil-satirlar">
+        <div class="settings-row" id="isimRow">
+          <div class="settings-row-text">
+            <span class="settings-row-title">İsmin</span>
+            <span class="settings-row-sub" id="isimStateLabel">—</span>
+          </div>
+          <button type="button" class="yedek-ac-btn" id="isimDuzenleBtn" aria-label="İsmini değiştir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+            <span>Değiştir</span>
+          </button>
+        </div>
+        <div class="settings-row" id="alanRow">
+          <div class="settings-row-text">
+            <span class="settings-row-title">Alanın</span>
+            <span class="settings-row-sub" id="alanStateLabel">—</span>
+          </div>
+          <button type="button" class="yedek-ac-btn" id="alanDuzenleBtn" aria-label="Alanını değiştir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+            <span>Değiştir</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Ayarlar / Ana Sayfa: isim değiştirme penceresi -->
   <div class="modal-overlay" id="isimDegistirModalOverlay">
     <div class="modal-box" style="position:relative;">
@@ -10224,6 +10462,8 @@
       if(!isimStateLabel) return;
       const isim = kayitliIsim();
       isimStateLabel.textContent = isim || 'Henüz eklenmedi';
+      const profilStateLabel = document.getElementById('profilStateLabel');
+      if(profilStateLabel){ profilStateLabel.textContent = isim || 'Profilini özelleştir'; }
     }
     etiketiGuncelle();
     // Ayarlar sayfası her açıldığında da (bu betik ilk çalıştığında henüz
@@ -10418,6 +10658,215 @@
         modalKapat();
       }
     });
+  })();
+
+  // ================= PROFİL SAYFASI: açma/kapama =================
+  // "Profilimi Özelleştir" butonuyla açılan, ismin/alanın ve profil
+  // fotoğrafının tek bir yerden yönetildiği tam ekran sayfa.
+  (function(){
+    const overlay = document.getElementById('profilOverlay');
+    const acBtn = document.getElementById('profilAcBtn');
+    const kapatBtn = document.getElementById('profilKapatBtn');
+    if(!overlay || !acBtn) return;
+
+    function ac(){
+      overlay.classList.add('active');
+      if(typeof window.sessizlikIsimEtiketiGuncelle === 'function'){ window.sessizlikIsimEtiketiGuncelle(); }
+      if(typeof window.sessizlikAlanEtiketiGuncelle === 'function'){ window.sessizlikAlanEtiketiGuncelle(); }
+      if(typeof window.sessizlikProfilFotoYenile === 'function'){ window.sessizlikProfilFotoYenile(); }
+    }
+    function kapat(){ overlay.classList.remove('active'); }
+
+    acBtn.addEventListener('click', ac);
+    if(kapatBtn){ kapatBtn.addEventListener('click', kapat); }
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && overlay.classList.contains('active')){ kapat(); }
+    });
+  })();
+
+  // ================= PROFİL FOTOĞRAFI: ekleme, değiştirme, kaldırma =================
+  // Seçilen görsel makul bir boyuta indirilip (uzun kenar en fazla 480px)
+  // localStorage'a base64 olarak kaydedilir; yalnızca bu cihazda saklanır.
+  (function(){
+    const FOTO_ANAHTARI = 'sessizlik-profil-foto';
+    const cerceve = document.getElementById('profilFotoCerceve');
+    const img = document.getElementById('profilFotoImg');
+    const yer = document.getElementById('profilFotoYer');
+    const secBtn = document.getElementById('profilFotoSecBtn');
+    const kaldirBtn = document.getElementById('profilFotoKaldirBtn');
+    const input = document.getElementById('profilFotoInput');
+    if(!cerceve || !img || !secBtn || !input) return;
+
+    function ilkHarf(){
+      try{
+        const isim = (localStorage.getItem('sessizlik-kullanici-adi') || '').trim();
+        return isim ? isim.charAt(0).toLocaleUpperCase('tr') : '?';
+      }catch(e){ return '?'; }
+    }
+
+    function goster(dataUrl){
+      if(dataUrl){
+        img.src = dataUrl;
+        img.hidden = false;
+        if(yer) yer.hidden = true;
+        if(kaldirBtn) kaldirBtn.hidden = false;
+      } else {
+        img.hidden = true;
+        img.src = '';
+        if(yer){ yer.hidden = false; yer.textContent = ilkHarf(); }
+        if(kaldirBtn) kaldirBtn.hidden = true;
+      }
+    }
+
+    function yenile(){
+      let kayitli = null;
+      try{ kayitli = localStorage.getItem(FOTO_ANAHTARI); }catch(e){}
+      goster(kayitli);
+    }
+    window.sessizlikProfilFotoYenile = yenile;
+
+    function gorseliIsle(dosya){
+      if(!dosya || !/^image\//.test(dosya.type)) return;
+      const url = URL.createObjectURL(dosya);
+      const image = new Image();
+      image.onload = function(){
+        try{
+          const maksKenar = 480;
+          let genislik = image.naturalWidth;
+          let yukseklik = image.naturalHeight;
+          if(!genislik || !yukseklik){ URL.revokeObjectURL(url); return; }
+          // Kare bir alana ortalanarak kırpılır, böylece yuvarlak çerçevede
+          // görsel her zaman düzgün doldurur.
+          const kenar = Math.min(genislik, yukseklik);
+          const kirpX = (genislik - kenar) / 2;
+          const kirpY = (yukseklik - kenar) / 2;
+          const hedefKenar = Math.min(maksKenar, kenar);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = hedefKenar;
+          canvas.height = hedefKenar;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(image, kirpX, kirpY, kenar, kenar, 0, 0, hedefKenar, hedefKenar);
+          URL.revokeObjectURL(url);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          try{ localStorage.setItem(FOTO_ANAHTARI, dataUrl); }catch(e){}
+          goster(dataUrl);
+        }catch(e){
+          URL.revokeObjectURL(url);
+        }
+      };
+      image.onerror = function(){ URL.revokeObjectURL(url); };
+      image.src = url;
+    }
+
+    secBtn.addEventListener('click', function(){ input.click(); });
+    input.addEventListener('change', function(){
+      const dosya = input.files && input.files[0];
+      if(dosya){ gorseliIsle(dosya); }
+      input.value = '';
+    });
+    if(kaldirBtn){
+      kaldirBtn.addEventListener('click', function(){
+        try{ localStorage.removeItem(FOTO_ANAHTARI); }catch(e){}
+        goster(null);
+      });
+    }
+
+    yenile();
+  })();
+
+  // ================= ÖZEL ARKA PLAN GÖRSELİ =================
+  // Ayarlar sayfasından seçilen görsel, uygulamanın en arkasında sabit bir
+  // katman olarak gösterilir (üstünde okunabilirlik için temaya uygun
+  // yarı saydam bir örtü bulunur). Görsel yalnızca bu cihazda saklanır.
+  (function(){
+    const ANAHTAR = 'sessizlik-arkaplan-gorsel';
+    const katman = document.getElementById('ozelArkaPlanKatman');
+    const secBtn = document.getElementById('ozelArkaPlanSecBtn');
+    const kaldirBtn = document.getElementById('ozelArkaPlanKaldirBtn');
+    const input = document.getElementById('ozelArkaPlanInput');
+    const label = document.getElementById('ozelArkaPlanStateLabel');
+    const root = document.documentElement;
+    if(!katman || !secBtn || !input) return;
+
+    function uygula(dataUrl){
+      if(dataUrl){
+        katman.style.backgroundImage = "url('" + dataUrl + "')";
+        root.setAttribute('data-ozel-arkaplan', 'acik');
+        if(label){ label.textContent = 'Özel görsel aktif'; }
+        if(kaldirBtn){ kaldirBtn.hidden = false; }
+      } else {
+        katman.style.backgroundImage = '';
+        root.removeAttribute('data-ozel-arkaplan');
+        if(label){ label.textContent = 'Seçilmedi'; }
+        if(kaldirBtn){ kaldirBtn.hidden = true; }
+      }
+    }
+
+    function yukle(){
+      let kayitli = null;
+      try{ kayitli = localStorage.getItem(ANAHTAR); }catch(e){}
+      uygula(kayitli);
+    }
+
+    function gorseliIsle(dosya){
+      if(!dosya || !/^image\//.test(dosya.type)) return;
+      const url = URL.createObjectURL(dosya);
+      const image = new Image();
+      image.onload = function(){
+        try{
+          const maksKenar = 1600;
+          let genislik = image.naturalWidth;
+          let yukseklik = image.naturalHeight;
+          if(!genislik || !yukseklik){ URL.revokeObjectURL(url); return; }
+          if(genislik > maksKenar || yukseklik > maksKenar){
+            if(genislik >= yukseklik){
+              yukseklik = Math.round(yukseklik * (maksKenar / genislik));
+              genislik = maksKenar;
+            } else {
+              genislik = Math.round(genislik * (maksKenar / yukseklik));
+              yukseklik = maksKenar;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = genislik;
+          canvas.height = yukseklik;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(image, 0, 0, genislik, yukseklik);
+          URL.revokeObjectURL(url);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          try{
+            localStorage.setItem(ANAHTAR, dataUrl);
+          }catch(e){
+            // Depolama sınırını aşarsa (ör. Safari) kullanıcıyı bilgilendir.
+            if(label){ label.textContent = 'Görsel çok büyük, kaydedilemedi'; }
+            return;
+          }
+          uygula(dataUrl);
+        }catch(e){
+          URL.revokeObjectURL(url);
+        }
+      };
+      image.onerror = function(){ URL.revokeObjectURL(url); };
+      image.src = url;
+    }
+
+    secBtn.addEventListener('click', function(){ input.click(); });
+    input.addEventListener('change', function(){
+      const dosya = input.files && input.files[0];
+      if(dosya){ gorseliIsle(dosya); }
+      input.value = '';
+    });
+    if(kaldirBtn){
+      kaldirBtn.addEventListener('click', function(){
+        try{ localStorage.removeItem(ANAHTAR); }catch(e){}
+        uygula(null);
+      });
+    }
+
+    yukle();
   })();
 
   // ================= ANA SAYFA GİRİŞ ANİMASYONU GÜVENLİK AĞI =================
@@ -11090,13 +11539,13 @@
     const emptyRule = document.getElementById('emptyRule');
     const emptySub = document.getElementById('emptySub');
     const settingsRow = document.getElementById('settingsRow');
-    const isimRow = document.getElementById('isimRow');
-    const alanRow = document.getElementById('alanRow');
+    const profilRow = document.getElementById('profilRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
     const tamEkranRow = document.getElementById('tamEkranRow');
     const renkRow = document.getElementById('renkRow');
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
+    const ozelArkaPlanRow = document.getElementById('ozelArkaPlanRow');
     const yedekRow = document.getElementById('yedekRow');
     const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
@@ -11180,8 +11629,8 @@
       emptyWord.classList.remove('animate');
       emptyRule.classList.remove('animate');
       emptySub.classList.remove('animate');
-      isimRow.classList.remove('animate');
       settingsRow.classList.remove('animate');
+      profilRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
       tamEkranRow.classList.remove('animate');
       renkRow.classList.remove('animate');
@@ -11232,7 +11681,7 @@
 
       // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
       // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
-      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, tamEkranRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, profilRow, settingsRow, navbarPositionRow, tamEkranRow, renkRow, isikEfektiRow, bganimRow, ozelArkaPlanRow, yedekRow, bulutYedekRow, sporModuRow];
       ayarOgeleri.forEach(function(el){
         el.classList.remove('animate');
         el.style.animation = 'none';
@@ -18902,6 +19351,17 @@
     });
   })();
 
+  // Kronometre veya Sayaç kullanımdayken (başlatılmış, sıfırlanana kadar) Spor Modu
+  // dock'unu (alt gezinme) gizler; tek odak kronometre/sayaç olur.
+  function sporProgramTamEkranGuncelle(){
+    const overlay = document.getElementById('sporModuOverlay');
+    const pk = document.getElementById('programPaneKronometre');
+    const ps = document.getElementById('programPaneSayac');
+    if(!overlay) return;
+    const kullanimda = (pk && pk.classList.contains('calisiyor')) || (ps && ps.classList.contains('calisiyor'));
+    overlay.classList.toggle('program-tam-ekran', !!kullanimda);
+  }
+
   // ================= SPOR MODU: PROGRAM — BAĞIMSIZ KRONOMETRE =================
   // Ana sayfadaki günlük/takvimli Kronometre'den tamamen ayrı, basit bir
   // sayaç: sadece bu oturum boyunca (sayfa yenilenene kadar) sayar, hiçbir
@@ -18913,6 +19373,7 @@
     const baslatBtn = document.getElementById('programKronoBaslatBtn');
     const sifirlaBtn = document.getElementById('programKronoSifirlaBtn');
     const turBtn = document.getElementById('programKronoTurBtn');
+    const paneKronometreEl = document.getElementById('programPaneKronometre');
     if(!saat || !baslatBtn) return;
 
     let calisiyorMu = false;
@@ -18955,6 +19416,8 @@
       if(calisiyorMu) return;
       calisiyorMu = true;
       baslangicZamani = Date.now();
+      if(paneKronometreEl) paneKronometreEl.classList.add('calisiyor');
+      sporProgramTamEkranGuncelle();
       baslatBtn.textContent = 'Durdur';
       baslatBtn.classList.remove('kronometre-baslat');
       baslatBtn.classList.add('kronometre-durdur');
@@ -18983,6 +19446,8 @@
       sonTurZamani = 0;
       if(turListe) turListe.innerHTML = '';
       if(sifirlaBtn) sifirlaBtn.disabled = true;
+      if(paneKronometreEl) paneKronometreEl.classList.remove('calisiyor');
+      sporProgramTamEkranGuncelle();
       ekraniGuncelle();
     }
 
@@ -19122,6 +19587,7 @@
       calisiyorMu = true;
       sonZaman = Date.now();
       pane.classList.add('calisiyor');
+      sporProgramTamEkranGuncelle();
       saatEl.classList.remove('program-sayac-doldu');
       baslatBtn.textContent = 'Duraklat';
       baslatBtn.classList.remove('kronometre-baslat');
@@ -19147,6 +19613,7 @@
       kalanMs = 0;
       if(raf){ cancelAnimationFrame(raf); raf = null; }
       pane.classList.remove('calisiyor');
+      sporProgramTamEkranGuncelle();
       saatEl.classList.remove('program-sayac-doldu');
       durumEtiketiYaz('');
       baslatBtn.textContent = 'Başlat';
@@ -20601,7 +21068,7 @@
 
   // ================= ARKA PLAN KİLİDİ: herhangi bir pop-up/kayar pencere açıkken arka plan kaydırılamasın =================
   (function(){
-    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-tam-ekran-overlay.active';
+    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-tam-ekran-overlay.active, .profil-overlay.active';
     let kilitliKonum = 0;
     let kilitliMi = false;
 
@@ -20641,7 +21108,7 @@
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
     }
 
-    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-tam-ekran-overlay');
+    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-tam-ekran-overlay, .profil-overlay');
     if(izlenecekOverlayler.length){
       const gozlemci = new MutationObserver(durumuKontrolEt);
       izlenecekOverlayler.forEach(function(el){
