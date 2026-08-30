@@ -22009,6 +22009,79 @@
     }, { passive:true });
   })();
 
+  // ================= SPOR MODU: SAYFALARI ANA UYGULAMA GİBİ HAREKET ETTİRME
+  //                    (YUMUŞAK KAYDIRMA + HAFİF BOUNCE) =================
+  // Denemeler görünümündeki (yukarıdaki blok) mantığın birebir aynısı; tek
+  // fark, orada tüm sayfa (window) kaydığı için window.scrollY okunuyordu,
+  // burada ise Spor Modu her sekmesi kendi içinde (overflow-y:auto) kaydığı
+  // için ilgili elemanın kendi scrollTop'u okunuyor. Böylece Antrenman,
+  // Seans (Kalori) ve Program sekmelerindeki her alt görünüm, ana
+  // uygulamadaki sayfalar gibi sınırda hafif esneyerek (bounce) tepki verir.
+  (function(){
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(prefersReducedMotion) return;
+
+    const kaydirilabilirSeciciler = '.antrenman-pane, .kalori-pane, .program-pane';
+    const elemanlar = document.querySelectorAll(kaydirilabilirSeciciler);
+    if(!elemanlar.length) return;
+
+    const BOUNCE_AMOUNT = 16; // px
+    const BOUNCE_HOLD = 90;   // ms, geri dönmeden önce bekleme
+
+    elemanlar.forEach(function(el){
+      let bounceResetTimer = null;
+
+      function aktifMi(){
+        // Sekme kendisi "active" olmalı VE Spor Modu tam ekranı görünür olmalı;
+        // gizliyken (display:none) gelen olaylara boşuna tepki vermeyelim.
+        return el.classList.contains('active') && el.offsetParent !== null;
+      }
+
+      function ustte(){
+        return el.scrollTop <= 0;
+      }
+
+      function altta(){
+        return (el.scrollTop + el.clientHeight) >= (el.scrollHeight - 1);
+      }
+
+      function bounceTetikle(direction){
+        // direction: 1 = üstten aşağı esneme, -1 = alttan yukarı esneme
+        el.style.transform = 'translateY(' + (direction * BOUNCE_AMOUNT) + 'px)';
+        clearTimeout(bounceResetTimer);
+        bounceResetTimer = setTimeout(function(){
+          el.style.transform = 'translateY(0)';
+        }, BOUNCE_HOLD);
+      }
+
+      // Masaüstü: tekerlek ile sınırda hafif esneme
+      el.addEventListener('wheel', function(e){
+        if(!aktifMi()) return;
+        if(ustte() && e.deltaY < -8){
+          bounceTetikle(1);
+        } else if(altta() && e.deltaY > 8){
+          bounceTetikle(-1);
+        }
+      }, { passive:true });
+
+      // Mobil: parmakla sınırda hafif esneme
+      let touchStartY = 0;
+      el.addEventListener('touchstart', function(e){
+        touchStartY = e.touches[0].clientY;
+      }, { passive:true });
+
+      el.addEventListener('touchmove', function(e){
+        if(!aktifMi()) return;
+        const deltaY = e.touches[0].clientY - touchStartY;
+        if(ustte() && deltaY > 24){
+          bounceTetikle(1);
+        } else if(altta() && deltaY < -24){
+          bounceTetikle(-1);
+        }
+      }, { passive:true });
+    });
+  })();
+
   // ================= ZOOM ENGELLEME =================
   (function(){
     // Not: Çift dokunmayla zoom yapmayı engellemek için touchend bazlı,
