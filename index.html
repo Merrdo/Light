@@ -85,6 +85,14 @@
       document.documentElement.setAttribute('data-bganim', 'isik');
     }
   })();
+
+  // Arka plan animasyonlarını tamamen kapatma tercihini stiller çizilmeden önce uygula
+  (function(){
+    try{
+      var animKapaliKayitli = localStorage.getItem('sessizlik-bganim-kapat');
+      if(animKapaliKayitli === 'acik'){ document.documentElement.setAttribute('data-bganim-kapat', 'acik'); }
+    }catch(e){}
+  })();
 </script>
 
 <style>
@@ -502,6 +510,15 @@
   html[data-bganim="kar"] .shooting-star,
   html:not([data-bganim]) .star,
   html:not([data-bganim]) .shooting-star{ display:none; }
+
+  /* ---- "Animasyonları Kapat": ışık huzmesi/toz, yıldız ve kayan yıldız katmanlarını
+     tamamen gizler (kar efekti kendi canvas'ı olduğu için ayrıca JS ile durdurulur) ---- */
+  html[data-bganim-kapat="acik"] .ray,
+  html[data-bganim-kapat="acik"] .dust,
+  html[data-bganim-kapat="acik"] .star,
+  html[data-bganim-kapat="acik"] .shooting-star{
+    display:none !important;
+  }
 
   /* ---- Yıldız Gecesi: yanıp sönen sabit yıldızlar ---- */
   .star{
@@ -2540,6 +2557,33 @@
     gap:0.2rem;
     text-align:left;
   }
+  .settings-row-ust{
+    display:flex;
+    align-items:center;
+    gap:0.8rem;
+    min-width:0;
+  }
+  .profil-satir-foto-cerceve{
+    width:2.5rem;
+    height:2.5rem;
+    flex-shrink:0;
+    border-radius:50%;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(var(--accent-rgb),0.16);
+    color:var(--accent);
+    border:1px solid var(--line);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.95rem;
+    font-weight:600;
+  }
+  .profil-satir-foto-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
   .settings-row-title{
     font-size:1rem;
     color:var(--ink);
@@ -2802,13 +2846,28 @@
     flex-shrink:0;
   }
   .ozel-arkaplan-kaldir-btn{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.45rem;
+    padding:0.65rem 1.1rem;
+    border-radius:9999px;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    font-weight:600;
+    letter-spacing:0.03em;
+    cursor:pointer;
     color:var(--yanlis, #c1443c);
-    border-color:rgba(var(--yanlis-rgb,193,68,60),0.4);
+    background:rgba(var(--yanlis-rgb,193,68,60),0.08);
+    border:1px solid rgba(var(--yanlis-rgb,193,68,60),0.4);
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
   }
   .ozel-arkaplan-kaldir-btn:hover{
     border-color:var(--yanlis, #c1443c);
-    background:rgba(var(--yanlis-rgb,193,68,60),0.1);
+    background:rgba(var(--yanlis-rgb,193,68,60),0.16);
   }
+  .ozel-arkaplan-kaldir-btn:active{ transform:scale(0.96); }
+  .ozel-arkaplan-kaldir-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
   /* Kullanıcının seçtiği görsel, tüm uygulamanın en arkasında (ışık/yıldız/kar
      efektlerinin de gerisinde) sabit biçimde durur. Okunabilirlik için üstüne
      temanın arka plan rengiyle uyumlu, yarı saydam bir katman biner. */
@@ -2831,6 +2890,101 @@
   }
   html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman{
     opacity:1;
+  }
+
+  /* ================= FOTOĞRAF KONUMLANDIRMA (profil fotoğrafı + arka plan görseli ortak) ================= */
+  .foto-ayar-overlay{
+    position:fixed;
+    inset:0;
+    z-index:99;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    pointer-events:none;
+    visibility:hidden;
+    transition:opacity 0.18s ease, visibility 0s linear 0.18s;
+  }
+  .foto-ayar-overlay.active{
+    opacity:1;
+    pointer-events:auto;
+    visibility:visible;
+    transition:opacity 0.18s ease, visibility 0s linear 0s;
+  }
+  .foto-ayar-header{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.8rem;
+    padding:calc(1.1rem + env(safe-area-inset-top, 0px)) 1.2rem 1rem;
+    border-bottom:1px solid var(--line);
+  }
+  .foto-ayar-kaydet-btn{
+    flex-shrink:0;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    letter-spacing:0.02em;
+    color:var(--accent);
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    padding:0.4rem 0.3rem;
+  }
+  .foto-ayar-kaydet-btn:active{ transform:scale(0.96); }
+  .foto-ayar-govde{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1.3rem;
+    padding:1.4rem;
+    overflow:hidden;
+  }
+  .foto-ayar-stage{
+    position:relative;
+    overflow:hidden;
+    background:#111;
+    touch-action:none;
+    cursor:grab;
+    box-shadow:0 12px 30px -10px rgba(var(--shadow-rgb),0.4);
+  }
+  .foto-ayar-stage:active{ cursor:grabbing; }
+  .foto-ayar-stage img{
+    position:absolute;
+    left:50%;
+    top:50%;
+    max-width:none;
+    max-height:none;
+    user-select:none;
+    -webkit-user-drag:none;
+    pointer-events:none;
+  }
+  .foto-ayar-yuvarlak{
+    width:16rem;
+    height:16rem;
+    max-width:74vw;
+    max-height:74vw;
+    border-radius:50%;
+  }
+  .foto-ayar-genis{
+    width:74vw;
+    max-width:19rem;
+    aspect-ratio:9/16;
+    border-radius:1.1rem;
+  }
+  .foto-ayar-ipucu{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  .foto-ayar-zoom{
+    width:74vw;
+    max-width:19rem;
+    accent-color:var(--accent);
   }
 
   /* ================= PROFİL SAYFASI ================= */
@@ -8761,9 +8915,15 @@
       <div class="empty-rule" id="emptyRule"></div>
       <p class="empty-sub" id="emptySub">Görünüm tercihini burada yönetebilirsin</p>
       <div class="settings-row" id="profilRow">
-        <div class="settings-row-text">
-          <span class="settings-row-title">Profil</span>
-          <span class="settings-row-sub" id="profilStateLabel">—</span>
+        <div class="settings-row-ust">
+          <div class="profil-satir-foto-cerceve" id="profilSatirFotoCerceve">
+            <img src="" alt="" class="profil-satir-foto-img" id="profilSatirFotoImg" hidden>
+            <span id="profilSatirFotoYer">?</span>
+          </div>
+          <div class="settings-row-text">
+            <span class="settings-row-title">Profil</span>
+            <span class="settings-row-sub" id="profilStateLabel">—</span>
+          </div>
         </div>
         <button type="button" class="yedek-ac-btn" id="profilAcBtn" aria-label="Profilimi özelleştir">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="8" r="5"></circle></svg>
@@ -8828,23 +8988,6 @@
           <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
           <button type="button" class="bganim-btn" data-bganim="kar">Kar Yağışı</button>
         </div>
-      </div>
-      <div class="settings-row wrap-row" id="ozelArkaPlanRow">
-        <div class="settings-row-text">
-          <span class="settings-row-title">Arka Plan Görseli</span>
-          <span class="settings-row-sub" id="ozelArkaPlanStateLabel">Seçilmedi</span>
-        </div>
-        <div class="ozel-arkaplan-btn-grup">
-          <button type="button" class="yedek-ac-btn" id="ozelArkaPlanSecBtn" aria-label="Arka plan görseli seç">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>
-            <span>Seç</span>
-          </button>
-          <button type="button" class="yedek-ac-btn ozel-arkaplan-kaldir-btn" id="ozelArkaPlanKaldirBtn" aria-label="Arka plan görselini kaldır" hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>
-            <span>Kaldır</span>
-          </button>
-        </div>
-        <input type="file" accept="image/*" id="ozelArkaPlanInput" hidden>
       </div>
       <div class="settings-row" id="yedekRow">
         <div class="settings-row-text">
@@ -9677,7 +9820,51 @@
             <span>Değiştir</span>
           </button>
         </div>
+        <div class="settings-row wrap-row" id="ozelArkaPlanRow">
+          <div class="settings-row-text">
+            <span class="settings-row-title">Arka Plan Görseli</span>
+            <span class="settings-row-sub" id="ozelArkaPlanStateLabel">Seçilmedi</span>
+          </div>
+          <div class="ozel-arkaplan-btn-grup">
+            <button type="button" class="yedek-ac-btn" id="ozelArkaPlanSecBtn" aria-label="Arka plan görseli seç">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>
+              <span>Seç</span>
+            </button>
+            <button type="button" class="ozel-arkaplan-kaldir-btn" id="ozelArkaPlanKaldirBtn" aria-label="Arka plan görselini kaldır" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>
+              <span>Kaldır</span>
+            </button>
+          </div>
+          <input type="file" accept="image/*" id="ozelArkaPlanInput" hidden>
+        </div>
+        <div class="settings-row" id="bganimKapatRow">
+          <div class="settings-row-text">
+            <span class="settings-row-title">Animasyonları Kapat</span>
+            <span class="settings-row-sub" id="bganimKapatLabel">Arka plan animasyonları aktif</span>
+          </div>
+          <button type="button" class="theme-switch" id="bganimKapatSwitch" role="switch" aria-checked="false" aria-label="Arka plan animasyonlarını kapat">
+            <span class="theme-switch-knob"></span>
+          </button>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= FOTOĞRAF KONUMLANDIRMA: profil fotoğrafı ve arka plan görseli için ortak ayar penceresi ================= -->
+  <div class="foto-ayar-overlay" id="fotoAyarOverlay">
+    <div class="foto-ayar-header">
+      <button type="button" class="profil-kapat-btn" id="fotoAyarVazgecBtn" aria-label="Vazgeç">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <span class="profil-header-baslik" id="fotoAyarBaslik">Fotoğrafı Ayarla</span>
+      <button type="button" class="foto-ayar-kaydet-btn" id="fotoAyarKaydetBtn">Kaydet</button>
+    </div>
+    <div class="foto-ayar-govde">
+      <div class="foto-ayar-stage" id="fotoAyarStage">
+        <img src="" alt="" id="fotoAyarImg" draggable="false">
+      </div>
+      <p class="foto-ayar-ipucu">Sürükleyerek konumunu, kaydırıcıyla yakınlığını ayarla</p>
+      <input type="range" class="foto-ayar-zoom" id="fotoAyarZoom" min="100" max="300" value="100" step="1" aria-label="Yakınlaştırma">
     </div>
   </div>
 
@@ -10695,6 +10882,10 @@
     const secBtn = document.getElementById('profilFotoSecBtn');
     const kaldirBtn = document.getElementById('profilFotoKaldirBtn');
     const input = document.getElementById('profilFotoInput');
+    // Ayarlar sayfasındaki "Profil" satırında da aynı fotoğrafın küçük önizlemesi gösterilir.
+    const satirCerceve = document.getElementById('profilSatirFotoCerceve');
+    const satirImg = document.getElementById('profilSatirFotoImg');
+    const satirYer = document.getElementById('profilSatirFotoYer');
     if(!cerceve || !img || !secBtn || !input) return;
 
     function ilkHarf(){
@@ -10710,11 +10901,15 @@
         img.hidden = false;
         if(yer) yer.hidden = true;
         if(kaldirBtn) kaldirBtn.hidden = false;
+        if(satirImg){ satirImg.src = dataUrl; satirImg.hidden = false; }
+        if(satirYer) satirYer.hidden = true;
       } else {
         img.hidden = true;
         img.src = '';
         if(yer){ yer.hidden = false; yer.textContent = ilkHarf(); }
         if(kaldirBtn) kaldirBtn.hidden = true;
+        if(satirImg){ satirImg.hidden = true; satirImg.src = ''; }
+        if(satirYer){ satirYer.hidden = false; satirYer.textContent = ilkHarf(); }
       }
     }
 
@@ -10725,34 +10920,43 @@
     }
     window.sessizlikProfilFotoYenile = yenile;
 
+    // Kaynak resmi (sonuc.img) verilen kırpma dikdörtgeniyle 480x480'lik kare bir
+    // kanvasa çizip base64 olarak kaydeder; kullanıcının fotoğraf ayar penceresinde
+    // sürükleyip yakınlaştırarak seçtiği kadraj birebir uygulanmış olur.
+    function kirptenKaydet(sonuc){
+      try{
+        const hedefKenar = 480;
+        const canvas = document.createElement('canvas');
+        canvas.width = hedefKenar;
+        canvas.height = hedefKenar;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(sonuc.img, sonuc.kirpX, sonuc.kirpY, sonuc.kirpW, sonuc.kirpH, 0, 0, hedefKenar, hedefKenar);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        try{ localStorage.setItem(FOTO_ANAHTARI, dataUrl); }catch(e){}
+        goster(dataUrl);
+      }catch(e){}
+    }
+
     function gorseliIsle(dosya){
       if(!dosya || !/^image\//.test(dosya.type)) return;
+      if(typeof window.sessizlikFotoAyarAc === 'function'){
+        window.sessizlikFotoAyarAc(dosya, 'profil', kirptenKaydet);
+        return;
+      }
+      // Fotoğraf ayar penceresi herhangi bir sebeple yüklenmemişse, eski otomatik
+      // orta kırpma davranışına geri dönülür.
       const url = URL.createObjectURL(dosya);
       const image = new Image();
       image.onload = function(){
         try{
-          const maksKenar = 480;
           let genislik = image.naturalWidth;
           let yukseklik = image.naturalHeight;
           if(!genislik || !yukseklik){ URL.revokeObjectURL(url); return; }
-          // Kare bir alana ortalanarak kırpılır, böylece yuvarlak çerçevede
-          // görsel her zaman düzgün doldurur.
           const kenar = Math.min(genislik, yukseklik);
           const kirpX = (genislik - kenar) / 2;
           const kirpY = (yukseklik - kenar) / 2;
-          const hedefKenar = Math.min(maksKenar, kenar);
-
-          const canvas = document.createElement('canvas');
-          canvas.width = hedefKenar;
-          canvas.height = hedefKenar;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(image, kirpX, kirpY, kenar, kenar, 0, 0, hedefKenar, hedefKenar);
-          URL.revokeObjectURL(url);
-
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-          try{ localStorage.setItem(FOTO_ANAHTARI, dataUrl); }catch(e){}
-          goster(dataUrl);
-        }catch(e){
+          kirptenKaydet({ img:image, kirpX:kirpX, kirpY:kirpY, kirpW:kenar, kirpH:kenar });
+        }finally{
           URL.revokeObjectURL(url);
         }
       };
@@ -10810,44 +11014,55 @@
       uygula(kayitli);
     }
 
+    function boyutlaVeKaydet(kaynakImg, kirpX, kirpY, kirpW, kirpH){
+      try{
+        const maksKenar = 1600;
+        let genislik = kirpW;
+        let yukseklik = kirpH;
+        if(genislik > maksKenar || yukseklik > maksKenar){
+          if(genislik >= yukseklik){
+            yukseklik = Math.round(yukseklik * (maksKenar / genislik));
+            genislik = maksKenar;
+          } else {
+            genislik = Math.round(genislik * (maksKenar / yukseklik));
+            yukseklik = maksKenar;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = genislik;
+        canvas.height = yukseklik;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(kaynakImg, kirpX, kirpY, kirpW, kirpH, 0, 0, genislik, yukseklik);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        try{
+          localStorage.setItem(ANAHTAR, dataUrl);
+        }catch(e){
+          // Depolama sınırını aşarsa (ör. Safari) kullanıcıyı bilgilendir.
+          if(label){ label.textContent = 'Görsel çok büyük, kaydedilemedi'; }
+          return;
+        }
+        uygula(dataUrl);
+      }catch(e){}
+    }
+
     function gorseliIsle(dosya){
       if(!dosya || !/^image\//.test(dosya.type)) return;
+      if(typeof window.sessizlikFotoAyarAc === 'function'){
+        window.sessizlikFotoAyarAc(dosya, 'arkaplan', function(sonuc){
+          boyutlaVeKaydet(sonuc.img, sonuc.kirpX, sonuc.kirpY, sonuc.kirpW, sonuc.kirpH);
+        });
+        return;
+      }
+      // Fotoğraf ayar penceresi yüklenmemişse eski davranışa (görselin tamamı,
+      // kırpılmadan) geri dönülür.
       const url = URL.createObjectURL(dosya);
       const image = new Image();
       image.onload = function(){
-        try{
-          const maksKenar = 1600;
-          let genislik = image.naturalWidth;
-          let yukseklik = image.naturalHeight;
-          if(!genislik || !yukseklik){ URL.revokeObjectURL(url); return; }
-          if(genislik > maksKenar || yukseklik > maksKenar){
-            if(genislik >= yukseklik){
-              yukseklik = Math.round(yukseklik * (maksKenar / genislik));
-              genislik = maksKenar;
-            } else {
-              genislik = Math.round(genislik * (maksKenar / yukseklik));
-              yukseklik = maksKenar;
-            }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = genislik;
-          canvas.height = yukseklik;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(image, 0, 0, genislik, yukseklik);
-          URL.revokeObjectURL(url);
-
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          try{
-            localStorage.setItem(ANAHTAR, dataUrl);
-          }catch(e){
-            // Depolama sınırını aşarsa (ör. Safari) kullanıcıyı bilgilendir.
-            if(label){ label.textContent = 'Görsel çok büyük, kaydedilemedi'; }
-            return;
-          }
-          uygula(dataUrl);
-        }catch(e){
-          URL.revokeObjectURL(url);
-        }
+        const genislik = image.naturalWidth;
+        const yukseklik = image.naturalHeight;
+        if(genislik && yukseklik){ boyutlaVeKaydet(image, 0, 0, genislik, yukseklik); }
+        URL.revokeObjectURL(url);
       };
       image.onerror = function(){ URL.revokeObjectURL(url); };
       image.src = url;
@@ -10867,6 +11082,128 @@
     }
 
     yukle();
+  })();
+
+  // ================= FOTOĞRAF KONUMLANDIRMA (profil fotoğrafı + arka plan görseli ortak) =================
+  // Kullanıcı bir fotoğraf seçtiğinde, otomatik orta kırpma yerine bu pencere açılır:
+  // görseli sürükleyerek konumunu, kaydırıcıyla yakınlığını ayarlayabilir. "Kaydet"e
+  // basıldığında, ekranda görünen kadrajın kaynak görseldeki karşılığı (piksel
+  // cinsinden kırpma dikdörtgeni) hesaplanıp çağıran modüle geri verilir; asıl
+  // kanvasa çizip kaydetme işini her modül (profil fotoğrafı / arka plan) kendisi yapar.
+  (function(){
+    const overlay = document.getElementById('fotoAyarOverlay');
+    const stage = document.getElementById('fotoAyarStage');
+    const img = document.getElementById('fotoAyarImg');
+    const baslik = document.getElementById('fotoAyarBaslik');
+    const zoomInput = document.getElementById('fotoAyarZoom');
+    const vazgecBtn = document.getElementById('fotoAyarVazgecBtn');
+    const kaydetBtn = document.getElementById('fotoAyarKaydetBtn');
+    if(!overlay || !stage || !img || !zoomInput || !vazgecBtn || !kaydetBtn) return;
+
+    let durum = null;
+    let suruklemeAktif = false;
+    let suruklemeBaslangic = { x:0, y:0, px:0, py:0 };
+
+    function stageOlcu(){
+      const r = stage.getBoundingClientRect();
+      return { w:r.width, h:r.height };
+    }
+
+    function sinirla(){
+      const s = stageOlcu();
+      const gerGenislik = durum.natW * durum.scale;
+      const gerYukseklik = durum.natH * durum.scale;
+      const maksX = Math.max(0, (gerGenislik - s.w) / 2);
+      const maksY = Math.max(0, (gerYukseklik - s.h) / 2);
+      durum.x = Math.min(maksX, Math.max(-maksX, durum.x));
+      durum.y = Math.min(maksY, Math.max(-maksY, durum.y));
+    }
+
+    function ciz(){
+      img.style.width = (durum.natW * durum.scale) + 'px';
+      img.style.height = (durum.natH * durum.scale) + 'px';
+      img.style.transform = 'translate(-50%, -50%) translate(' + durum.x + 'px, ' + durum.y + 'px)';
+    }
+
+    function kapat(){
+      overlay.classList.remove('active');
+      if(durum && durum.url){ try{ URL.revokeObjectURL(durum.url); }catch(e){} }
+      durum = null;
+      img.removeAttribute('src');
+    }
+
+    // dosya: input'tan seçilen File. mod: 'profil' (yuvarlak çerçeve) ya da
+    // 'arkaplan' (geniş dikdörtgen). onKaydet(sonuc): kullanıcı Kaydet'e basınca
+    // { img, kirpX, kirpY, kirpW, kirpH } ile çağrılır.
+    function ac(dosya, mod, onKaydet){
+      const url = URL.createObjectURL(dosya);
+      const probe = new Image();
+      probe.onload = function(){
+        stage.className = 'foto-ayar-stage ' + (mod === 'profil' ? 'foto-ayar-yuvarlak' : 'foto-ayar-genis');
+        baslik.textContent = mod === 'profil' ? 'Fotoğrafı Ayarla' : 'Arka Planı Ayarla';
+        overlay.classList.add('active');
+
+        // Çerçeve boyutu ancak overlay görünür olduktan sonra doğru ölçülebilir.
+        requestAnimationFrame(function(){
+          const s = stageOlcu();
+          const natW = probe.naturalWidth;
+          const natH = probe.naturalHeight;
+          const minScale = Math.max(s.w / natW, s.h / natH);
+          durum = { natW:natW, natH:natH, minScale:minScale, scale:minScale, x:0, y:0, url:url, onKaydet:onKaydet };
+          img.src = url;
+          zoomInput.value = 100;
+          sinirla();
+          ciz();
+        });
+      };
+      probe.onerror = function(){ try{ URL.revokeObjectURL(url); }catch(e){} };
+      probe.src = url;
+    }
+
+    zoomInput.addEventListener('input', function(){
+      if(!durum) return;
+      const oran = Number(zoomInput.value) / 100;
+      durum.scale = durum.minScale * oran;
+      sinirla();
+      ciz();
+    });
+
+    function noktaAl(e){ return e.touches && e.touches[0] ? e.touches[0] : e; }
+
+    stage.addEventListener('pointerdown', function(e){
+      if(!durum) return;
+      suruklemeAktif = true;
+      const n = noktaAl(e);
+      suruklemeBaslangic = { x:durum.x, y:durum.y, px:n.clientX, py:n.clientY };
+    });
+    window.addEventListener('pointermove', function(e){
+      if(!suruklemeAktif || !durum) return;
+      const n = noktaAl(e);
+      durum.x = suruklemeBaslangic.x + (n.clientX - suruklemeBaslangic.px);
+      durum.y = suruklemeBaslangic.y + (n.clientY - suruklemeBaslangic.py);
+      sinirla();
+      ciz();
+      e.preventDefault();
+    }, { passive:false });
+    window.addEventListener('pointerup', function(){ suruklemeAktif = false; });
+
+    vazgecBtn.addEventListener('click', kapat);
+    kaydetBtn.addEventListener('click', function(){
+      if(!durum){ kapat(); return; }
+      const s = stageOlcu();
+      const kirpW = s.w / durum.scale;
+      const kirpH = s.h / durum.scale;
+      const kirpX = (durum.natW / 2) - (durum.x / durum.scale) - (kirpW / 2);
+      const kirpY = (durum.natH / 2) - (durum.y / durum.scale) - (kirpH / 2);
+      const sonuc = { img:img, kirpX:kirpX, kirpY:kirpY, kirpW:kirpW, kirpH:kirpH };
+      const cb = durum.onKaydet;
+      // Kanvasa çizim overlay hâlâ görünürken (img elemanı DOM'da/yüklüyken)
+      // senkron biçimde yapılmalı; bu yüzden geri çağırma kapatmadan önce çalıştırılır.
+      if(cb){ cb(sonuc); }
+      kapat();
+    });
+
+    window.sessizlikFotoAyarAc = ac;
   })();
 
   // ================= ANA SAYFA GİRİŞ ANİMASYONU GÜVENLİK AĞI =================
@@ -11545,7 +11882,6 @@
     const renkRow = document.getElementById('renkRow');
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
-    const ozelArkaPlanRow = document.getElementById('ozelArkaPlanRow');
     const yedekRow = document.getElementById('yedekRow');
     const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
@@ -11681,7 +12017,7 @@
 
       // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
       // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
-      const ayarOgeleri = [emptyWord, emptyRule, emptySub, profilRow, settingsRow, navbarPositionRow, tamEkranRow, renkRow, isikEfektiRow, bganimRow, ozelArkaPlanRow, yedekRow, bulutYedekRow, sporModuRow];
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, profilRow, settingsRow, navbarPositionRow, tamEkranRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
       ayarOgeleri.forEach(function(el){
         el.classList.remove('animate');
         el.style.animation = 'none';
@@ -18455,7 +18791,8 @@
       // hazır olduğunda son seçime göre başlat/durdur.
       function calistir(){
         if(!window.karEfekti) return;
-        if(gecerli === 'kar'){ window.karEfekti.baslat(); }
+        const animasyonlarKapali = root.getAttribute('data-bganim-kapat') === 'acik';
+        if(gecerli === 'kar' && !animasyonlarKapali){ window.karEfekti.baslat(); }
         else{ window.karEfekti.durdur(); }
       }
       if(window.karEfekti){ calistir(); }
@@ -18483,6 +18820,55 @@
         const secim = btn.getAttribute('data-bganim');
         uygula(secim);
         try{ localStorage.setItem(STORAGE_KEY, secim); }catch(e){}
+      });
+    }
+  })();
+
+  // ================= ARKA PLAN ANİMASYONLARINI TAMAMEN KAPAT =================
+  // Işık huzmesi / yıldız gecesi / kar yağışı seçimi ne olursa olsun, bu anahtar
+  // aktifken arka plandaki tüm animasyonlar (huzmeler, yıldızlar, kayan yıldızlar
+  // ve kar tanesi canvas'ı) gizlenir. Arka Plan Görseli ile birlikte kullanışlıdır.
+  (function(){
+    const root = document.documentElement;
+    const kapatSwitch = document.getElementById('bganimKapatSwitch');
+    const kapatLabel = document.getElementById('bganimKapatLabel');
+    const STORAGE_KEY = 'sessizlik-bganim-kapat';
+
+    function karDurumGuncelle(){
+      if(!window.karEfekti) return;
+      const kapali = root.getAttribute('data-bganim-kapat') === 'acik';
+      const secili = root.getAttribute('data-bganim');
+      if(secili === 'kar' && !kapali){ window.karEfekti.baslat(); }
+      else{ window.karEfekti.durdur(); }
+    }
+
+    function uygula(durum){
+      if(durum === 'acik'){
+        root.setAttribute('data-bganim-kapat', 'acik');
+        if(kapatSwitch){
+          kapatSwitch.classList.add('on');
+          kapatSwitch.setAttribute('aria-checked', 'true');
+        }
+        if(kapatLabel){ kapatLabel.textContent = 'Arka plan animasyonları kapalı'; }
+      } else {
+        root.removeAttribute('data-bganim-kapat');
+        if(kapatSwitch){
+          kapatSwitch.classList.remove('on');
+          kapatSwitch.setAttribute('aria-checked', 'false');
+        }
+        if(kapatLabel){ kapatLabel.textContent = 'Arka plan animasyonları aktif'; }
+      }
+      if(window.karEfekti){ karDurumGuncelle(); }
+      else{ window.addEventListener('load', karDurumGuncelle, { once:true }); }
+    }
+
+    uygula(root.getAttribute('data-bganim-kapat') === 'acik' ? 'acik' : 'kapali');
+
+    if(kapatSwitch){
+      kapatSwitch.addEventListener('click', function(){
+        const yeni = root.getAttribute('data-bganim-kapat') === 'acik' ? 'kapali' : 'acik';
+        uygula(yeni);
+        try{ localStorage.setItem(STORAGE_KEY, yeni); }catch(e){}
       });
     }
   })();
@@ -21068,7 +21454,7 @@
 
   // ================= ARKA PLAN KİLİDİ: herhangi bir pop-up/kayar pencere açıkken arka plan kaydırılamasın =================
   (function(){
-    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-tam-ekran-overlay.active, .profil-overlay.active';
+    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-tam-ekran-overlay.active, .profil-overlay.active, .foto-ayar-overlay.active';
     let kilitliKonum = 0;
     let kilitliMi = false;
 
@@ -21108,7 +21494,7 @@
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
     }
 
-    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-tam-ekran-overlay, .profil-overlay');
+    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-tam-ekran-overlay, .profil-overlay, .foto-ayar-overlay');
     if(izlenecekOverlayler.length){
       const gozlemci = new MutationObserver(durumuKontrolEt);
       izlenecekOverlayler.forEach(function(el){
