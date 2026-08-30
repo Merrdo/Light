@@ -17729,7 +17729,15 @@
       const el = document.documentElement;
       const istek = el.requestFullscreen || el.webkitRequestFullscreen;
       if(istek){
-        try{ istek.call(el); }catch(e){}
+        // navigationUI:'hide' tarayıcıya, tam ekrana geçiş sırasında kendi
+        // gezinme arayüzünü (ör. geri oku ipucu) mümkün olduğunca az
+        // göstermesi için bir ipucu verir. Not: tarayıcıların "X tam ekrana
+        // geçti / çıkmak için Esc'e basın" şeklindeki kısa bilgi notu ise
+        // güvenlik amaçlı bir tarayıcı davranışıdır (kullanıcı her zaman
+        // tam ekrandan nasıl çıkacağını bilsin diye) ve hiçbir web sitesi
+        // bunu JS ile kapatamaz; bu yüzden burada denenmez.
+        try{ istek.call(el, { navigationUI: 'hide' }); }
+        catch(e){ try{ istek.call(el); }catch(e2){} }
       }
     }
 
@@ -18609,6 +18617,11 @@
       if(window.kaloriDurdur){ window.kaloriDurdur(); }
       // Minimalist çıkış: giriştekiyle simetrik, tek katmanlı opacity + scale geçişi.
       overlay.classList.remove('active');
+      // Antrenman devam ederken (tam ekrandayken) spor modundan doğrudan
+      // çıkılırsa, tarayıcı tam ekranından da senkron olarak çıkılır.
+      if(window.sessizlikTamEkranAPI && window.sessizlikTamEkranAPI.aktifMi()){
+        window.sessizlikTamEkranAPI.cik();
+      }
     }
 
     acBtn.addEventListener('click', sporModunaGec);
@@ -19260,6 +19273,18 @@
       });
       if(sporModuOverlayEl){
         sporModuOverlayEl.classList.toggle('kalori-antrenman-tam-ekran', pane === paneCalisma);
+      }
+      // Antrenman fiilen başladığında (çalışma ekranı) kronometredeki gibi
+      // gerçek tarayıcı tam ekranına geçilir; seçim veya bitiş ekranına
+      // dönüldüğünde tam ekrandan çıkılır. Dokunuşla tetiklenen bir akışın
+      // içinde çağrıldığı için tarayıcı izin verir.
+      if(window.sessizlikTamEkranAPI){
+        const aktifMi = window.sessizlikTamEkranAPI.aktifMi();
+        if(pane === paneCalisma && !aktifMi){
+          window.sessizlikTamEkranAPI.gir();
+        } else if(pane !== paneCalisma && aktifMi){
+          window.sessizlikTamEkranAPI.cik();
+        }
       }
     }
 
