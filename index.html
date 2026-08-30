@@ -264,7 +264,7 @@
     opacity:0;
     animation: navIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
     animation-delay:0.1s;
-    transition: left 0.45s cubic-bezier(.4,0,.2,1), transform 0.45s cubic-bezier(.4,0,.2,1);
+    transition: left 0.45s cubic-bezier(.4,0,.2,1), transform 0.45s cubic-bezier(.4,0,.2,1), opacity 0.32s cubic-bezier(.4,0,.2,1);
   }
   @keyframes navIn{
     to{ transform:translateX(-50%) translateY(0); opacity:1; }
@@ -826,9 +826,15 @@
   }
 
   /* ================= TAM EKRAN KRONOMETRE ================= */
+  /* Nav bar artık aniden (display:none) değil, yumuşak bir fade ile kaybolup
+     tam ekran kronometre kapanınca aynı şekilde geri beliriyor. Giriş
+     animasyonuyla (navIn/bottomNavIn) çakışmaması için "animation" da
+     !important ile burada iptal ediliyor; bkz. aşağıdaki JS notu. */
   html.kronometre-tam-ekran-acik .nav-wrap,
   html.kronometre-tam-ekran-acik .bottom-nav-wrap{
-    display:none !important;
+    animation:none !important;
+    opacity:0 !important;
+    pointer-events:none !important;
   }
   .kronometre-tam-ekran-overlay{
     position:fixed;
@@ -1311,6 +1317,12 @@
     display:flex;
     justify-content:center;
     padding:0 1.4rem calc(1.4rem + env(safe-area-inset-bottom, 0px));
+    opacity:1;
+    transform:translateY(0);
+    transition: opacity 0.32s cubic-bezier(.4,0,.2,1), transform 0.32s cubic-bezier(.4,0,.2,1);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .spor-modu-dock-wrap{ transition:none; }
   }
   .spor-modu-dock-wrap .dock{
     opacity:1;
@@ -2380,7 +2392,9 @@
 
   /* ---- Kalori: antrenman çalışırken tam ekran — Spor Modu dock'u gizlenir, tek odak antrenmandır ---- */
   .spor-modu-overlay.kalori-antrenman-tam-ekran .spor-modu-dock-wrap{
-    display:none;
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(0.6rem);
   }
   .spor-modu-overlay.kalori-antrenman-tam-ekran .kalori-kontrol-satir{
     margin-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
@@ -2396,9 +2410,17 @@
     .kalori-pane-calisma.set-gecis-anim .kalori-durum-etiket{ animation:none; }
   }
 
-  /* ---- Program: Kronometre veya Sayaç kullanılırken tam ekran — Spor Modu dock'u gizlenir ---- */
+  /* ---- Program: Kronometre veya Sayaç kullanılırken tam ekran — Spor Modu dock'u
+     ve üstteki başlık/sekme bloğu (.program-ust) aynı yumuşak mantıkla gizlenir ---- */
   .spor-modu-overlay.program-tam-ekran .spor-modu-dock-wrap{
-    display:none;
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(0.6rem);
+  }
+  .spor-modu-overlay.program-tam-ekran .program-ust{
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(-0.6rem);
   }
 
   /* ---- Program: Antrenman/Seans akışından bağımsız Kronometre + Geri Sayım ---- */
@@ -2418,6 +2440,12 @@
     width:100%;
     max-width:34rem;
     margin:0 auto;
+    opacity:1;
+    transform:translateY(0);
+    transition: opacity 0.32s cubic-bezier(.4,0,.2,1), transform 0.32s cubic-bezier(.4,0,.2,1);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .program-ust{ transition:none; }
   }
   .program-sekme.analiz-sekme{ margin-top:0; }
   .program-sekme .analiz-sekme-btn.secili{
@@ -3247,6 +3275,7 @@
     opacity:0;
     animation: bottomNavIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
     animation-delay:0.1s;
+    transition: opacity 0.32s cubic-bezier(.4,0,.2,1);
   }
   @keyframes bottomNavIn{
     to{ transform:translateX(-50%) translateY(0); opacity:1; }
