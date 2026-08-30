@@ -1258,34 +1258,16 @@
 
   .spor-modu-view{
     flex:1;
-    min-height:0;
     display:none;
     flex-direction:column;
     align-items:center;
-    justify-content:flex-start;
+    justify-content:center;
     text-align:center;
-    padding:calc(2rem + env(safe-area-inset-top, 0px)) 2rem calc(6.2rem + env(safe-area-inset-bottom, 0px));
+    padding:calc(2rem + env(safe-area-inset-top, 0px)) 2rem 2rem;
     gap:0.9rem;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    -ms-overflow-style:none;
   }
-  .spor-modu-view::-webkit-scrollbar{ display:none; width:0; height:0; }
   .spor-modu-view.active{
     display:flex;
-  }
-  /* Kısa içerikler (Ana / Ayarlar) dikeyde ortalanır, ama içerik ekrandan
-     uzun olursa üst kısmın kaybolmaması için "auto margin" ile ortalanır —
-     böylece taşan içerik her zaman en baştan (scrollTop:0) erişilebilir kalır. */
-  .spor-modu-view-inner{
-    margin:auto 0;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    text-align:center;
-    gap:0.9rem;
-    width:100%;
   }
   .spor-modu-simge{
     width:4.2rem;
@@ -1335,12 +1317,12 @@
     .spor-modu-cikis-satir:hover{ background:rgba(var(--yanlis-rgb),0.13); }
   }
   .spor-modu-dock-wrap{
-    position:fixed;
-    left:50%;
-    bottom:calc(1.4rem + env(safe-area-inset-bottom, 0px));
-    z-index:2;
+    flex-shrink:0;
+    display:flex;
+    justify-content:center;
+    padding:0 1.4rem calc(1.4rem + env(safe-area-inset-bottom, 0px));
     opacity:1;
-    transform:translateX(-50%) translateY(0);
+    transform:translateY(0);
     transition: opacity 0.32s cubic-bezier(.4,0,.2,1), transform 0.32s cubic-bezier(.4,0,.2,1);
   }
   @media (prefers-reduced-motion: reduce){
@@ -1443,8 +1425,9 @@
     justify-content:flex-start;
     align-items:stretch;
     text-align:left;
-    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem calc(6.2rem + env(safe-area-inset-bottom, 0px));
+    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem 1.4rem;
     gap:0;
+    overflow:hidden;
   }
   .antrenman-pane{
     display:none;
@@ -1453,7 +1436,11 @@
     width:100%;
     max-width:34rem;
     margin:0 auto;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
+  .antrenman-pane::-webkit-scrollbar{ display:none; width:0; height:0; }
   .antrenman-pane.active{ display:flex; }
 
   .antrenman-baslik-sola{ text-align:left; font-size:1.35rem; flex-shrink:0; }
@@ -1830,8 +1817,9 @@
     justify-content:flex-start;
     align-items:stretch;
     text-align:left;
-    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem calc(6.2rem + env(safe-area-inset-bottom, 0px));
+    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem 1.4rem;
     gap:0;
+    overflow:hidden;
   }
   .kalori-pane{
     display:none;
@@ -1839,7 +1827,12 @@
     width:100%;
     max-width:34rem;
     margin:0 auto;
+    height:100%;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
+  .kalori-pane::-webkit-scrollbar{ display:none; width:0; height:0; }
   .kalori-pane.active{
     display:flex;
     animation: kaloriPaneGir 0.36s cubic-bezier(.22,1,.36,1) both;
@@ -2415,13 +2408,10 @@
   .spor-modu-overlay.kalori-antrenman-tam-ekran .spor-modu-dock-wrap{
     opacity:0;
     pointer-events:none;
-    transform:translateX(-50%) translateY(0.6rem);
+    transform:translateY(0.6rem);
   }
   .spor-modu-overlay.kalori-antrenman-tam-ekran .kalori-kontrol-satir{
     margin-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
-  }
-  .spor-modu-overlay.kalori-antrenman-tam-ekran .spor-modu-view-kalori{
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -2439,15 +2429,12 @@
   .spor-modu-overlay.program-tam-ekran .spor-modu-dock-wrap{
     opacity:0;
     pointer-events:none;
-    transform:translateX(-50%) translateY(0.6rem);
+    transform:translateY(0.6rem);
   }
   .spor-modu-overlay.program-tam-ekran .program-ust{
     opacity:0;
     pointer-events:none;
     transform:translateY(-0.6rem);
-  }
-  .spor-modu-overlay.program-tam-ekran .spor-modu-view-program{
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   /* ---- Program: Antrenman/Seans akışından bağımsız Kronometre + Geri Sayım ---- */
@@ -2455,8 +2442,9 @@
     justify-content:flex-start;
     align-items:stretch;
     text-align:left;
-    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem calc(6.2rem + env(safe-area-inset-bottom, 0px));
+    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem 1.4rem;
     gap:0;
+    overflow:hidden;
   }
   .program-ust{
     flex-shrink:0;
@@ -2487,7 +2475,12 @@
     width:100%;
     max-width:34rem;
     margin:0 auto;
+    height:100%;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
+  .program-pane::-webkit-scrollbar{ display:none; width:0; height:0; }
   .program-pane.active{
     display:flex;
     animation: programPaneGir 0.36s cubic-bezier(.22,1,.36,1) both;
@@ -10391,48 +10384,44 @@
   <!-- ================= SPOR MODU: ayrı bir uygulama gibi tam ekran ================= -->
   <div class="spor-modu-overlay" id="sporModuOverlay">
     <div class="spor-modu-view spor-modu-view-ana active" id="sporModuViewAna">
-      <div class="spor-modu-view-inner">
-        <div class="spor-modu-simge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path></svg>
-        </div>
-        <h2 class="spor-modu-baslik">Spor Modu</h2>
-        <p class="spor-modu-aciklama">Çok yakında burada.</p>
+      <div class="spor-modu-simge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path></svg>
       </div>
+      <h2 class="spor-modu-baslik">Spor Modu</h2>
+      <p class="spor-modu-aciklama">Çok yakında burada.</p>
     </div>
     <div class="spor-modu-view spor-modu-view-ayarlar" id="sporModuViewAyarlar">
-      <div class="spor-modu-view-inner">
-        <div class="spor-modu-simge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+      <div class="spor-modu-simge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+      </div>
+      <h2 class="spor-modu-baslik">Ayarlar</h2>
+      <div class="spor-tema-blok">
+        <span class="spor-tema-etiket" id="sporTemaEtiket">Tema Rengi · Sarı</span>
+        <div class="spor-tema-swatch-group" id="sporTemaSwatchGroup" role="group" aria-label="Spor Modu tema rengi seçenekleri">
+          <button type="button" class="spor-tema-swatch secili" data-spor-renk="sari" aria-label="Sarı"></button>
+          <button type="button" class="spor-tema-swatch" data-spor-renk="kirmizi" aria-label="Kırmızı"></button>
+          <button type="button" class="spor-tema-swatch" data-spor-renk="turuncu" aria-label="Turuncu"></button>
+          <button type="button" class="spor-tema-swatch" data-spor-renk="turkuaz" aria-label="Turkuaz"></button>
         </div>
-        <h2 class="spor-modu-baslik">Ayarlar</h2>
-        <div class="spor-tema-blok">
-          <span class="spor-tema-etiket" id="sporTemaEtiket">Tema Rengi · Sarı</span>
-          <div class="spor-tema-swatch-group" id="sporTemaSwatchGroup" role="group" aria-label="Spor Modu tema rengi seçenekleri">
-            <button type="button" class="spor-tema-swatch secili" data-spor-renk="sari" aria-label="Sarı"></button>
-            <button type="button" class="spor-tema-swatch" data-spor-renk="kirmizi" aria-label="Kırmızı"></button>
-            <button type="button" class="spor-tema-swatch" data-spor-renk="turuncu" aria-label="Turuncu"></button>
-            <button type="button" class="spor-tema-swatch" data-spor-renk="turkuaz" aria-label="Turkuaz"></button>
-          </div>
-        </div>
-        <div class="spor-hazirlik-sure-blok">
-          <span class="spor-hazirlik-sure-etiket">Antrenman Başlangıcı</span>
-          <button type="button" class="spor-hazirlik-sure-btn" id="sporHazirlikSureBtn" aria-haspopup="true" aria-expanded="false">
-            <span id="sporHazirlikSureBtnText">5 saniye</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
-          </button>
-        </div>
-        <div class="spor-hazirlik-sure-blok">
-          <span class="spor-hazirlik-sure-etiket">Mola Süreleri</span>
-          <button type="button" class="spor-hazirlik-sure-btn" id="sporMolaAyarlarBtn" aria-haspopup="true" aria-expanded="false">
-            <span id="sporMolaAyarlarBtnText">Düzenle</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
-          </button>
-        </div>
-        <button type="button" class="spor-modu-cikis-satir" id="sporModuCikisBtn" aria-label="Spor Modundan Çık">
-          <span>Spor Modundan Çık</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
+      </div>
+      <div class="spor-hazirlik-sure-blok">
+        <span class="spor-hazirlik-sure-etiket">Antrenman Başlangıcı</span>
+        <button type="button" class="spor-hazirlik-sure-btn" id="sporHazirlikSureBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="sporHazirlikSureBtnText">5 saniye</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
         </button>
       </div>
+      <div class="spor-hazirlik-sure-blok">
+        <span class="spor-hazirlik-sure-etiket">Mola Süreleri</span>
+        <button type="button" class="spor-hazirlik-sure-btn" id="sporMolaAyarlarBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="sporMolaAyarlarBtnText">Düzenle</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+        </button>
+      </div>
+      <button type="button" class="spor-modu-cikis-satir" id="sporModuCikisBtn" aria-label="Spor Modundan Çık">
+        <span>Spor Modundan Çık</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
+      </button>
     </div>
 
     <!-- Antrenman: kartlar (Kardiyo vb.) ve içindeki egzersizler -->
