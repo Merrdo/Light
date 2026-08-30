@@ -78,6 +78,13 @@
   // __sessizlikDosyaSil, index.html içinde bu amaçla dışa açılmış köprülerdir.
   var YEDEK_SURUMU = 2;
 
+  // Özel arka plan görseli, index.html'de kendi ayrı ve küçük IndexedDB
+  // deposunda (sessizlik-arkaplan-db) saklanıyor — "sessizlik-dosyalar"
+  // deposundan farklı. Bulut yedeğine dahil edebilmek için, diğer dosyalarla
+  // aynı "dosyalar" paketi içine bu sabit anahtar altında ekleniyor; index.html
+  // içindeki yerel Yedekleme modülüyle birebir aynı anahtar kullanılıyor.
+  var ARKAPLAN_YEDEK_ID = '__ozel_arkaplan_gorseli__';
+
   function blobBase64eCevir(blob) {
     return new Promise(function (resolve, reject) {
       var okuyucu = new FileReader();
@@ -92,16 +99,32 @@
   }
 
   function tumDosyalariTopla() {
-    if (typeof window.__sessizlikDosyaTumIcerigiAl !== 'function') return Promise.resolve({});
-    return window.__sessizlikDosyaTumIcerigiAl().then(function (bloblar) {
+    var dosyaSozu = (typeof window.__sessizlikDosyaTumIcerigiAl === 'function')
+      ? window.__sessizlikDosyaTumIcerigiAl().catch(function () { return {}; })
+      : Promise.resolve({});
+    var arkaplanSozu = (typeof window.__sessizlikArkaplanGorselOku === 'function')
+      ? window.__sessizlikArkaplanGorselOku().catch(function () { return null; })
+      : Promise.resolve(null);
+
+    return Promise.all([dosyaSozu, arkaplanSozu]).then(function (sonuclar) {
+      var bloblar = sonuclar[0] || {};
+      var arkaplanBlob = sonuclar[1];
       var idler = Object.keys(bloblar);
-      return Promise.all(idler.map(function (id) {
+      var sozler = idler.map(function (id) {
         return blobBase64eCevir(bloblar[id]).then(function (dataUrl) {
           return [id, dataUrl];
         }).catch(function () {
           return null; // tek bir dosya okunamazsa yedeğin tamamını bozmasın
         });
-      })).then(function (ciftler) {
+      });
+      if (arkaplanBlob) {
+        sozler.push(
+          blobBase64eCevir(arkaplanBlob).then(function (dataUrl) {
+            return [ARKAPLAN_YEDEK_ID, dataUrl];
+          }).catch(function () { return null; })
+        );
+      }
+      return Promise.all(sozler).then(function (ciftler) {
         var sonuc = {};
         ciftler.forEach(function (cift) {
           if (cift) sonuc[cift[0]] = cift[1];
@@ -128,9 +151,15 @@
 
   function dosyalariYerelUygula(dosyalar) {
     dosyalar = dosyalar || {};
+    var arkaplanBase64 = dosyalar[ARKAPLAN_YEDEK_ID];
+    var digerDosyalar = {};
+    Object.keys(dosyalar).forEach(function (id) {
+      if (id !== ARKAPLAN_YEDEK_ID) digerDosyalar[id] = dosyalar[id];
+    });
+
     var kaydetSoz = (typeof window.__sessizlikDosyaKaydet === 'function')
-      ? Promise.all(Object.keys(dosyalar).map(function (id) {
-          return base64tenBlobaCevir(dosyalar[id]).then(function (blob) {
+      ? Promise.all(Object.keys(digerDosyalar).map(function (id) {
+          return base64tenBlobaCevir(digerDosyalar[id]).then(function (blob) {
             return window.__sessizlikDosyaKaydet(id, blob);
           }).catch(function (e) {
             console.error('Dosya geri yüklenemedi:', id, e);
@@ -138,12 +167,28 @@
         }))
       : Promise.resolve();
 
+    // Özel arka plan görseli, genel "dosyalar" deposu yerine kendi ayrı
+    // IndexedDB deposuna yazılır. Buluttaki yedekte artık yoksa (başka bir
+    // cihazdan kaldırılmışsa), tam geri yükleme davranışı için bu cihazdan
+    // da kaldırılır.
+    var arkaplanSoz = arkaplanBase64
+      ? (typeof window.__sessizlikArkaplanGorselKaydet === 'function'
+          ? base64tenBlobaCevir(arkaplanBase64).then(function (blob) {
+              return window.__sessizlikArkaplanGorselKaydet(blob);
+            }).catch(function (e) {
+              console.error('Arka plan görseli geri yüklenemedi:', e);
+            })
+          : Promise.resolve())
+      : (typeof window.__sessizlikArkaplanGorselSil === 'function'
+          ? window.__sessizlikArkaplanGorselSil().catch(function () {})
+          : Promise.resolve());
+
     // Buluttaki yedekte artık bulunmayan (başka bir cihazda silinmiş) dosyaları
     // bu cihazdan da temizle — tam geri yükleme davranışı localStorage ile aynı olsun.
-    return kaydetSoz.then(function () {
+    return Promise.all([kaydetSoz, arkaplanSoz]).then(function () {
       if (typeof window.__sessizlikDosyaTumIcerigiAl !== 'function' || typeof window.__sessizlikDosyaSil !== 'function') return;
       return window.__sessizlikDosyaTumIcerigiAl().then(function (mevcutBloblar) {
-        var silinecekler = Object.keys(mevcutBloblar).filter(function (id) { return !(id in dosyalar); });
+        var silinecekler = Object.keys(mevcutBloblar).filter(function (id) { return !(id in digerDosyalar); });
         return Promise.all(silinecekler.map(function (id) { return window.__sessizlikDosyaSil(id); }));
       }).catch(function () {});
     });
