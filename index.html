@@ -10860,6 +10860,7 @@
     const isimRow = document.getElementById('isimRow');
     const alanRow = document.getElementById('alanRow');
     const navbarPositionRow = document.getElementById('navbarPositionRow');
+    const tamEkranRow = document.getElementById('tamEkranRow');
     const renkRow = document.getElementById('renkRow');
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
@@ -10949,6 +10950,7 @@
       isimRow.classList.remove('animate');
       settingsRow.classList.remove('animate');
       navbarPositionRow.classList.remove('animate');
+      tamEkranRow.classList.remove('animate');
       renkRow.classList.remove('animate');
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
@@ -10997,7 +10999,7 @@
 
       // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
       // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
-      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, tamEkranRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
       ayarOgeleri.forEach(function(el){
         el.classList.remove('animate');
         el.style.animation = 'none';
