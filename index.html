@@ -93,6 +93,19 @@
       if(animKapaliKayitli === 'acik'){ document.documentElement.setAttribute('data-bganim-kapat', 'acik'); }
     }catch(e){}
   })();
+
+  // Arka plan görseli üzerindeki örtünün saydamlığını (parlaklık tercihini)
+  // stiller çizilmeden önce uygula
+  (function(){
+    try{
+      var parlaklikKayitli = localStorage.getItem('sessizlik-arkaplan-parlaklik');
+      var v = parlaklikKayitli !== null ? Number(parlaklikKayitli) : 18;
+      if(!isNaN(v)){
+        v = Math.min(100, Math.max(0, v));
+        document.documentElement.style.setProperty('--ozel-arkaplan-ortu', (1 - v / 100).toFixed(3));
+      }
+    }catch(e){}
+  })();
 </script>
 
 <style>
@@ -2868,6 +2881,23 @@
   }
   .ozel-arkaplan-kaldir-btn:active{ transform:scale(0.96); }
   .ozel-arkaplan-kaldir-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
+  .ozel-arkaplan-parlaklik-satir{
+    width:100%;
+    flex-basis:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.4rem;
+  }
+  .ozel-arkaplan-parlaklik-etiket{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+  }
+  .ozel-arkaplan-parlaklik-slider{
+    width:100%;
+    accent-color:var(--accent);
+  }
   /* Kullanıcının seçtiği görsel, tüm uygulamanın en arkasında (ışık/yıldız/kar
      efektlerinin de gerisinde) sabit biçimde durur. Okunabilirlik için üstüne
      temanın arka plan rengiyle uyumlu, yarı saydam bir katman biner. */
@@ -2886,7 +2916,9 @@
     content:'';
     position:absolute;
     inset:0;
-    background:rgba(var(--bg-rgb),0.82);
+    background:rgb(var(--bg-rgb));
+    opacity:var(--ozel-arkaplan-ortu, 0.82);
+    transition:opacity 0.2s ease;
   }
   html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman{
     opacity:1;
@@ -9356,7 +9388,14 @@
         <span>Takvim</span>
       </button>
       <button type="button" class="gundelik-takvim-btn" id="gundelikSoruSayaciBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7h6M9 11h6M9 15h3"></path><path d="M6 3.5h12a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H9l-4 2.5V4.5a1 1 0 0 1 1-1Z"></path></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path id="soruSayaciSatir1" d="M11 5h10" style="transform-box:view-box; transform-origin:11px 5px;"></path>
+          <path id="soruSayaciSatir2" d="M11 12h10" style="transform-box:view-box; transform-origin:11px 12px;"></path>
+          <path id="soruSayaciSatir3" d="M11 19h10" style="transform-box:view-box; transform-origin:11px 19px;"></path>
+          <path id="soruSayaciRakam1a" d="M4 4h1v5"></path>
+          <path id="soruSayaciRakam1b" d="M4 9h2"></path>
+          <path id="soruSayaciRakam2" d="M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02"></path>
+        </svg>
         <span>Soru Sayacı</span>
       </button>
     </div>
@@ -9836,6 +9875,10 @@
             </button>
           </div>
           <input type="file" accept="image/*" id="ozelArkaPlanInput" hidden>
+          <div class="ozel-arkaplan-parlaklik-satir" id="ozelArkaPlanParlaklikSatir" hidden>
+            <span class="ozel-arkaplan-parlaklik-etiket" id="ozelArkaPlanParlaklikLabel">Görsel Parlaklığı: %18</span>
+            <input type="range" class="ozel-arkaplan-parlaklik-slider" id="ozelArkaPlanParlaklikSlider" min="0" max="100" value="18" step="1" aria-label="Arka plan görseli parlaklığı">
+          </div>
         </div>
         <div class="settings-row" id="bganimKapatRow">
           <div class="settings-row-text">
@@ -10991,8 +11034,34 @@
     const kaldirBtn = document.getElementById('ozelArkaPlanKaldirBtn');
     const input = document.getElementById('ozelArkaPlanInput');
     const label = document.getElementById('ozelArkaPlanStateLabel');
+    const parlaklikSatir = document.getElementById('ozelArkaPlanParlaklikSatir');
+    const parlaklikSlider = document.getElementById('ozelArkaPlanParlaklikSlider');
+    const parlaklikLabel = document.getElementById('ozelArkaPlanParlaklikLabel');
+    const PARLAKLIK_ANAHTARI = 'sessizlik-arkaplan-parlaklik';
+    const PARLAKLIK_VARSAYILAN = 18;
     const root = document.documentElement;
     if(!katman || !secBtn || !input) return;
+
+    function parlaklikUygula(deger){
+      const v = Math.min(100, Math.max(0, deger));
+      root.style.setProperty('--ozel-arkaplan-ortu', (1 - v / 100).toFixed(3));
+      if(parlaklikSlider){ parlaklikSlider.value = String(v); }
+      if(parlaklikLabel){ parlaklikLabel.textContent = 'Görsel Parlaklığı: %' + v; }
+    }
+
+    (function(){
+      let kayitliParlaklik = null;
+      try{ kayitliParlaklik = localStorage.getItem(PARLAKLIK_ANAHTARI); }catch(e){}
+      parlaklikUygula(kayitliParlaklik !== null ? Number(kayitliParlaklik) : PARLAKLIK_VARSAYILAN);
+    })();
+
+    if(parlaklikSlider){
+      parlaklikSlider.addEventListener('input', function(){
+        const v = Number(parlaklikSlider.value);
+        parlaklikUygula(v);
+        try{ localStorage.setItem(PARLAKLIK_ANAHTARI, String(v)); }catch(e){}
+      });
+    }
 
     function uygula(dataUrl){
       if(dataUrl){
@@ -11000,11 +11069,13 @@
         root.setAttribute('data-ozel-arkaplan', 'acik');
         if(label){ label.textContent = 'Özel görsel aktif'; }
         if(kaldirBtn){ kaldirBtn.hidden = false; }
+        if(parlaklikSatir){ parlaklikSatir.hidden = false; }
       } else {
         katman.style.backgroundImage = '';
         root.removeAttribute('data-ozel-arkaplan');
         if(label){ label.textContent = 'Seçilmedi'; }
         if(kaldirBtn){ kaldirBtn.hidden = true; }
+        if(parlaklikSatir){ parlaklikSatir.hidden = true; }
       }
     }
 
@@ -21337,6 +21408,99 @@
       setTimeout(function(){
         calisiyor = false;
       }, 1200);
+    });
+  })();
+
+  // ================= GÜNDELİK: Soru Sayacı ikonu (numaralı liste) çizim animasyonu =================
+  // Kaynak ikon "ListOrdered" (AnimateIcons/Lucide) hover animasyonundan uyarlandı: önce üç liste
+  // çizgisi soldan sağa açılır, ardından "1" ve "2" rakamları çizilir. Dokunmatik cihazlarda hover
+  // olmadığı için burada dokunma/tıklama ile tetikleniyor.
+  (function(){
+    const btn = document.getElementById('gundelikSoruSayaciBtn');
+    const satirlar = ['soruSayaciSatir1', 'soruSayaciSatir2', 'soruSayaciSatir3']
+      .map(function(id){ return document.getElementById(id); })
+      .filter(Boolean);
+    const rakam1a = document.getElementById('soruSayaciRakam1a');
+    const rakam1b = document.getElementById('soruSayaciRakam1b');
+    const rakam2 = document.getElementById('soruSayaciRakam2');
+    if(!btn || satirlar.length !== 3 || !rakam1a || !rakam1b || !rakam2) return;
+
+    const azaltilmisHareket = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(azaltilmisHareket) return;
+
+    let calisiyor = false;
+    let uzunlukHazir = false;
+    let len1a = 0, len1b = 0, len2 = 0;
+
+    function uzunlukHazirla(){
+      if(uzunlukHazir) return;
+      try{
+        len1a = rakam1a.getTotalLength();
+        len1b = rakam1b.getTotalLength();
+        len2 = rakam2.getTotalLength();
+        rakam1a.style.strokeDasharray = String(len1a);
+        rakam1b.style.strokeDasharray = String(len1b);
+        rakam2.style.strokeDasharray = String(len2);
+        rakam1a.style.strokeDashoffset = '0';
+        rakam1b.style.strokeDashoffset = '0';
+        rakam2.style.strokeDashoffset = '0';
+        uzunlukHazir = true;
+      }catch(e){}
+    }
+
+    btn.addEventListener('click', function(){
+      uzunlukHazirla();
+      if(!uzunlukHazir || calisiyor) return;
+
+      calisiyor = true;
+
+      // 1) Başlangıç: liste çizgilerini ve rakamları anında gizle
+      satirlar.forEach(function(satir){
+        satir.style.transition = 'none';
+        satir.style.opacity = '0';
+        satir.style.transform = 'scaleX(0)';
+      });
+      [rakam1a, rakam1b].forEach(function(yol){
+        yol.style.transition = 'none';
+        yol.style.opacity = '0';
+      });
+      rakam1a.style.strokeDashoffset = String(len1a);
+      rakam1b.style.strokeDashoffset = String(len1b);
+      rakam2.style.transition = 'none';
+      rakam2.style.opacity = '0';
+      rakam2.style.strokeDashoffset = String(len2);
+      void btn.offsetWidth; // reflow, animasyonun baştan tetiklenmesi için
+
+      // 2) Liste çizgileri sırayla soldan sağa açılsın
+      satirlar.forEach(function(satir, i){
+        setTimeout(function(){
+          satir.style.transition = 'transform 0.4s cubic-bezier(.16,1,.3,1), opacity 0.15s ease';
+          satir.style.opacity = '1';
+          satir.style.transform = 'scaleX(1)';
+        }, 60 + i * 100);
+      });
+
+      // 3) "1" rakamı çizilsin
+      setTimeout(function(){
+        rakam1a.style.transition = 'stroke-dashoffset 0.35s cubic-bezier(.16,1,.3,1), opacity 0.1s ease';
+        rakam1a.style.opacity = '1';
+        rakam1a.style.strokeDashoffset = '0';
+        rakam1b.style.transition = 'stroke-dashoffset 0.35s cubic-bezier(.16,1,.3,1), opacity 0.1s ease';
+        rakam1b.style.opacity = '1';
+        rakam1b.style.strokeDashoffset = '0';
+      }, 50);
+
+      // 4) "2" rakamı çizilsin
+      setTimeout(function(){
+        rakam2.style.transition = 'stroke-dashoffset 0.45s cubic-bezier(.16,1,.3,1), opacity 0.1s ease';
+        rakam2.style.opacity = '1';
+        rakam2.style.strokeDashoffset = '0';
+      }, 170);
+
+      // 5) Bitince tekrar dokunulabilir yap
+      setTimeout(function(){
+        calisiyor = false;
+      }, 620);
     });
   })();
 
