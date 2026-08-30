@@ -26,7 +26,11 @@
     try{
       var kayitli = localStorage.getItem('sessizlik-tema');
       var sistemKoyu = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var koyuMu = kayitli === 'dark' || (kayitli !== 'light' && sistemKoyu);
+      // Özel arka plan görseli aktifken tema kilitli koyu moddadır; sayfa
+      // yeniden açıldığında ilk boyamadan önce de bunu yansıtıp yanıp
+      // sönmeyi (önce açık, sonra koyu) engeller.
+      var arkaplanAktif = localStorage.getItem('sessizlik-ozel-arkaplan-aktif') === '1';
+      var koyuMu = arkaplanAktif || kayitli === 'dark' || (kayitli !== 'light' && sistemKoyu);
       if(koyuMu){
         document.documentElement.setAttribute('data-theme', 'dark');
       }
@@ -2850,6 +2854,10 @@
   }
   .theme-switch.on .theme-switch-knob{
     transform:translateX(1.3rem);
+  }
+  #themeSwitch.kilitli{
+    cursor:not-allowed;
+    opacity:0.55;
   }
 
   .bganim-group{
@@ -11319,6 +11327,12 @@
         if(label){ label.textContent = 'Özel görsel aktif'; }
         if(kaldirBtn){ kaldirBtn.hidden = false; }
         if(parlaklikSatir){ parlaklikSatir.hidden = false; }
+        // Arka plan görseli açıkken sadece koyu mod kullanılabilir olsun;
+        // açık mod seçilemesin diye tema anahtarı kilitlenir. Bayrak,
+        // sayfa yeniden açıldığında <head> betiğinin daha ilk boyamadan
+        // önce koyu modu uygulayabilmesi için localStorage'a da yazılır.
+        try{ localStorage.setItem('sessizlik-ozel-arkaplan-aktif', '1'); }catch(e){}
+        if(typeof window.sessizlikTemaKilitle === 'function'){ window.sessizlikTemaKilitle(true); }
       } else {
         katman.style.backgroundImage = '';
         root.style.removeProperty('--ozel-arkaplan-img');
@@ -11326,6 +11340,10 @@
         if(label){ label.textContent = 'Seçilmedi'; }
         if(kaldirBtn){ kaldirBtn.hidden = true; }
         if(parlaklikSatir){ parlaklikSatir.hidden = true; }
+        // Görsel kaldırıldı: bayrağı temizle, tema anahtarının kilidini aç,
+        // kullanıcının kayıtlı tema tercihine (veya sistem tercihine) geri dön.
+        try{ localStorage.removeItem('sessizlik-ozel-arkaplan-aktif'); }catch(e){}
+        if(typeof window.sessizlikTemaKilitle === 'function'){ window.sessizlikTemaKilitle(false); }
       }
     }
 
@@ -18712,6 +18730,9 @@
     const themeStateLabel = document.getElementById('themeStateLabel');
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     const STORAGE_KEY = 'sessizlik-tema';
+    // Arka plan görseli aktifken tema anahtarı kilitlenir (yalnızca koyu
+    // mod kullanılabilir olur); görsel kaldırıldığında kilit açılır.
+    let kilitliMi = false;
 
     function uygula(tema){
       if(tema === 'dark'){
@@ -18720,7 +18741,7 @@
           themeSwitch.classList.add('on');
           themeSwitch.setAttribute('aria-checked', 'true');
         }
-        if(themeStateLabel){ themeStateLabel.textContent = 'Koyu mod aktif'; }
+        if(themeStateLabel){ themeStateLabel.textContent = kilitliMi ? 'Koyu mod aktif (arka plan görseli nedeniyle kilitli)' : 'Koyu mod aktif'; }
         if(themeColorMeta){ themeColorMeta.setAttribute('content', '#000000'); }
       } else {
         root.removeAttribute('data-theme');
@@ -18738,11 +18759,33 @@
 
     if(themeSwitch){
       themeSwitch.addEventListener('click', function(){
+        if(kilitliMi) return;
         const yeniTema = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         uygula(yeniTema);
         try{ localStorage.setItem(STORAGE_KEY, yeniTema); }catch(e){}
       });
     }
+
+    // Özel arka plan görseli modülü tarafından çağrılır: kilitle(true) ->
+    // koyu moda zorla ve anahtarı devre dışı bırak; kilitle(false) ->
+    // kilidi aç ve kullanıcının kayıtlı (veya sistem) tercihine dön.
+    window.sessizlikTemaKilitle = function(kilitle){
+      kilitliMi = !!kilitle;
+      if(themeSwitch){
+        themeSwitch.disabled = kilitliMi;
+        themeSwitch.classList.toggle('kilitli', kilitliMi);
+        themeSwitch.setAttribute('aria-disabled', kilitliMi ? 'true' : 'false');
+      }
+      if(kilitliMi){
+        uygula('dark');
+      } else {
+        let kayitliTema = null;
+        try{ kayitliTema = localStorage.getItem(STORAGE_KEY); }catch(e){}
+        const sistemKoyu = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const koyuMu = kayitliTema === 'dark' || (kayitliTema !== 'light' && sistemKoyu);
+        uygula(koyuMu ? 'dark' : 'light');
+      }
+    };
   })();
 
   // ================= RENK (VURGU RENGİ) =================
