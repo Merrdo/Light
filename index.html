@@ -204,7 +204,7 @@
   *{ margin:0; padding:0; box-sizing:border-box; }
 
   html,body{
-    background:var(--bg);
+    background:transparent;
     color:var(--ink);
     font-family: "Iowan Old Style","Palatino Linotype","Georgia","Times New Roman",serif;
     overflow-x:hidden;
@@ -2933,12 +2933,13 @@
     position:fixed;
     inset:0;
     z-index:-2;
+    background-color:var(--bg);
     background-size:cover;
     background-position:center;
     background-repeat:no-repeat;
-    opacity:0;
+    opacity:1;
     pointer-events:none;
-    transition:opacity 0.4s ease;
+    transition:background-color 0.35s ease, opacity 0.4s ease;
     /* iPad/iOS Safari'de "position:fixed + negatif z-index" kombinasyonu bazı
        WebKit sürümlerinde hiç boyanmıyor (bilinen bir render hatası): öğe var,
        görsel de doğru şekilde arka plana atanıyor, ama ekranda görünmüyor.
@@ -2953,11 +2954,11 @@
     position:absolute;
     inset:0;
     background:rgb(var(--bg-rgb));
-    opacity:var(--ozel-arkaplan-ortu, 0.82);
+    opacity:0;
     transition:opacity 0.2s ease;
   }
-  html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman{
-    opacity:1;
+  html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman::after{
+    opacity:var(--ozel-arkaplan-ortu, 0.82);
   }
 
   /* ================= FOTOĞRAF KONUMLANDIRMA (profil fotoğrafı + arka plan görseli ortak) ================= */
