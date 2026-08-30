@@ -8486,6 +8486,15 @@
           <button type="button" class="bganim-btn" data-bganim="kar">Kar Yağışı</button>
         </div>
       </div>
+      <div class="settings-row" id="tamEkranRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Tam Ekran</span>
+          <span class="settings-row-sub" id="tamEkranLabel">Durum çubuğunu ve gezinme çubuğunu gizler</span>
+        </div>
+        <button type="button" class="theme-switch" id="tamEkranSwitch" role="switch" aria-checked="false" aria-label="Tam ekran anahtarı">
+          <span class="theme-switch-knob"></span>
+        </button>
+      </div>
       <div class="settings-row" id="yedekRow">
         <div class="settings-row-text">
           <span class="settings-row-title">Verilerini Yedekle</span>
@@ -10857,6 +10866,7 @@
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
     const yedekRow = document.getElementById('yedekRow');
+    const tamEkranRow = document.getElementById('tamEkranRow');
     const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
@@ -10946,6 +10956,7 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
+      if(tamEkranRow) tamEkranRow.classList.remove('animate');
       bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
@@ -10990,7 +11001,7 @@
 
       // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
       // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
-      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, tamEkranRow, bulutYedekRow, sporModuRow].filter(Boolean);
       ayarOgeleri.forEach(function(el){
         el.classList.remove('animate');
         el.style.animation = 'none';
@@ -17683,6 +17694,76 @@
         try{ localStorage.setItem(STORAGE_KEY, yeniDurum); }catch(e){}
       });
     }
+  })();
+
+  // ================= TAM EKRAN (Durum Çubuğu / Gezinme Çubuğunu Gizleme) =================
+  // Web standardı Fullscreen API'yi kullanır: bir öğeyi (burada <html>) tam
+  // ekrana alarak sistem durum çubuğunu (saat, wifi, pil) ve alttaki gezinme
+  // çubuğunu/home indicator'ı da video oynatıcılarda olduğu gibi gizler.
+  //
+  // ÖNEMLİ SINIRLAMA: Bu API, iPad'de (iPadOS masaüstü Safari motorunu
+  // kullandığı için) çalışır; ancak iPhone'da Apple'ın WebKit'i rastgele bir
+  // sayfa öğesi için Fullscreen API'yi hâlâ desteklemiyor (yalnızca <video>
+  // için destekliyor) — bu, sitenin değil iOS/Safari'nin bir kısıtlaması ve
+  // hiçbir web uygulaması (PWA dahil) bunu aşamıyor. Bu yüzden desteklenmeyen
+  // cihazlarda yanıltıcı olmaması için satır tamamen gizlenir.
+  (function(){
+    const tamEkranRow = document.getElementById('tamEkranRow');
+    const tamEkranSwitch = document.getElementById('tamEkranSwitch');
+    const tamEkranLabel = document.getElementById('tamEkranLabel');
+    if(!tamEkranRow || !tamEkranSwitch || !tamEkranLabel) return;
+
+    function destekleniyorMu(){
+      return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+    }
+
+    if(!destekleniyorMu()){
+      tamEkranRow.style.display = 'none';
+      return;
+    }
+
+    function aktifMi(){
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    function etiketiGuncelle(){
+      if(aktifMi()){
+        tamEkranSwitch.classList.add('on');
+        tamEkranSwitch.setAttribute('aria-checked', 'true');
+        tamEkranLabel.textContent = 'Aktif — çıkmak için tekrar dokun';
+      } else {
+        tamEkranSwitch.classList.remove('on');
+        tamEkranSwitch.setAttribute('aria-checked', 'false');
+        tamEkranLabel.textContent = 'Durum çubuğunu ve gezinme çubuğunu gizler';
+      }
+    }
+
+    function girmeyeCalis(){
+      const el = document.documentElement;
+      const istek = el.requestFullscreen || el.webkitRequestFullscreen;
+      if(istek){
+        try{ istek.call(el); }catch(e){}
+      }
+    }
+
+    function cikmayaCalis(){
+      const cikis = document.exitFullscreen || document.webkitExitFullscreen;
+      if(cikis){
+        try{ cikis.call(document); }catch(e){}
+      }
+    }
+
+    // Tarayıcı güvenlik kuralı gereği tam ekrana yalnızca doğrudan bir
+    // kullanıcı dokunuşuyla (bu buton tıklamasıyla) girilebilir; bu yüzden
+    // sayfa açılışında otomatik denenmez, önceki oturumdan hatırlanmaz.
+    tamEkranSwitch.addEventListener('click', function(){
+      if(aktifMi()){ cikmayaCalis(); } else { girmeyeCalis(); }
+    });
+
+    document.addEventListener('fullscreenchange', etiketiGuncelle);
+    document.addEventListener('webkitfullscreenchange', etiketiGuncelle);
+
+    etiketiGuncelle();
   })();
 
   // ================= ARKA PLAN ANİMASYONU (IŞIK HUZMESİ / YILDIZ GECESİ) =================
