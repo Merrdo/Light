@@ -79,8 +79,7 @@
   (function(){
     try{
       var bganimKayitli = localStorage.getItem('sessizlik-bganim');
-      var bganimGecerliler = ['isik', 'yildiz', 'kar'];
-      document.documentElement.setAttribute('data-bganim', bganimGecerliler.indexOf(bganimKayitli) !== -1 ? bganimKayitli : 'isik');
+      document.documentElement.setAttribute('data-bganim', bganimKayitli === 'yildiz' ? 'yildiz' : 'isik');
     }catch(e){
       document.documentElement.setAttribute('data-bganim', 'isik');
     }
@@ -491,23 +490,13 @@
     .bg-destek{ animation:none; opacity:0.6; }
   }
 
-  /* ---- Arka Plan Animasyonu seçimi: "Işık Huzmesi", "Yıldız Gecesi" ve "Kar Yağışı" birbirini dışlar ---- */
+  /* ---- Arka Plan Animasyonu seçimi: "Işık Huzmesi" ile "Yıldız Gecesi" birbirini dışlar ---- */
   html[data-bganim="yildiz"] .ray,
-  html[data-bganim="yildiz"] .dust,
-  html[data-bganim="kar"] .ray,
-  html[data-bganim="kar"] .dust{ display:none; }
+  html[data-bganim="yildiz"] .dust{ display:none; }
   html[data-bganim="isik"] .star,
   html[data-bganim="isik"] .shooting-star,
-  html[data-bganim="kar"] .star,
-  html[data-bganim="kar"] .shooting-star,
   html:not([data-bganim]) .star,
   html:not([data-bganim]) .shooting-star{ display:none; }
-
-  /* ---- Işık Huzmesi ve Yıldız Gecesi: CSS tabanlı, tamamen kendi kendine
-     yeten (harici JS motoru gerektirmeyen) huzme/toz/yıldız/göktaşı öğeleri.
-     Yalnızca ilgili tema seçiliyken görünürler (yukarıdaki kurallar); "Kar
-     Yağışı" seçiliyken ikisi de gizlenir çünkü o tema canvas tabanlı ayrı
-     bir motorla (kar-efekti.js) çiziliyor. ---- */
 
   /* ---- Yıldız Gecesi: yanıp sönen sabit yıldızlar ---- */
   .star{
@@ -6013,8 +6002,6 @@
   .soru-sayaci-ders-modal-liste{
     max-height:56vh;
     overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior:contain;
     scrollbar-width:none;
     -ms-overflow-style:none;
   }
@@ -8489,17 +8476,7 @@
         <div class="bganim-group" id="bganimGroup" role="group" aria-label="Arka plan animasyonu seçenekleri">
           <button type="button" class="bganim-btn secili" data-bganim="isik">Işık Huzmesi</button>
           <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
-          <button type="button" class="bganim-btn" data-bganim="kar">Kar Yağışı</button>
         </div>
-      </div>
-      <div class="settings-row" id="tamEkranRow">
-        <div class="settings-row-text">
-          <span class="settings-row-title">Tam Ekran</span>
-          <span class="settings-row-sub" id="tamEkranLabel">Durum çubuğunu ve gezinme çubuğunu gizler</span>
-        </div>
-        <button type="button" class="theme-switch" id="tamEkranSwitch" role="switch" aria-checked="false" aria-label="Tam ekran anahtarı">
-          <span class="theme-switch-knob"></span>
-        </button>
       </div>
       <div class="settings-row" id="yedekRow">
         <div class="settings-row-text">
@@ -10872,7 +10849,6 @@
     const isikEfektiRow = document.getElementById('isikEfektiRow');
     const bganimRow = document.getElementById('bganimRow');
     const yedekRow = document.getElementById('yedekRow');
-    const tamEkranRow = document.getElementById('tamEkranRow');
     const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
@@ -10962,7 +10938,6 @@
       isikEfektiRow.classList.remove('animate');
       bganimRow.classList.remove('animate');
       yedekRow.classList.remove('animate');
-      if(tamEkranRow) tamEkranRow.classList.remove('animate');
       bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
@@ -11007,7 +10982,7 @@
 
       // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
       // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
-      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, tamEkranRow, bulutYedekRow, sporModuRow].filter(Boolean);
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, isimRow, alanRow, settingsRow, navbarPositionRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
       ayarOgeleri.forEach(function(el){
         el.classList.remove('animate');
         el.style.animation = 'none';
@@ -17702,101 +17677,16 @@
     }
   })();
 
-  // ================= TAM EKRAN (Durum Çubuğu / Gezinme Çubuğunu Gizleme) =================
-  // Web standardı Fullscreen API'yi kullanır: bir öğeyi (burada <html>) tam
-  // ekrana alarak sistem durum çubuğunu (saat, wifi, pil) ve alttaki gezinme
-  // çubuğunu/home indicator'ı da video oynatıcılarda olduğu gibi gizler.
-  //
-  // ÖNEMLİ SINIRLAMA: Bu API, iPad'de (iPadOS masaüstü Safari motorunu
-  // kullandığı için) çalışır; ancak iPhone'da Apple'ın WebKit'i rastgele bir
-  // sayfa öğesi için Fullscreen API'yi hâlâ desteklemiyor (yalnızca <video>
-  // için destekliyor) — bu, sitenin değil iOS/Safari'nin bir kısıtlaması ve
-  // hiçbir web uygulaması (PWA dahil) bunu aşamıyor. Bu yüzden desteklenmeyen
-  // cihazlarda yanıltıcı olmaması için satır tamamen gizlenir.
-  // Ayarlardaki anahtarın yanı sıra, uygulamanın başka yerlerinden de (ör.
-  // kronometrenin tam ekran görünümü) çağrılabilmesi için gir/çık
-  // fonksiyonları window.sessizlikTamEkranAPI üzerinden dışa açılır.
-  window.sessizlikTamEkranAPI = (function(){
-    function destekleniyorMu(){
-      return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
-    }
-
-    function aktifMi(){
-      return !!(document.fullscreenElement || document.webkitFullscreenElement);
-    }
-
-    function girmeyeCalis(){
-      const el = document.documentElement;
-      const istek = el.requestFullscreen || el.webkitRequestFullscreen;
-      if(istek){
-        // navigationUI:'hide' tarayıcıya, tam ekrana geçiş sırasında kendi
-        // gezinme arayüzünü (ör. geri oku ipucu) mümkün olduğunca az
-        // göstermesi için bir ipucu verir. Not: tarayıcıların "X tam ekrana
-        // geçti / çıkmak için Esc'e basın" şeklindeki kısa bilgi notu ise
-        // güvenlik amaçlı bir tarayıcı davranışıdır (kullanıcı her zaman
-        // tam ekrandan nasıl çıkacağını bilsin diye) ve hiçbir web sitesi
-        // bunu JS ile kapatamaz; bu yüzden burada denenmez.
-        try{ istek.call(el, { navigationUI: 'hide' }); }
-        catch(e){ try{ istek.call(el); }catch(e2){} }
-      }
-    }
-
-    function cikmayaCalis(){
-      const cikis = document.exitFullscreen || document.webkitExitFullscreen;
-      if(cikis){
-        try{ cikis.call(document); }catch(e){}
-      }
-    }
-
-    const tamEkranRow = document.getElementById('tamEkranRow');
-    const tamEkranSwitch = document.getElementById('tamEkranSwitch');
-    const tamEkranLabel = document.getElementById('tamEkranLabel');
-
-    if(tamEkranRow && tamEkranSwitch && tamEkranLabel){
-      if(!destekleniyorMu()){
-        tamEkranRow.style.display = 'none';
-      } else {
-        const etiketiGuncelle = function(){
-          if(aktifMi()){
-            tamEkranSwitch.classList.add('on');
-            tamEkranSwitch.setAttribute('aria-checked', 'true');
-            tamEkranLabel.textContent = 'Aktif — çıkmak için tekrar dokun';
-          } else {
-            tamEkranSwitch.classList.remove('on');
-            tamEkranSwitch.setAttribute('aria-checked', 'false');
-            tamEkranLabel.textContent = 'Durum çubuğunu ve gezinme çubuğunu gizler';
-          }
-        };
-
-        // Tarayıcı güvenlik kuralı gereği tam ekrana yalnızca doğrudan bir
-        // kullanıcı dokunuşuyla girilebilir; bu yüzden sayfa açılışında
-        // otomatik denenmez, önceki oturumdan hatırlanmaz.
-        tamEkranSwitch.addEventListener('click', function(){
-          if(aktifMi()){ cikmayaCalis(); } else { girmeyeCalis(); }
-        });
-
-        document.addEventListener('fullscreenchange', etiketiGuncelle);
-        document.addEventListener('webkitfullscreenchange', etiketiGuncelle);
-
-        etiketiGuncelle();
-      }
-    }
-
-    return { gir: girmeyeCalis, cik: cikmayaCalis, aktifMi: aktifMi, destekleniyor: destekleniyorMu };
-  })();
-
   // ================= ARKA PLAN ANİMASYONU (IŞIK HUZMESİ / YILDIZ GECESİ) =================
   (function(){
     const root = document.documentElement;
     const bganimGroup = document.getElementById('bganimGroup');
     const bganimLabel = document.getElementById('bganimStateLabel');
     const STORAGE_KEY = 'sessizlik-bganim';
-    const gecerliSecimler = ['isik', 'yildiz', 'kar'];
-    const isimler = { isik:'Işık Huzmesi', yildiz:'Yıldız Gecesi', kar:'Kar Yağışı' };
+    const isimler = { isik:'Işık Huzmesi', yildiz:'Yıldız Gecesi' };
 
     function uygula(secim){
-      const onceki = root.getAttribute('data-bganim');
-      const gecerli = gecerliSecimler.indexOf(secim) !== -1 ? secim : 'isik';
+      const gecerli = (secim === 'yildiz') ? 'yildiz' : 'isik';
       root.setAttribute('data-bganim', gecerli);
       if(bganimLabel){ bganimLabel.textContent = isimler[gecerli] + ' aktif'; }
       if(bganimGroup){
@@ -17804,17 +17694,9 @@
           btn.classList.toggle('secili', btn.getAttribute('data-bganim') === gecerli);
         });
       }
-      // Işık Huzmesi ve Yıldız Gecesi artık yukarıdaki CSS kuralları
-      // (html[data-bganim="..."] görünürlük kuralları) tarafından otomatik
-      // gösterilip gizlendiği için ayrıca bir JS motoru başlatmaya gerek yok.
-      // Yalnızca Kar Yağışı hâlâ canvas tabanlı bir motorla (kar-efekti.js)
-      // çalışıyor, o yüzden sadece o başlatılıp durduruluyor.
-      if(onceki !== gecerli){
-        if(window.karEfekti){ (gecerli === 'kar') ? window.karEfekti.baslat() : window.karEfekti.durdur(); }
-      }
     }
 
-    uygula(gecerliSecimler.indexOf(root.getAttribute('data-bganim')) !== -1 ? root.getAttribute('data-bganim') : 'isik');
+    uygula(root.getAttribute('data-bganim') === 'yildiz' ? 'yildiz' : 'isik');
 
     if(bganimGroup){
       bganimGroup.addEventListener('click', function(e){
@@ -18617,11 +18499,6 @@
       if(window.kaloriDurdur){ window.kaloriDurdur(); }
       // Minimalist çıkış: giriştekiyle simetrik, tek katmanlı opacity + scale geçişi.
       overlay.classList.remove('active');
-      // Antrenman devam ederken (tam ekrandayken) spor modundan doğrudan
-      // çıkılırsa, tarayıcı tam ekranından da senkron olarak çıkılır.
-      if(window.sessizlikTamEkranAPI && window.sessizlikTamEkranAPI.aktifMi()){
-        window.sessizlikTamEkranAPI.cik();
-      }
     }
 
     acBtn.addEventListener('click', sporModunaGec);
@@ -19273,18 +19150,6 @@
       });
       if(sporModuOverlayEl){
         sporModuOverlayEl.classList.toggle('kalori-antrenman-tam-ekran', pane === paneCalisma);
-      }
-      // Antrenman fiilen başladığında (çalışma ekranı) kronometredeki gibi
-      // gerçek tarayıcı tam ekranına geçilir; seçim veya bitiş ekranına
-      // dönüldüğünde tam ekrandan çıkılır. Dokunuşla tetiklenen bir akışın
-      // içinde çağrıldığı için tarayıcı izin verir.
-      if(window.sessizlikTamEkranAPI){
-        const aktifMi = window.sessizlikTamEkranAPI.aktifMi();
-        if(pane === paneCalisma && !aktifMi){
-          window.sessizlikTamEkranAPI.gir();
-        } else if(pane !== paneCalisma && aktifMi){
-          window.sessizlikTamEkranAPI.cik();
-        }
       }
     }
 
@@ -20397,37 +20262,15 @@
       ekraniGuncelle();
       overlay.classList.add('active');
       document.documentElement.classList.add('kronometre-tam-ekran-acik');
-      // Video oynatıcılardaki gibi: kronometre tam ekrana açılınca durum
-      // çubuğu (saat, pil) ve alttaki gezinme çubuğu da otomatik gizlenir.
-      // Kullanıcı dokunuşuyla (bu tıklama) tetiklendiği için tarayıcı izin verir.
-      if(window.sessizlikTamEkranAPI && !window.sessizlikTamEkranAPI.aktifMi()){
-        window.sessizlikTamEkranAPI.gir();
-      }
     }
 
     function tamEkraniKapat(){
       overlay.classList.remove('active');
       document.documentElement.classList.remove('kronometre-tam-ekran-acik');
-      if(window.sessizlikTamEkranAPI && window.sessizlikTamEkranAPI.aktifMi()){
-        window.sessizlikTamEkranAPI.cik();
-      }
     }
 
     widget.addEventListener('click', tamEkraniAc);
     kapatBtn.addEventListener('click', tamEkraniKapat);
-
-    // Android'de sistem geri tuşu / kenar kaydırması gibi tarayıcı dışı bir
-    // yolla tam ekrandan çıkılırsa (kullanıcı "Kapat" butonuna basmadan),
-    // kronometre overlay'i de görsel olarak senkron kalsın diye kapatılır.
-    function tamEkranDegisti(){
-      const tarayiciTamEkranAktif = !!(document.fullscreenElement || document.webkitFullscreenElement);
-      if(!tarayiciTamEkranAktif && overlay.classList.contains('active')){
-        overlay.classList.remove('active');
-        document.documentElement.classList.remove('kronometre-tam-ekran-acik');
-      }
-    }
-    document.addEventListener('fullscreenchange', tamEkranDegisti);
-    document.addEventListener('webkitfullscreenchange', tamEkranDegisti);
     baslatBtn.addEventListener('click', function(){
       if(calisiyorMu){ durdur(); } else { baslat(); }
     });
@@ -20508,15 +20351,6 @@
      çalıştır, ardından uygulama içindeki bulut ikonuna dokunup
      Project URL + anon key bilgilerini gir. -->
 <script src="supabase-yedekleme.js" defer></script>
-
-<!-- ================= ARKA PLAN ANİMASYONU: KAR YAĞIŞI =================
-     "Arka Plan Animasyonu" ayarından seçilebilen üç seçenekten biridir.
-     Işık Huzmesi ve Yıldız Gecesi artık saf CSS animasyonlarıyla (harici
-     JS gerektirmeden) çiziliyor — bkz. yukarıdaki .ray/.dust/.star/
-     .shooting-star kuralları. Kar Yağışı ise hâlâ gerçek fizik motoruna
-     sahip canvas tabanlı ayrı bir motorla (kar-efekti.js) çalışıyor,
-     yalnızca "Kar Yağışı" seçiliyken başlatılır. -->
-<script src="kar-efekti.js" defer></script>
 
 </body>
 </html>
