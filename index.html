@@ -2968,6 +2968,71 @@
     width:100%;
     accent-color:var(--accent);
   }
+
+  /* ---- Yatay Mod Konumu: kullanıcı telefonu yatay çevirdiğinde arka plan
+     görselinin hangi kısmının görüneceğini (background-position) kendi eliyle
+     seçebiliyor. Önizleme kutusu görselin kendisini gösterir; kutu üzerinde
+     sürüklenen nokta, o an odaklanılan noktayı temsil eder. ---- */
+  .ozel-arkaplan-yatay-konum-satir{
+    width:100%;
+    flex-basis:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.5rem;
+    margin-top:0.3rem;
+    padding-top:0.9rem;
+    border-top:1px solid var(--line);
+  }
+  .ozel-arkaplan-yatay-konum-ipucu{
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    line-height:1.4;
+  }
+  .ozel-arkaplan-yatay-konum-onizleme{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    border-radius:0.9rem;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background-color:rgba(var(--ink-rgb),0.05);
+    background-image:var(--ozel-arkaplan-img, none);
+    background-size:cover;
+    background-position:var(--ozel-arkaplan-yatay-konum, center);
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .ozel-arkaplan-yatay-konum-onizleme:active{ cursor:grabbing; }
+  .ozel-arkaplan-yatay-konum-nokta{
+    position:absolute;
+    width:1.3rem;
+    height:1.3rem;
+    border-radius:50%;
+    background:rgba(255,255,255,0.9);
+    border:2px solid rgba(0,0,0,0.35);
+    box-shadow:0 2px 8px rgba(0,0,0,0.35);
+    left:var(--ozel-arkaplan-yatay-konum-x, 50%);
+    top:var(--ozel-arkaplan-yatay-konum-y, 50%);
+    transform:translate(-50%, -50%);
+    pointer-events:none;
+  }
+  .ozel-arkaplan-yatay-konum-sifirla-btn{
+    align-self:flex-start;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.76rem;
+    font-weight:600;
+    color:var(--accent);
+    background:rgba(var(--accent-rgb),0.1);
+    border:1px solid rgba(var(--accent-rgb),0.3);
+    border-radius:9999px;
+    padding:0.4rem 0.9rem;
+    cursor:pointer;
+    transition:background 0.2s ease;
+  }
+  .ozel-arkaplan-yatay-konum-sifirla-btn:active{ transform:scale(0.96); }
+
   /* Kullanıcının seçtiği görsel, tüm uygulamanın en arkasında (ışık/yıldız/kar
      efektlerinin de gerisinde) sabit biçimde durur. Okunabilirlik için üstüne
      temanın arka plan rengiyle uyumlu, yarı saydam bir katman biner. */
@@ -2991,6 +3056,16 @@
     -webkit-transform:translateZ(0);
     will-change:opacity, transform;
   }
+  /* Kullanıcının Ayarlar'dan seçtiği yatay mod odak noktası, sadece cihaz
+     yatay konumdayken devreye girer; dikey modda her zaman "center" kalır. */
+  @media (orientation:landscape){
+    html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman{
+      background-position:var(--ozel-arkaplan-yatay-konum, center);
+    }
+    html[data-ozel-arkaplan="acik"] .profil-overlay::before{
+      background-position:var(--ozel-arkaplan-yatay-konum, center);
+    }
+  }
   .ozel-arkaplan-katman::after{
     content:'';
     position:absolute;
@@ -3001,24 +3076,6 @@
   }
   html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman::after{
     opacity:var(--ozel-arkaplan-ortu, 0.82);
-  }
-
-  /* ---- Arka plan görseli: cihaz yatay çevrildiğinde akıllı kadraj ----
-     "cover" davranışı, dikey (portre) çekilmiş bir görseli yatay/geniş
-     bir ekrana sığdırırken görseli aşırı büyütüp yanlardan/üstten çok
-     fazla kırpar; önemli kısım (yüz, obje) kolayca kadraj dışına çıkar.
-     Görsel dikey olarak işaretlendiyse (bkz. oranOlc), yatay ekranda
-     "cover" yerine görselin tam yüksekliğini koruyan bir boyutlandırma
-     kullanılır: genişlik ekrana sığmıyorsa yine kırpılır ama çok daha az,
-     dikey görselin bütünü genelde ekranda görünür kalır. Yatay/kare
-     görsellerde herhangi bir değişiklik yapılmaz, "cover" gibi davranır. */
-  @media (orientation:landscape){
-    html[data-ozel-arkaplan-yon="dikey"] .ozel-arkaplan-katman{
-      background-size:auto 100%;
-    }
-    html[data-ozel-arkaplan-yon="dikey"] .profil-overlay::before{
-      background-size:auto 100%;
-    }
   }
 
   /* ================= FOTOĞRAF KONUMLANDIRMA (profil fotoğrafı + arka plan görseli ortak) ================= */
@@ -9999,6 +10056,14 @@
             <span class="ozel-arkaplan-parlaklik-etiket" id="ozelArkaPlanParlaklikLabel">Görsel Parlaklığı: %18</span>
             <input type="range" class="ozel-arkaplan-parlaklik-slider" id="ozelArkaPlanParlaklikSlider" min="0" max="100" value="18" step="1" aria-label="Arka plan görseli parlaklığı">
           </div>
+          <div class="ozel-arkaplan-yatay-konum-satir" id="ozelArkaPlanYatayKonumSatir" hidden>
+            <span class="ozel-arkaplan-parlaklik-etiket">Yatay Mod Konumu</span>
+            <p class="ozel-arkaplan-yatay-konum-ipucu">Telefon yatayken görselin hangi kısmının görüneceğini ayarlamak için aşağıdaki önizlemeyi sürükle.</p>
+            <div class="ozel-arkaplan-yatay-konum-onizleme" id="ozelArkaPlanYatayKonumOnizleme">
+              <div class="ozel-arkaplan-yatay-konum-nokta" id="ozelArkaPlanYatayKonumNokta"></div>
+            </div>
+            <button type="button" class="ozel-arkaplan-yatay-konum-sifirla-btn" id="ozelArkaPlanYatayKonumSifirlaBtn">Ortala</button>
+          </div>
         </div>
         <div class="settings-row" id="bganimKapatRow">
           <div class="settings-row-text">
@@ -11172,6 +11237,11 @@
     const parlaklikLabel = document.getElementById('ozelArkaPlanParlaklikLabel');
     const PARLAKLIK_ANAHTARI = 'sessizlik-arkaplan-parlaklik';
     const PARLAKLIK_VARSAYILAN = 18;
+    const yatayKonumSatir = document.getElementById('ozelArkaPlanYatayKonumSatir');
+    const yatayKonumOnizleme = document.getElementById('ozelArkaPlanYatayKonumOnizleme');
+    const yatayKonumNokta = document.getElementById('ozelArkaPlanYatayKonumNokta');
+    const yatayKonumSifirlaBtn = document.getElementById('ozelArkaPlanYatayKonumSifirlaBtn');
+    const YATAY_KONUM_ANAHTARI = 'sessizlik-arkaplan-yatay-konum';
     const root = document.documentElement;
     if(!katman || !secBtn || !input) return;
 
@@ -11245,30 +11315,74 @@
       });
     }
 
-    // Görsel her değiştiğinde önceki blob: URL serbest bırakılır (bellek sızıntısını önler).
-    let aktifObjectUrl = null;
-
-    // Görselin gerçek en/boy oranını ölçüp html üzerine yazar. Bu sayede
-    // CSS tarafında (bkz. "dar yatay ekranlar" medya sorgusu) dikey/portre
-    // çekilmiş bir görsel, telefon yatay çevrildiğinde "cover" ile aşırı
-    // kırpılıp önemli kısmı ekran dışına atmak yerine tam yüksekliğiyle
-    // gösterilebiliyor.
-    function oranOlc(blob){
-      try{
-        const olcUrl = URL.createObjectURL(blob);
-        const img = new Image();
-        img.onload = function(){
-          if(img.naturalWidth && img.naturalHeight){
-            const dikeyMi = img.naturalHeight > img.naturalWidth;
-            root.setAttribute('data-ozel-arkaplan-yon', dikeyMi ? 'dikey' : 'yatay');
-          }
-          URL.revokeObjectURL(olcUrl);
-        };
-        img.onerror = function(){ URL.revokeObjectURL(olcUrl); };
-        img.src = olcUrl;
-      }catch(e){}
+    // ---- Yatay Mod Konumu: kullanıcının önizleme kutusunda sürükleyerek
+    // seçtiği odak noktası, cihaz yatay konumdayken background-position
+    // olarak kullanılır (bkz. "@media (orientation:landscape)" kuralı).
+    // Yüzde olarak saklanır (x%, y%) böylece farklı ekran boyutlarında da
+    // aynı göreli konum korunur.
+    function yatayKonumUygula(xYuzde, yYuzde){
+      const x = Math.min(100, Math.max(0, xYuzde));
+      const y = Math.min(100, Math.max(0, yYuzde));
+      root.style.setProperty('--ozel-arkaplan-yatay-konum', x.toFixed(1) + '% ' + y.toFixed(1) + '%');
+      root.style.setProperty('--ozel-arkaplan-yatay-konum-x', x.toFixed(1) + '%');
+      root.style.setProperty('--ozel-arkaplan-yatay-konum-y', y.toFixed(1) + '%');
     }
 
+    (function(){
+      let kayitliKonum = null;
+      try{ kayitliKonum = localStorage.getItem(YATAY_KONUM_ANAHTARI); }catch(e){}
+      if(kayitliKonum){
+        try{
+          const ayrik = JSON.parse(kayitliKonum);
+          yatayKonumUygula(ayrik.x, ayrik.y);
+        }catch(e){ yatayKonumUygula(50, 50); }
+      } else {
+        yatayKonumUygula(50, 50);
+      }
+    })();
+
+    if(yatayKonumOnizleme){
+      let suruklemeAktif = false;
+
+      function konumHesaplaVeUygula(clientX, clientY){
+        const dikdortgen = yatayKonumOnizleme.getBoundingClientRect();
+        if(dikdortgen.width <= 0 || dikdortgen.height <= 0) return;
+        const xYuzde = ((clientX - dikdortgen.left) / dikdortgen.width) * 100;
+        const yYuzde = ((clientY - dikdortgen.top) / dikdortgen.height) * 100;
+        const x = Math.min(100, Math.max(0, xYuzde));
+        const y = Math.min(100, Math.max(0, yYuzde));
+        yatayKonumUygula(x, y);
+        try{ localStorage.setItem(YATAY_KONUM_ANAHTARI, JSON.stringify({ x: x, y: y })); }catch(e){}
+      }
+
+      function noktadanBaslat(e){
+        suruklemeAktif = true;
+        yatayKonumOnizleme.setPointerCapture && e.pointerId != null && yatayKonumOnizleme.setPointerCapture(e.pointerId);
+        konumHesaplaVeUygula(e.clientX, e.clientY);
+      }
+      function noktayiTasi(e){
+        if(!suruklemeAktif) return;
+        konumHesaplaVeUygula(e.clientX, e.clientY);
+      }
+      function suruklemeyiBitir(){
+        suruklemeAktif = false;
+      }
+
+      yatayKonumOnizleme.addEventListener('pointerdown', noktadanBaslat);
+      yatayKonumOnizleme.addEventListener('pointermove', noktayiTasi);
+      window.addEventListener('pointerup', suruklemeyiBitir);
+      window.addEventListener('pointercancel', suruklemeyiBitir);
+    }
+
+    if(yatayKonumSifirlaBtn){
+      yatayKonumSifirlaBtn.addEventListener('click', function(){
+        yatayKonumUygula(50, 50);
+        try{ localStorage.setItem(YATAY_KONUM_ANAHTARI, JSON.stringify({ x: 50, y: 50 })); }catch(e){}
+      });
+    }
+
+    // Görsel her değiştiğinde önceki blob: URL serbest bırakılır (bellek sızıntısını önler).
+    let aktifObjectUrl = null;
     function uygula(blob){
       if(aktifObjectUrl){ URL.revokeObjectURL(aktifObjectUrl); aktifObjectUrl = null; }
       if(blob){
@@ -11278,18 +11392,18 @@
         // (bkz. .profil-overlay::before) paylaşılan bir CSS değişkenine de yazılır.
         root.style.setProperty('--ozel-arkaplan-img', "url('" + aktifObjectUrl + "')");
         root.setAttribute('data-ozel-arkaplan', 'acik');
-        oranOlc(blob);
         if(label){ label.textContent = 'Özel görsel aktif'; }
         if(kaldirBtn){ kaldirBtn.hidden = false; }
         if(parlaklikSatir){ parlaklikSatir.hidden = false; }
+        if(yatayKonumSatir){ yatayKonumSatir.hidden = false; }
       } else {
         katman.style.backgroundImage = '';
         root.style.removeProperty('--ozel-arkaplan-img');
         root.removeAttribute('data-ozel-arkaplan');
-        root.removeAttribute('data-ozel-arkaplan-yon');
         if(label){ label.textContent = 'Seçilmedi'; }
         if(kaldirBtn){ kaldirBtn.hidden = true; }
         if(parlaklikSatir){ parlaklikSatir.hidden = true; }
+        if(yatayKonumSatir){ yatayKonumSatir.hidden = true; }
       }
     }
 
@@ -11346,6 +11460,11 @@
             return;
           }
           gorselKaydet(blob).then(function(){
+            // Yeni yüklenen görsel öncekinden farklı bir kadraja sahip
+            // olabileceği için yatay mod odak noktası ortaya sıfırlanır;
+            // kullanıcı dilerse Ayarlar'dan yeniden ayarlayabilir.
+            yatayKonumUygula(50, 50);
+            try{ localStorage.setItem(YATAY_KONUM_ANAHTARI, JSON.stringify({ x: 50, y: 50 })); }catch(e){}
             uygula(blob);
           }).catch(function(){
             if(label){ label.textContent = 'Görsel kaydedilemedi'; }
