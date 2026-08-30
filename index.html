@@ -79,7 +79,8 @@
   (function(){
     try{
       var bganimKayitli = localStorage.getItem('sessizlik-bganim');
-      document.documentElement.setAttribute('data-bganim', bganimKayitli === 'yildiz' ? 'yildiz' : 'isik');
+      var bganimGecerliler = ['isik', 'yildiz', 'kar'];
+      document.documentElement.setAttribute('data-bganim', bganimGecerliler.indexOf(bganimKayitli) !== -1 ? bganimKayitli : 'isik');
     }catch(e){
       document.documentElement.setAttribute('data-bganim', 'isik');
     }
@@ -490,11 +491,15 @@
     .bg-destek{ animation:none; opacity:0.6; }
   }
 
-  /* ---- Arka Plan Animasyonu seçimi: "Işık Huzmesi" ile "Yıldız Gecesi" birbirini dışlar ---- */
+  /* ---- Arka Plan Animasyonu seçimi: "Işık Huzmesi", "Yıldız Gecesi" ve "Kar Yağışı" birbirini dışlar ---- */
   html[data-bganim="yildiz"] .ray,
-  html[data-bganim="yildiz"] .dust{ display:none; }
+  html[data-bganim="yildiz"] .dust,
+  html[data-bganim="kar"] .ray,
+  html[data-bganim="kar"] .dust{ display:none; }
   html[data-bganim="isik"] .star,
   html[data-bganim="isik"] .shooting-star,
+  html[data-bganim="kar"] .star,
+  html[data-bganim="kar"] .shooting-star,
   html:not([data-bganim]) .star,
   html:not([data-bganim]) .shooting-star{ display:none; }
 
@@ -8478,6 +8483,7 @@
         <div class="bganim-group" id="bganimGroup" role="group" aria-label="Arka plan animasyonu seçenekleri">
           <button type="button" class="bganim-btn secili" data-bganim="isik">Işık Huzmesi</button>
           <button type="button" class="bganim-btn" data-bganim="yildiz">Yıldız Gecesi</button>
+          <button type="button" class="bganim-btn" data-bganim="kar">Kar Yağışı</button>
         </div>
       </div>
       <div class="settings-row" id="yedekRow">
@@ -17685,10 +17691,12 @@
     const bganimGroup = document.getElementById('bganimGroup');
     const bganimLabel = document.getElementById('bganimStateLabel');
     const STORAGE_KEY = 'sessizlik-bganim';
-    const isimler = { isik:'Işık Huzmesi', yildiz:'Yıldız Gecesi' };
+    const gecerliSecimler = ['isik', 'yildiz', 'kar'];
+    const isimler = { isik:'Işık Huzmesi', yildiz:'Yıldız Gecesi', kar:'Kar Yağışı' };
 
     function uygula(secim){
-      const gecerli = (secim === 'yildiz') ? 'yildiz' : 'isik';
+      const onceki = root.getAttribute('data-bganim');
+      const gecerli = gecerliSecimler.indexOf(secim) !== -1 ? secim : 'isik';
       root.setAttribute('data-bganim', gecerli);
       if(bganimLabel){ bganimLabel.textContent = isimler[gecerli] + ' aktif'; }
       if(bganimGroup){
@@ -17696,9 +17704,14 @@
           btn.classList.toggle('secili', btn.getAttribute('data-bganim') === gecerli);
         });
       }
+      // Kar efekti canvas tabanlı olduğu için yalnızca seçiliyken çalıştırılır (performans).
+      if(onceki !== gecerli && window.karEfekti){
+        if(gecerli === 'kar'){ window.karEfekti.baslat(); }
+        else{ window.karEfekti.durdur(); }
+      }
     }
 
-    uygula(root.getAttribute('data-bganim') === 'yildiz' ? 'yildiz' : 'isik');
+    uygula(gecerliSecimler.indexOf(root.getAttribute('data-bganim')) !== -1 ? root.getAttribute('data-bganim') : 'isik');
 
     if(bganimGroup){
       bganimGroup.addEventListener('click', function(e){
@@ -20353,6 +20366,12 @@
      çalıştır, ardından uygulama içindeki bulut ikonuna dokunup
      Project URL + anon key bilgilerini gir. -->
 <script src="supabase-yedekleme.js" defer></script>
+
+<!-- ================= ARKA PLAN ANİMASYONU: KAR YAĞIŞI =================
+     "Arka Plan Animasyonu" ayarından seçilebilen üçüncü seçenektir.
+     Sayfa yüklendiğinde oluşturulur ama yalnızca data-bganim="kar" iken
+     görünür ve çalışır durumdadır (bkz. yukarıdaki bganim kontrol scripti). -->
+<script src="kar-efekti.js" defer></script>
 
 </body>
 </html>
