@@ -17714,35 +17714,16 @@
   // için destekliyor) — bu, sitenin değil iOS/Safari'nin bir kısıtlaması ve
   // hiçbir web uygulaması (PWA dahil) bunu aşamıyor. Bu yüzden desteklenmeyen
   // cihazlarda yanıltıcı olmaması için satır tamamen gizlenir.
-  (function(){
-    const tamEkranRow = document.getElementById('tamEkranRow');
-    const tamEkranSwitch = document.getElementById('tamEkranSwitch');
-    const tamEkranLabel = document.getElementById('tamEkranLabel');
-    if(!tamEkranRow || !tamEkranSwitch || !tamEkranLabel) return;
-
+  // Ayarlardaki anahtarın yanı sıra, uygulamanın başka yerlerinden de (ör.
+  // kronometrenin tam ekran görünümü) çağrılabilmesi için gir/çık
+  // fonksiyonları window.sessizlikTamEkranAPI üzerinden dışa açılır.
+  window.sessizlikTamEkranAPI = (function(){
     function destekleniyorMu(){
       return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
     }
 
-    if(!destekleniyorMu()){
-      tamEkranRow.style.display = 'none';
-      return;
-    }
-
     function aktifMi(){
       return !!(document.fullscreenElement || document.webkitFullscreenElement);
-    }
-
-    function etiketiGuncelle(){
-      if(aktifMi()){
-        tamEkranSwitch.classList.add('on');
-        tamEkranSwitch.setAttribute('aria-checked', 'true');
-        tamEkranLabel.textContent = 'Aktif — çıkmak için tekrar dokun';
-      } else {
-        tamEkranSwitch.classList.remove('on');
-        tamEkranSwitch.setAttribute('aria-checked', 'false');
-        tamEkranLabel.textContent = 'Durum çubuğunu ve gezinme çubuğunu gizler';
-      }
     }
 
     function girmeyeCalis(){
@@ -17760,17 +17741,41 @@
       }
     }
 
-    // Tarayıcı güvenlik kuralı gereği tam ekrana yalnızca doğrudan bir
-    // kullanıcı dokunuşuyla (bu buton tıklamasıyla) girilebilir; bu yüzden
-    // sayfa açılışında otomatik denenmez, önceki oturumdan hatırlanmaz.
-    tamEkranSwitch.addEventListener('click', function(){
-      if(aktifMi()){ cikmayaCalis(); } else { girmeyeCalis(); }
-    });
+    const tamEkranRow = document.getElementById('tamEkranRow');
+    const tamEkranSwitch = document.getElementById('tamEkranSwitch');
+    const tamEkranLabel = document.getElementById('tamEkranLabel');
 
-    document.addEventListener('fullscreenchange', etiketiGuncelle);
-    document.addEventListener('webkitfullscreenchange', etiketiGuncelle);
+    if(tamEkranRow && tamEkranSwitch && tamEkranLabel){
+      if(!destekleniyorMu()){
+        tamEkranRow.style.display = 'none';
+      } else {
+        const etiketiGuncelle = function(){
+          if(aktifMi()){
+            tamEkranSwitch.classList.add('on');
+            tamEkranSwitch.setAttribute('aria-checked', 'true');
+            tamEkranLabel.textContent = 'Aktif — çıkmak için tekrar dokun';
+          } else {
+            tamEkranSwitch.classList.remove('on');
+            tamEkranSwitch.setAttribute('aria-checked', 'false');
+            tamEkranLabel.textContent = 'Durum çubuğunu ve gezinme çubuğunu gizler';
+          }
+        };
 
-    etiketiGuncelle();
+        // Tarayıcı güvenlik kuralı gereği tam ekrana yalnızca doğrudan bir
+        // kullanıcı dokunuşuyla girilebilir; bu yüzden sayfa açılışında
+        // otomatik denenmez, önceki oturumdan hatırlanmaz.
+        tamEkranSwitch.addEventListener('click', function(){
+          if(aktifMi()){ cikmayaCalis(); } else { girmeyeCalis(); }
+        });
+
+        document.addEventListener('fullscreenchange', etiketiGuncelle);
+        document.addEventListener('webkitfullscreenchange', etiketiGuncelle);
+
+        etiketiGuncelle();
+      }
+    }
+
+    return { gir: girmeyeCalis, cik: cikmayaCalis, aktifMi: aktifMi, destekleniyor: destekleniyorMu };
   })();
 
   // ================= ARKA PLAN ANİMASYONU (IŞIK HUZMESİ / YILDIZ GECESİ) =================
@@ -20367,15 +20372,37 @@
       ekraniGuncelle();
       overlay.classList.add('active');
       document.documentElement.classList.add('kronometre-tam-ekran-acik');
+      // Video oynatıcılardaki gibi: kronometre tam ekrana açılınca durum
+      // çubuğu (saat, pil) ve alttaki gezinme çubuğu da otomatik gizlenir.
+      // Kullanıcı dokunuşuyla (bu tıklama) tetiklendiği için tarayıcı izin verir.
+      if(window.sessizlikTamEkranAPI && !window.sessizlikTamEkranAPI.aktifMi()){
+        window.sessizlikTamEkranAPI.gir();
+      }
     }
 
     function tamEkraniKapat(){
       overlay.classList.remove('active');
       document.documentElement.classList.remove('kronometre-tam-ekran-acik');
+      if(window.sessizlikTamEkranAPI && window.sessizlikTamEkranAPI.aktifMi()){
+        window.sessizlikTamEkranAPI.cik();
+      }
     }
 
     widget.addEventListener('click', tamEkraniAc);
     kapatBtn.addEventListener('click', tamEkraniKapat);
+
+    // Android'de sistem geri tuşu / kenar kaydırması gibi tarayıcı dışı bir
+    // yolla tam ekrandan çıkılırsa (kullanıcı "Kapat" butonuna basmadan),
+    // kronometre overlay'i de görsel olarak senkron kalsın diye kapatılır.
+    function tamEkranDegisti(){
+      const tarayiciTamEkranAktif = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if(!tarayiciTamEkranAktif && overlay.classList.contains('active')){
+        overlay.classList.remove('active');
+        document.documentElement.classList.remove('kronometre-tam-ekran-acik');
+      }
+    }
+    document.addEventListener('fullscreenchange', tamEkranDegisti);
+    document.addEventListener('webkitfullscreenchange', tamEkranDegisti);
     baslatBtn.addEventListener('click', function(){
       if(calisiyorMu){ durdur(); } else { baslat(); }
     });
