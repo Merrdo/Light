@@ -2911,6 +2911,14 @@
     opacity:0;
     pointer-events:none;
     transition:opacity 0.4s ease;
+    /* iPad/iOS Safari'de "position:fixed + negatif z-index" kombinasyonu bazı
+       WebKit sürümlerinde hiç boyanmıyor (bilinen bir render hatası): öğe var,
+       görsel de doğru şekilde arka plana atanıyor, ama ekranda görünmüyor.
+       Aşağıdaki satırlar bu katmanı zorla kendi GPU/compositing katmanına
+       alarak sorunu çözüyor; diğer platformlarda görünmez bir etkisi yok. */
+    transform:translateZ(0);
+    -webkit-transform:translateZ(0);
+    will-change:opacity, transform;
   }
   .ozel-arkaplan-katman::after{
     content:'';
