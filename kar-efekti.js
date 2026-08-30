@@ -29,7 +29,8 @@
     esikEgim: 3.2,            // çığ/yayılma tetikleyen komşu sütun yükseklik farkı (px)
     ruzgarYavaslik: 0.985,    // rüzgarın hedefe yaklaşma yumuşaklığı (1'e ne kadar yakınsa o kadar ağır/atıl)
     surtunmeKatsayisi: 2.0,   // taneciğin terminal hıza yaklaşma oranı (sürükleme kuvveti benzetimi)
-    zeminAralikSaniye: 0.6    // birikmiş kar çizimini yeniden oluşturma için "kirli" bekleme eşiği yoktur, her karede kontrol edilir
+    zeminAralikSaniye: 0.6,   // birikmiş kar çizimini yeniden oluşturma için "kirli" bekleme eşiği yoktur, her karede kontrol edilir
+    gecisSuresiMs: 1100       // canvas görünür/gizli geçişindeki yumuşak solma süresi (diğer arka plan animasyonlarıyla tutarlı olsun diye)
   };
 
   // Derinlik katmanları: uzak/orta/yakın karışımı ile "karışık yağış" hissi
@@ -55,6 +56,7 @@
   var ruzgarMevcut = 0;
   var birikimKirli = true;    // birikim yolu yeniden çizilmeli mi
   var parlamaNoktalari = [];  // birikmiş kar üzerinde ince ışıltı noktaları
+  var gizlemeZamanlayiciId = null; // solma bittikten sonra canvas'ı gizleyen bekleyen zamanlayıcı
 
   // ================= YARDIMCI FONKSİYONLAR =================
   function rastgele(a, b) { return a + Math.random() * (b - a); }
@@ -79,6 +81,35 @@
       : 'rgba(255,255,255,' + opaklik + ')';
   }
 
+  // ---- Canvas'ı yumuşak biçimde göster/gizle: diğer arka plan animasyonları
+  // (Işık Huzmesi / Yıldız Gecesi) kendi CSS animasyonları içinde doğal bir
+  // "solarak beliren" opaklık geçişiyle başladığından, kar efektinin de aynı
+  // izlenimi vermesi için canvas'a opacity tabanlı bir fade-in/fade-out
+  // ekleniyor (aksi halde canvas anında tam yoğunlukta belirip "patlıyordu"). ----
+  function yumusakGoster() {
+    if (!canvas) return;
+    if (gizlemeZamanlayiciId) { clearTimeout(gizlemeZamanlayiciId); gizlemeZamanlayiciId = null; }
+    canvas.style.display = '';
+    // display:none -> '' geçişiyle aynı anda opacity değiştirilirse tarayıcı
+    // geçişi atlayabiliyor; bir sonraki iki kareye erteleyerek transition'ın
+    // gerçekten tetiklenmesini garanti ediyoruz.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        if (canvas) canvas.style.opacity = '1';
+      });
+    });
+  }
+
+  function yumusakGizle() {
+    if (!canvas) return;
+    canvas.style.opacity = '0';
+    if (gizlemeZamanlayiciId) clearTimeout(gizlemeZamanlayiciId);
+    gizlemeZamanlayiciId = setTimeout(function () {
+      if (canvas) canvas.style.display = 'none';
+      gizlemeZamanlayiciId = null;
+    }, AYAR.gecisSuresiMs);
+  }
+
   // ================= KURULUM / BOYUTLANDIRMA =================
   function olustur() {
     canvas = document.createElement('canvas');
@@ -89,6 +120,8 @@
     canvas.style.height = '100%';
     canvas.style.pointerEvents = 'none';
     canvas.style.zIndex = '0';
+    canvas.style.opacity = '0';
+    canvas.style.transition = 'opacity ' + AYAR.gecisSuresiMs + 'ms ease';
     canvas.setAttribute('aria-hidden', 'true');
     document.body.appendChild(canvas);
     ctx = canvas.getContext('2d');
@@ -116,9 +149,20 @@
     // başlatılır; diğer durumlarda canvas gizli ve döngü duraklatılmış kalır
     // (gereksiz CPU/GPU kullanımını önlemek için).
     var baslangictaAktif = document.documentElement.getAttribute('data-bganim') === 'kar';
-    canvas.style.display = baslangictaAktif ? '' : 'none';
     calisiyor = baslangictaAktif;
-    if (baslangictaAktif) dongubaslat();
+    if (baslangictaAktif) {
+      canvas.style.display = '';
+      dongubaslat();
+      // Sayfa doğrudan "Kar Yağışı" temasıyla açıldığında bile diğer temalar
+      // gibi yumuşak belirsin (aniden tam görünür olmasın).
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (canvas) canvas.style.opacity = '1';
+        });
+      });
+    } else {
+      canvas.style.display = 'none';
+    }
   }
 
   var boyutZamanlayici = null;
@@ -389,7 +433,7 @@
   // ================= DIŞA AÇILAN API =================
   window.karEfekti = {
     baslat: function () {
-      if (canvas) canvas.style.display = '';
+      yumusakGoster();
       if (calisiyor) return;
       calisiyor = true;
       dongubaslat();
@@ -397,7 +441,7 @@
     durdur: function () {
       calisiyor = false;
       durdurDongu();
-      if (canvas) canvas.style.display = 'none';
+      yumusakGizle();
     },
     temizle: function () {
       yukHaritasi = new Array(sutunSayisi).fill(0);
