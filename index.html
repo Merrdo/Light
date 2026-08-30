@@ -2410,6 +2410,48 @@
     .kalori-pane-calisma.set-gecis-anim .kalori-durum-etiket{ animation:none; }
   }
 
+  /* ---- Spor Modu: dar yatay ekranlar (kısa boylu telefon yatay modu) ----
+     Ana uygulamadaki Takvim düzeltmesiyle aynı eşik kullanılır. Burada
+     büyük, sabit rem boyutlu daireler/rakamlar dikey alana göre küçültülür;
+     aksi halde kısa ekranlarda metinler/daireler birbirinin üzerine biner. */
+  @media (orientation:landscape) and (max-height:480px) and (max-width:900px){
+    .spor-modu-view{
+      padding:calc(1.1rem + env(safe-area-inset-top, 0px)) 1.6rem 0.6rem;
+      gap:0.5rem;
+    }
+    .spor-modu-simge{ width:2.6rem; height:2.6rem; margin-bottom:0; }
+    .spor-modu-simge svg{ width:1.2rem; height:1.2rem; }
+    .spor-modu-baslik{ font-size:1.15rem; }
+    .spor-modu-aciklama{ font-size:0.82rem; }
+    .spor-modu-view-antrenman,
+    .spor-modu-view-kalori{
+      padding:calc(0.8rem + env(safe-area-inset-top, 0px)) 1.2rem 0.6rem;
+    }
+    .kalori-sayac-wrap{
+      width:min(14rem, 34vh);
+      height:min(14rem, 34vh);
+      margin:0.6rem 0;
+    }
+    .kalori-sayac-sayi{ font-size:min(4.4rem, 11vh); }
+    .kalori-pane-calisma.hazirlik-durumu .kalori-sayac-wrap{
+      margin-top:0.2rem;
+      margin-bottom:0.6rem;
+    }
+    .kalori-pane-calisma.hazirlik-durumu .kalori-sayac-sayi{
+      font-size:min(7.5rem, 20vh);
+    }
+    .kalori-tekrar-wrap{
+      width:min(9.5rem, 26vh);
+      height:min(9.5rem, 26vh);
+      margin:0.5rem 0;
+    }
+    .kalori-tekrar-sayi{ font-size:min(2.8rem, 9vh); }
+    .kalori-kontrol-satir{ padding:0.4rem 1.2rem; gap:1rem; margin-top:0.5rem; }
+    .kalori-kontrol-btn{ width:2.5rem; height:2.5rem; }
+    .kalori-kontrol-btn-buyuk{ width:3.6rem; height:3.6rem; }
+    .kalori-grup-liste{ margin-top:0.7rem; gap:0.5rem; }
+  }
+
   /* ---- Program: Kronometre veya Sayaç kullanılırken tam ekran — Spor Modu dock'u
      ve üstteki başlık/sekme bloğu (.program-ust) aynı yumuşak mantıkla gizlenir ---- */
   .spor-modu-overlay.program-tam-ekran .spor-modu-dock-wrap{
@@ -2959,6 +3001,24 @@
   }
   html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman::after{
     opacity:var(--ozel-arkaplan-ortu, 0.82);
+  }
+
+  /* ---- Arka plan görseli: cihaz yatay çevrildiğinde akıllı kadraj ----
+     "cover" davranışı, dikey (portre) çekilmiş bir görseli yatay/geniş
+     bir ekrana sığdırırken görseli aşırı büyütüp yanlardan/üstten çok
+     fazla kırpar; önemli kısım (yüz, obje) kolayca kadraj dışına çıkar.
+     Görsel dikey olarak işaretlendiyse (bkz. oranOlc), yatay ekranda
+     "cover" yerine görselin tam yüksekliğini koruyan bir boyutlandırma
+     kullanılır: genişlik ekrana sığmıyorsa yine kırpılır ama çok daha az,
+     dikey görselin bütünü genelde ekranda görünür kalır. Yatay/kare
+     görsellerde herhangi bir değişiklik yapılmaz, "cover" gibi davranır. */
+  @media (orientation:landscape){
+    html[data-ozel-arkaplan-yon="dikey"] .ozel-arkaplan-katman{
+      background-size:auto 100%;
+    }
+    html[data-ozel-arkaplan-yon="dikey"] .profil-overlay::before{
+      background-size:auto 100%;
+    }
   }
 
   /* ================= FOTOĞRAF KONUMLANDIRMA (profil fotoğrafı + arka plan görseli ortak) ================= */
@@ -11187,6 +11247,28 @@
 
     // Görsel her değiştiğinde önceki blob: URL serbest bırakılır (bellek sızıntısını önler).
     let aktifObjectUrl = null;
+
+    // Görselin gerçek en/boy oranını ölçüp html üzerine yazar. Bu sayede
+    // CSS tarafında (bkz. "dar yatay ekranlar" medya sorgusu) dikey/portre
+    // çekilmiş bir görsel, telefon yatay çevrildiğinde "cover" ile aşırı
+    // kırpılıp önemli kısmı ekran dışına atmak yerine tam yüksekliğiyle
+    // gösterilebiliyor.
+    function oranOlc(blob){
+      try{
+        const olcUrl = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = function(){
+          if(img.naturalWidth && img.naturalHeight){
+            const dikeyMi = img.naturalHeight > img.naturalWidth;
+            root.setAttribute('data-ozel-arkaplan-yon', dikeyMi ? 'dikey' : 'yatay');
+          }
+          URL.revokeObjectURL(olcUrl);
+        };
+        img.onerror = function(){ URL.revokeObjectURL(olcUrl); };
+        img.src = olcUrl;
+      }catch(e){}
+    }
+
     function uygula(blob){
       if(aktifObjectUrl){ URL.revokeObjectURL(aktifObjectUrl); aktifObjectUrl = null; }
       if(blob){
@@ -11196,6 +11278,7 @@
         // (bkz. .profil-overlay::before) paylaşılan bir CSS değişkenine de yazılır.
         root.style.setProperty('--ozel-arkaplan-img', "url('" + aktifObjectUrl + "')");
         root.setAttribute('data-ozel-arkaplan', 'acik');
+        oranOlc(blob);
         if(label){ label.textContent = 'Özel görsel aktif'; }
         if(kaldirBtn){ kaldirBtn.hidden = false; }
         if(parlaklikSatir){ parlaklikSatir.hidden = false; }
@@ -11203,6 +11286,7 @@
         katman.style.backgroundImage = '';
         root.style.removeProperty('--ozel-arkaplan-img');
         root.removeAttribute('data-ozel-arkaplan');
+        root.removeAttribute('data-ozel-arkaplan-yon');
         if(label){ label.textContent = 'Seçilmedi'; }
         if(kaldirBtn){ kaldirBtn.hidden = true; }
         if(parlaklikSatir){ parlaklikSatir.hidden = true; }
