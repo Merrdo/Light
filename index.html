@@ -3472,43 +3472,6 @@
     grid-template-columns:repeat(7, 1fr);
     gap:0.35rem;
   }
-  /* ---- Soru Sayacı: hafta şeridinin solunda/sağında önceki/sonraki haftaya geçiş okları ---- */
-  .soru-sayac-hafta-nav{
-    display:flex;
-    align-items:center;
-    gap:0.5rem;
-  }
-  .soru-sayac-hafta-nav .soru-sayac-hafta{
-    flex:1;
-    min-width:0;
-  }
-  .soru-sayac-hafta-ok{
-    flex-shrink:0;
-    width:2rem;
-    height:2rem;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border:1px solid var(--line);
-    border-radius:50%;
-    background:transparent;
-    color:var(--ink);
-    cursor:pointer;
-    padding:0;
-    transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-  }
-  .soru-sayac-hafta-ok svg{ width:1rem; height:1rem; }
-  @media (hover:hover) and (pointer:fine){
-    .soru-sayac-hafta-ok:not(:disabled):hover{
-      background:rgba(var(--accent-rgb),0.12);
-      transform:scale(1.08);
-    }
-  }
-  .soru-sayac-hafta-ok:active{ transform:scale(0.92); }
-  .soru-sayac-hafta-ok:disabled{
-    opacity:0.3;
-    cursor:default;
-  }
   .soru-sayac-hafta-gun{
     display:flex;
     flex-direction:column;
@@ -5904,29 +5867,11 @@
     width:100%;
     display:flex;
     flex-direction:column;
-    gap:0.9rem;
+    gap:1rem;
     margin-top:1.1rem;
   }
   .soru-sayaci-ay-nav{ margin-bottom:0; }
-  .soru-sayaci-ay-baslik-grup{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:0.35rem;
-  }
-  .soru-sayaci-ay-buaya-btn{
-    border:1px solid var(--accent);
-    border-radius:0.75rem;
-    background:transparent;
-    color:var(--accent);
-    font-family:"Helvetica Neue",Arial,sans-serif;
-    font-size:0.64rem;
-    letter-spacing:0.01em;
-    padding:0.26rem 0.6rem;
-    cursor:pointer;
-    transition:background 0.2s ease;
-  }
-  .soru-sayaci-ay-buaya-btn:active{ background:rgba(var(--accent-rgb),0.14); }
+  .soru-sayaci-ay-bugune-don-btn{ margin-top:-0.4rem; }
   .soru-sayaci-ay-toplam-kart{
     display:flex;
     flex-direction:column;
@@ -6099,11 +6044,9 @@
     color:var(--accent);
   }
 
-  .view-soru-sayaci .soru-sayac-hafta-nav{
+  .view-soru-sayaci .soru-sayac-hafta{
     width:100%;
     margin-top:1.1rem;
-  }
-  .view-soru-sayaci .soru-sayac-hafta{
     opacity:0;
     transform:translateY(18px);
   }
@@ -8746,29 +8689,19 @@
       </div>
     </div>
 
-    <div class="soru-sayac-hafta-nav" id="soruSayacHaftaNav">
-      <button type="button" class="soru-sayac-hafta-ok" id="soruSayacHaftaOncekiBtn" aria-label="Önceki hafta">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-      </button>
-      <div class="soru-sayac-hafta" id="soruSayacHaftaGunler"></div>
-      <button type="button" class="soru-sayac-hafta-ok" id="soruSayacHaftaSonrakiBtn" aria-label="Sonraki hafta">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-      </button>
-    </div>
+    <div class="soru-sayac-hafta" id="soruSayacHaftaGunler"></div>
 
     <div class="soru-sayaci-ay-govde" id="soruSayaciAyGovde" style="display:none;">
       <div class="takvim-nav soru-sayaci-ay-nav">
         <button class="takvim-arrow" id="soruSayaciAyOnceki" type="button" aria-label="Önceki ay">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         </button>
-        <div class="soru-sayaci-ay-baslik-grup">
-          <span class="takvim-ay-yil" id="soruSayaciAyBaslik"></span>
-          <button type="button" class="soru-sayaci-ay-buaya-btn" id="soruSayaciAyBuAyBtn" style="display:none;">Bu Aya Dön</button>
-        </div>
+        <span class="takvim-ay-yil" id="soruSayaciAyBaslik"></span>
         <button class="takvim-arrow" id="soruSayaciAySonraki" type="button" aria-label="Sonraki ay">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
       </div>
+      <button type="button" class="soru-sayaci-bugune-don-btn soru-sayaci-ay-bugune-don-btn" id="soruSayaciAyBuAyBtn" style="display:none;">Bu Aya Dön</button>
       <div class="soru-sayaci-ay-toplam-kart" id="soruSayaciAyToplamKart">
         <span class="soru-sayaci-ay-toplam-sayi" id="soruSayaciAyToplamSayi">0</span>
         <span class="soru-sayaci-ay-toplam-etiket">bu ay toplam çözülen soru</span>
@@ -15891,9 +15824,6 @@
       const haftaToplamEl = document.getElementById('soruSayacHaftaToplam');
       const haftaSayaciHaftaEtiketEl = document.getElementById('soruSayaciHaftaEtiket');
       const haftaGunlerEl = document.getElementById('soruSayacHaftaGunler');
-      const haftaNavEl = document.getElementById('soruSayacHaftaNav');
-      const haftaOncekiBtn = document.getElementById('soruSayacHaftaOncekiBtn');
-      const haftaSonrakiBtn = document.getElementById('soruSayacHaftaSonrakiBtn');
       const degistirBtn = document.getElementById('soruSayaciDegistirBtn');
       const ayGovdeEl = document.getElementById('soruSayaciAyGovde');
       const ayBaslikEl = document.getElementById('soruSayaciAyBaslik');
@@ -16161,13 +16091,10 @@
           haftaGunlerEl.appendChild(kutu);
         });
         haftaToplamEl.textContent = String(haftaToplam);
-        const gosterilenGuncelHaftaMi = haftaGunleri.some(function(g){ return gunAnahtari(g) === bugunAnahtar; });
         if(haftaSayaciHaftaEtiketEl){
+          const gosterilenGuncelHaftaMi = haftaGunleri.some(function(g){ return gunAnahtari(g) === bugunAnahtar; });
           haftaSayaciHaftaEtiketEl.textContent = gosterilenGuncelHaftaMi ? 'bu hafta toplam' : 'seçili hafta toplam';
         }
-        // İçinde bulunulan haftadan daha ileriye (gelecek haftalara) gidilemez;
-        // "Sonraki hafta" oku yalnızca geçmiş bir hafta görüntülenirken etkindir.
-        if(haftaSonrakiBtn){ haftaSonrakiBtn.disabled = gosterilenGuncelHaftaMi; }
 
         baslikDurumunuGuncelle();
       }
@@ -16300,19 +16227,6 @@
         ozetiGuncelle();
       }
 
-      // Hafta şeridinin solundaki/sağındaki oklar: önceki/sonraki haftaya geçer.
-      if(haftaOncekiBtn){
-        haftaOncekiBtn.addEventListener('click', function(){
-          haftayaGit(new Date(haftaReferansTarihi.getFullYear(), haftaReferansTarihi.getMonth(), haftaReferansTarihi.getDate() - 7));
-        });
-      }
-      if(haftaSonrakiBtn){
-        haftaSonrakiBtn.addEventListener('click', function(){
-          if(haftaSonrakiBtn.disabled) return;
-          haftayaGit(new Date(haftaReferansTarihi.getFullYear(), haftaReferansTarihi.getMonth(), haftaReferansTarihi.getDate() + 7));
-        });
-      }
-
       function ayGorunumunuCiz(){
         const ayIlkGun = new Date(ayGosterilenTarih.getFullYear(), ayGosterilenTarih.getMonth(), 1);
         const aySonGun = new Date(ayGosterilenTarih.getFullYear(), ayGosterilenTarih.getMonth() + 1, 0);
@@ -16412,7 +16326,7 @@
       function ayGorunumunuAc(){
         ayGorunumuAcikMi = true;
         ayGosterilenTarih = new Date(haftaReferansTarihi.getFullYear(), haftaReferansTarihi.getMonth(), 1);
-        if(haftaNavEl){ haftaNavEl.style.display = 'none'; }
+        if(haftaGunlerEl){ haftaGunlerEl.style.display = 'none'; }
         if(soruSayaciCardEl){ soruSayaciCardEl.style.display = 'none'; }
         if(ayGovdeEl){ ayGovdeEl.style.display = ''; }
         if(degistirBtn){
@@ -16425,7 +16339,7 @@
 
       function ayGorunumunuKapat(){
         ayGorunumuAcikMi = false;
-        if(haftaNavEl){ haftaNavEl.style.display = ''; }
+        if(haftaGunlerEl){ haftaGunlerEl.style.display = ''; }
         if(soruSayaciCardEl){ soruSayaciCardEl.style.display = ''; }
         if(ayGovdeEl){ ayGovdeEl.style.display = 'none'; }
         if(degistirBtn){
