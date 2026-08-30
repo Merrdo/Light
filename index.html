@@ -503,6 +503,13 @@
   html:not([data-bganim]) .star,
   html:not([data-bganim]) .shooting-star{ display:none; }
 
+  /* ---- Işık Huzmesi ve Yıldız Gecesi artık gerçek fizik motorlu canvas
+     sürümleriyle (isik-efekti.js / yildiz-efekti.js) çiziliyor; eski CSS
+     tabanlı huzme/toz/yıldız/göktaşı öğeleri (yukarıdaki span'lar) bu
+     yüzden her durumda gizli tutulur — markup geriye dönük uyumluluk için
+     duruyor ama görsel olarak devre dışı. ---- */
+  .ray, .dust, .star, .shooting-star{ display:none !important; }
+
   /* ---- Yıldız Gecesi: yanıp sönen sabit yıldızlar ---- */
   .star{
     position:absolute;
@@ -17785,10 +17792,12 @@
           btn.classList.toggle('secili', btn.getAttribute('data-bganim') === gecerli);
         });
       }
-      // Kar efekti canvas tabanlı olduğu için yalnızca seçiliyken çalıştırılır (performans).
-      if(onceki !== gecerli && window.karEfekti){
-        if(gecerli === 'kar'){ window.karEfekti.baslat(); }
-        else{ window.karEfekti.durdur(); }
+      // Her üç arka plan animasyonu da canvas tabanlı JS motorlarıyla
+      // çalıştığı için yalnızca seçiliyken çalıştırılır (performans).
+      if(onceki !== gecerli){
+        if(window.isikEfekti){ (gecerli === 'isik') ? window.isikEfekti.baslat() : window.isikEfekti.durdur(); }
+        if(window.yildizEfekti){ (gecerli === 'yildiz') ? window.yildizEfekti.baslat() : window.yildizEfekti.durdur(); }
+        if(window.karEfekti){ (gecerli === 'kar') ? window.karEfekti.baslat() : window.karEfekti.durdur(); }
       }
     }
 
@@ -20448,10 +20457,13 @@
      Project URL + anon key bilgilerini gir. -->
 <script src="supabase-yedekleme.js" defer></script>
 
-<!-- ================= ARKA PLAN ANİMASYONU: KAR YAĞIŞI =================
-     "Arka Plan Animasyonu" ayarından seçilebilen üçüncü seçenektir.
-     Sayfa yüklendiğinde oluşturulur ama yalnızca data-bganim="kar" iken
-     görünür ve çalışır durumdadır (bkz. yukarıdaki bganim kontrol scripti). -->
+<!-- ================= ARKA PLAN ANİMASYONLARI (IŞIK HUZMESİ / YILDIZ GECESİ / KAR YAĞIŞI) =================
+     "Arka Plan Animasyonu" ayarından seçilebilen üç seçenektir. Üçü de
+     sayfa yüklendiğinde oluşturulur ama yalnızca kendi data-bganim değeri
+     seçiliyken görünür ve çalışır durumdadır (bkz. yukarıdaki bganim
+     kontrol scripti). Gerçek fizik motoruna sahip canvas tabanlı animasyonlardır. -->
+<script src="isik-efekti.js" defer></script>
+<script src="yildiz-efekti.js" defer></script>
 <script src="kar-efekti.js" defer></script>
 
 </body>
