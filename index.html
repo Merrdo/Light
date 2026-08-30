@@ -17623,9 +17623,30 @@
 
   // ================= TAM EKRAN (FİLM İZLERKENKİ GİBİ, DURUM/SAAT ÇUBUĞU GİZLİ) =================
   (function(){
+    const tamEkranRow = document.getElementById('tamEkranRow');
     const tamEkranSwitch = document.getElementById('tamEkranSwitch');
     const tamEkranLabel = document.getElementById('tamEkranLabel');
     const el = document.documentElement;
+
+    // iOS'ta (iPhone/iPad/iPod) Fullscreen API çalışmıyor — Safari bazı
+    // tarayıcı sürümlerinde requestFullscreen'i tanımlı gösterse bile
+    // fiilen hiçbir şey yapmıyor. Bu yüzden masaüstü modundaki iPad'i de
+    // (Mac gibi görünüp dokunmatik olan cihaz) yakalayacak şekilde önce
+    // gerçek desteği kontrol ediyoruz; yoksa satırı tamamen gizleyip çıkıyoruz.
+    function tamEkranDesteginiKontrolEt(){
+      var destekVar = !!(el.requestFullscreen || el.webkitRequestFullscreen ||
+                          el.mozRequestFullScreen || el.msRequestFullscreen);
+      var etkinMi = document.fullscreenEnabled || document.webkitFullscreenEnabled ||
+                    document.mozFullScreenEnabled || document.msFullscreenEnabled;
+      var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      return !!(destekVar && etkinMi) && !iOS;
+    }
+
+    if(!tamEkranDesteginiKontrolEt()){
+      if(tamEkranRow){ tamEkranRow.style.display = 'none'; }
+      return;
+    }
 
     function tamEkranElemani(){
       return document.fullscreenElement || document.webkitFullscreenElement ||
