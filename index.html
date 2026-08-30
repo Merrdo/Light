@@ -3033,6 +3033,28 @@
     visibility:hidden;
     transition: opacity 0.16s ease, transform 0.16s cubic-bezier(.4,0,1,1), visibility 0s linear 0.16s;
   }
+  /* Kullanıcının seçtiği özel arka plan görseli, ana sayfalardaki gibi
+     Profilim sayfasının da en arkasında görünsün (aynı okunabilirlik
+     örtüsüyle). Negatif z-index sayesinde solid arka plan renginin üstünde
+     ama profil içeriğinin (isim, satırlar vb.) altında kalır. */
+  .profil-overlay::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.4s ease;
+  }
+  html[data-ozel-arkaplan="acik"] .profil-overlay::before{
+    opacity:1;
+    background-image:
+      linear-gradient(rgba(var(--bg-rgb), var(--ozel-arkaplan-ortu, 0.82)), rgba(var(--bg-rgb), var(--ozel-arkaplan-ortu, 0.82))),
+      var(--ozel-arkaplan-img, none);
+  }
   .profil-overlay.active{
     opacity:1;
     transform:scale(1);
@@ -11066,12 +11088,16 @@
     function uygula(dataUrl){
       if(dataUrl){
         katman.style.backgroundImage = "url('" + dataUrl + "')";
+        // Profilim sayfası da aynı görseli kendi arka planında gösterebilsin diye
+        // (bkz. .profil-overlay::before) paylaşılan bir CSS değişkenine de yazılır.
+        root.style.setProperty('--ozel-arkaplan-img', "url('" + dataUrl + "')");
         root.setAttribute('data-ozel-arkaplan', 'acik');
         if(label){ label.textContent = 'Özel görsel aktif'; }
         if(kaldirBtn){ kaldirBtn.hidden = false; }
         if(parlaklikSatir){ parlaklikSatir.hidden = false; }
       } else {
         katman.style.backgroundImage = '';
+        root.style.removeProperty('--ozel-arkaplan-img');
         root.removeAttribute('data-ozel-arkaplan');
         if(label){ label.textContent = 'Seçilmedi'; }
         if(kaldirBtn){ kaldirBtn.hidden = true; }
@@ -11108,8 +11134,13 @@
         const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
         try{
           localStorage.setItem(ANAHTAR, dataUrl);
+          // setItem hata fırlatmasa bile bazı tarayıcılarda/tabletlerde depolama
+          // sessizce başarısız olabiliyor; okuyup gerçekten yazıldığını doğrula.
+          if(localStorage.getItem(ANAHTAR) !== dataUrl){
+            throw new Error('Kayıt doğrulanamadı');
+          }
         }catch(e){
-          // Depolama sınırını aşarsa (ör. Safari) kullanıcıyı bilgilendir.
+          // Depolama sınırını aşarsa (ör. Safari/tablet) kullanıcıyı bilgilendir.
           if(label){ label.textContent = 'Görsel çok büyük, kaydedilemedi'; }
           return;
         }
