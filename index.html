@@ -3380,6 +3380,166 @@
     transform:translate(-50%, 0);
   }
 
+  /* ---- Soru Sayacım: ders bazlı günlük soru sayısı girişi + günlük/haftalık toplam ---- */
+  .soru-sayac-liste{
+    display:flex;
+    flex-direction:column;
+    gap:0.55rem;
+  }
+  .soru-satir{
+    justify-content:space-between;
+    cursor:default;
+  }
+  .soru-satir-ad{
+    flex:1;
+    min-width:0;
+    font-size:0.93rem;
+    line-height:1.35;
+    color:var(--ink);
+    word-break:break-word;
+  }
+  .soru-stepper{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+  }
+  .soru-stepper-btn{
+    flex-shrink:0;
+    width:1.9rem;
+    height:1.9rem;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:rgba(var(--ink-rgb),0.02);
+    color:var(--ink-soft);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:1.05rem;
+    font-weight:600;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .soru-stepper-btn:hover{ border-color:var(--accent); color:var(--accent); background:rgba(var(--accent-rgb),0.08); }
+  }
+  .soru-stepper-btn:active{ transform:scale(0.88); }
+  .soru-stepper-input{
+    width:2.6rem;
+    text-align:center;
+    border:none;
+    outline:none;
+    background:transparent;
+    color:var(--ink);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.95rem;
+    font-weight:700;
+    -moz-appearance:textfield;
+  }
+  .soru-stepper-input::-webkit-outer-spin-button,
+  .soru-stepper-input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .soru-sayac-ozet{
+    display:flex;
+    flex-direction:column;
+    gap:0.5rem;
+    padding-top:0.35rem;
+    border-top:1px dashed var(--line);
+  }
+  .soru-sayac-ozet-satir{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:0.6rem;
+  }
+  .soru-sayac-ozet-satir span{
+    font-size:0.83rem;
+    color:var(--ink-soft);
+  }
+  .soru-sayac-ozet-satir strong{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:1.15rem;
+    font-weight:700;
+    color:var(--accent);
+  }
+  .soru-sayac-hafta{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+    gap:0.35rem;
+  }
+  /* ---- Soru Sayacı: hafta şeridinin solunda/sağında önceki/sonraki haftaya geçiş okları ---- */
+  .soru-sayac-hafta-nav{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+  }
+  .soru-sayac-hafta-nav .soru-sayac-hafta{
+    flex:1;
+    min-width:0;
+  }
+  .soru-sayac-hafta-ok{
+    flex-shrink:0;
+    width:2rem;
+    height:2rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    padding:0;
+    transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  }
+  .soru-sayac-hafta-ok svg{ width:1rem; height:1rem; }
+  @media (hover:hover) and (pointer:fine){
+    .soru-sayac-hafta-ok:not(:disabled):hover{
+      background:rgba(var(--accent-rgb),0.12);
+      transform:scale(1.08);
+    }
+  }
+  .soru-sayac-hafta-ok:active{ transform:scale(0.92); }
+  .soru-sayac-hafta-ok:disabled{
+    opacity:0.3;
+    cursor:default;
+  }
+  .soru-sayac-hafta-gun{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.3rem;
+    padding:0.5rem 0.15rem;
+    border:1px solid var(--line);
+    border-radius:0.7rem;
+    background:rgba(var(--ink-rgb),0.015);
+  }
+  .soru-sayac-hafta-gun.bugun{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.1);
+  }
+  .soru-sayac-hafta-gun-ad{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.62rem;
+    font-weight:700;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .soru-sayac-hafta-gun.bugun .soru-sayac-hafta-gun-ad{ color:var(--accent); }
+  .soru-sayac-hafta-gun-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.88rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .soru-sayac-hafta-gun.bugun .soru-sayac-hafta-gun-sayi{ color:var(--accent); }
+
   .gundelik-ekle-btn{
     position:relative;
     display:flex;
@@ -5612,6 +5772,352 @@
   .takvim-card.animate{
     animation: cardIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
     animation-delay:0.25s;
+  }
+
+  /* ================= SORU SAYACI (bağımsız sayfa) ================= */
+  .view-soru-sayaci{
+    position:relative;
+    z-index:1;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+    max-width:520px;
+  }
+  .view-soru-sayaci.active{ display:flex; }
+
+  .soru-sayaci-heading{
+    position:relative;
+    width:100%;
+    text-align:center;
+    margin-bottom:1.6rem;
+  }
+  .soru-sayaci-title{
+    margin-top:0;
+    font-size:clamp(1.8rem, 4.5vw, 2.6rem);
+    font-weight:400;
+    opacity:0;
+    filter:blur(6px);
+    transform:translateY(16px);
+  }
+  .soru-sayaci-title.animate{
+    animation: reveal 0.9s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.15s;
+  }
+  .soru-sayaci-sub{
+    margin-top:0.6rem;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    opacity:0;
+  }
+  .soru-sayaci-sub.animate{
+    animation: rise 0.8s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.22s;
+  }
+
+  .soru-sayaci-ozet-kart{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:1.1rem;
+    border:1px solid var(--line);
+    border-radius:1.35rem;
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(var(--accent-rgb),0.12), transparent 60%),
+      rgba(var(--bg-rgb),0.9);
+    padding:1.3rem 1.4rem;
+    box-shadow:0 4px 22px rgba(var(--shadow-rgb),0.06);
+    opacity:0;
+    transform:translateY(18px);
+  }
+  .soru-sayaci-ozet-kart.animate{
+    animation: cardIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.25s;
+  }
+  .soru-sayaci-ozet-buyuk{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:0.2rem;
+  }
+  .soru-sayaci-ozet-buyuk-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:2.5rem;
+    font-weight:700;
+    line-height:1;
+    color:var(--accent);
+  }
+  .soru-sayaci-ozet-buyuk-etiket{
+    font-size:0.78rem;
+    color:var(--ink-soft);
+  }
+  .soru-sayaci-ozet-ayrac{
+    flex-shrink:0;
+    width:1px;
+    align-self:stretch;
+    background:var(--line);
+  }
+  .soru-sayaci-ozet-kucuk{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:0.2rem;
+    text-align:right;
+  }
+  .soru-sayaci-ozet-kucuk-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:1.4rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .soru-sayaci-ozet-kucuk-etiket{
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    max-width:6rem;
+  }
+
+  .soru-sayaci-degistir-btn{
+    flex-shrink:0;
+    width:2.15rem;
+    height:2.15rem;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:rgba(var(--ink-rgb),0.02);
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  }
+  .soru-sayaci-degistir-btn svg{ width:1.05rem; height:1.05rem; }
+  @media (hover:hover) and (pointer:fine){
+    .soru-sayaci-degistir-btn:hover{ border-color:var(--accent); color:var(--accent); background:rgba(var(--accent-rgb),0.08); }
+  }
+  .soru-sayaci-degistir-btn:active{ transform:scale(0.9); }
+  .soru-sayaci-degistir-btn.aktif{ border-color:var(--accent); color:var(--accent); background:rgba(var(--accent-rgb),0.12); }
+
+  .soru-sayaci-ay-govde{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.9rem;
+    margin-top:1.1rem;
+  }
+  .soru-sayaci-ay-nav{ margin-bottom:0; }
+  .soru-sayaci-ay-baslik-grup{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.35rem;
+  }
+  .soru-sayaci-ay-buaya-btn{
+    border:1px solid var(--accent);
+    border-radius:0.75rem;
+    background:transparent;
+    color:var(--accent);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.64rem;
+    letter-spacing:0.01em;
+    padding:0.26rem 0.6rem;
+    cursor:pointer;
+    transition:background 0.2s ease;
+  }
+  .soru-sayaci-ay-buaya-btn:active{ background:rgba(var(--accent-rgb),0.14); }
+  .soru-sayaci-ay-toplam-kart{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.25rem;
+    border:1px solid var(--line);
+    border-radius:1.2rem;
+    background:
+      radial-gradient(120% 140% at 50% 0%, rgba(var(--accent-rgb),0.12), transparent 60%),
+      rgba(var(--bg-rgb),0.9);
+    padding:1.1rem 1rem;
+    box-shadow:0 4px 22px rgba(var(--shadow-rgb),0.06);
+  }
+  .soru-sayaci-ay-toplam-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:2.1rem;
+    font-weight:700;
+    line-height:1;
+    color:var(--accent);
+  }
+  .soru-sayaci-ay-toplam-etiket{
+    font-size:0.8rem;
+    color:var(--ink-soft);
+  }
+  .soru-sayaci-ay-hafta-liste{
+    display:flex;
+    flex-direction:column;
+    gap:0.6rem;
+  }
+  .soru-sayaci-ay-hafta-kart{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.8rem;
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:1rem;
+    background:rgba(var(--ink-rgb),0.015);
+    padding:0.85rem 1.05rem;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    color:inherit;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .soru-sayaci-ay-hafta-kart:not(:disabled):hover{ border-color:var(--accent); background:rgba(var(--accent-rgb),0.08); }
+  }
+  .soru-sayaci-ay-hafta-kart:not(:disabled):active{ transform:scale(0.98); }
+  .soru-sayaci-ay-hafta-kart.bu-hafta{ border-color:var(--accent); background:rgba(var(--accent-rgb),0.1); }
+  .soru-sayaci-ay-hafta-kart:disabled{ opacity:0.45; cursor:default; }
+  .soru-sayaci-ay-hafta-tarih{
+    font-size:0.88rem;
+    color:var(--ink);
+  }
+  .soru-sayaci-ay-hafta-kart.bu-hafta .soru-sayaci-ay-hafta-tarih{ color:var(--accent); font-weight:600; }
+  .soru-sayaci-ay-hafta-sayi-sarmalayici{
+    flex-shrink:0;
+    display:flex;
+    align-items:baseline;
+    gap:0.3rem;
+  }
+  .soru-sayaci-ay-hafta-sayi{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:1.15rem;
+    font-weight:700;
+    color:var(--accent);
+  }
+  .soru-sayaci-ay-hafta-etiket{
+    font-size:0.72rem;
+    color:var(--ink-soft);
+  }
+
+  .soru-sayaci-card{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.9rem;
+    margin-top:1.1rem;
+    border:1px solid var(--line);
+    border-radius:1.35rem;
+    background:rgba(var(--bg-rgb),0.9);
+    padding:1.3rem 1.2rem 1.4rem;
+    box-shadow:0 4px 22px rgba(var(--shadow-rgb),0.06);
+    opacity:0;
+    transform:translateY(18px);
+  }
+  .soru-sayaci-card.animate{
+    animation: cardIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.32s;
+  }
+  .soru-sayaci-card-baslik{
+    font-size:1.02rem;
+    font-weight:400;
+    font-style:italic;
+    color:var(--ink);
+  }
+
+  .soru-sayaci-card-baslik-satir{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.7rem;
+  }
+  .soru-sayaci-ders-duzenle-btn{
+    flex-shrink:0;
+    border:1px solid var(--line);
+    border-radius:0.8rem;
+    background:transparent;
+    color:var(--accent);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.01em;
+    padding:0.42rem 0.75rem;
+    cursor:pointer;
+    transition:background 0.2s ease, border-color 0.2s ease;
+  }
+  .soru-sayaci-ders-duzenle-btn:active{ background:rgba(var(--accent-rgb),0.12); }
+  .soru-sayaci-ders-duzenle-btn[disabled]{ opacity:0.4; pointer-events:none; }
+
+  .soru-sayac-bos{
+    margin:1.8rem auto 0;
+    width:100%;
+  }
+  .soru-sayac-grup-baslik{ margin-bottom:0.5rem; }
+
+  .soru-sayaci-ders-modal-box{ max-width:480px; }
+  .soru-sayaci-ders-modal-liste{
+    max-height:56vh;
+    overflow-y:auto;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  .soru-sayaci-ders-modal-liste::-webkit-scrollbar{ display:none; }
+
+  .soru-sayaci-bugune-don-btn{
+    align-self:center;
+    border:1px solid var(--accent);
+    border-radius:0.9rem;
+    background:transparent;
+    color:var(--accent);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.78rem;
+    padding:0.55rem 1.1rem;
+    cursor:pointer;
+    margin-top:0.2rem;
+    transition:background 0.2s ease;
+  }
+  .soru-sayaci-bugune-don-btn:active{ background:rgba(var(--accent-rgb),0.14); }
+
+  .soru-sayac-hafta-gun{ cursor:pointer; }
+  .soru-sayac-hafta-gun.secili-gecmis{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb),0.1);
+  }
+  .soru-sayac-hafta-gun.gelecek-gun{ cursor:default; opacity:0.45; }
+
+  .soru-satir-salokunur{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.8rem;
+  }
+  .soru-satir-salokunur .soru-satir-ad{ flex:1; min-width:0; }
+  .soru-satir-salokunur-sayi{
+    flex-shrink:0;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:0.86rem;
+    font-weight:600;
+    color:var(--accent);
+  }
+
+  .view-soru-sayaci .soru-sayac-hafta-nav{
+    width:100%;
+    margin-top:1.1rem;
+  }
+  .view-soru-sayaci .soru-sayac-hafta{
+    opacity:0;
+    transform:translateY(18px);
+  }
+  .view-soru-sayaci .soru-sayac-hafta.animate{
+    animation: cardIn 0.7s cubic-bezier(.22,1,.36,1) forwards;
+    animation-delay:0.28s;
+  }
+
+  @media (min-width:600px){
+    .view-soru-sayaci{ max-width:600px; }
+  }
+  @media (min-width:900px){
+    .view-soru-sayaci{ max-width:640px; }
+    .soru-sayaci-card{ padding:1.7rem 1.9rem 1.9rem; }
   }
 
   .takvim-nav{
@@ -8215,6 +8721,92 @@
     </div>
   </div>
 
+  <!-- ---- Soru Sayacı: Gündelik'teki "Soru Sayacı" butonundan erişilen bağımsız sayfa ---- -->
+  <div class="view-soru-sayaci" id="viewSoruSayaci">
+    <div class="soru-sayaci-heading">
+      <button type="button" class="sayac-listem-geri-btn" id="soruSayaciGeriBtn" aria-label="Geri dön">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <h2 class="soru-sayaci-title" id="soruSayaciTitle">Soru Sayacı</h2>
+      <p class="soru-sayaci-sub" id="soruSayaciSub">Bugün çözdüğün soru sayısını derse göre gir.</p>
+    </div>
+
+    <div class="soru-sayaci-ozet-kart" id="soruSayaciOzetKart">
+      <div class="soru-sayaci-ozet-buyuk">
+        <span class="soru-sayaci-ozet-buyuk-sayi" id="soruSayacBugunToplam">0</span>
+        <span class="soru-sayaci-ozet-buyuk-etiket">bugün çözülen soru</span>
+      </div>
+      <button type="button" class="soru-sayaci-degistir-btn" id="soruSayaciDegistirBtn" aria-label="Aylık görünüme geç" title="Aylık görünüme geç">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+      </button>
+      <div class="soru-sayaci-ozet-ayrac"></div>
+      <div class="soru-sayaci-ozet-kucuk">
+        <span class="soru-sayaci-ozet-kucuk-sayi" id="soruSayacHaftaToplam">0</span>
+        <span class="soru-sayaci-ozet-kucuk-etiket" id="soruSayaciHaftaEtiket">bu hafta toplam</span>
+      </div>
+    </div>
+
+    <div class="soru-sayac-hafta-nav" id="soruSayacHaftaNav">
+      <button type="button" class="soru-sayac-hafta-ok" id="soruSayacHaftaOncekiBtn" aria-label="Önceki hafta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="soru-sayac-hafta" id="soruSayacHaftaGunler"></div>
+      <button type="button" class="soru-sayac-hafta-ok" id="soruSayacHaftaSonrakiBtn" aria-label="Sonraki hafta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+
+    <div class="soru-sayaci-ay-govde" id="soruSayaciAyGovde" style="display:none;">
+      <div class="takvim-nav soru-sayaci-ay-nav">
+        <button class="takvim-arrow" id="soruSayaciAyOnceki" type="button" aria-label="Önceki ay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="soru-sayaci-ay-baslik-grup">
+          <span class="takvim-ay-yil" id="soruSayaciAyBaslik"></span>
+          <button type="button" class="soru-sayaci-ay-buaya-btn" id="soruSayaciAyBuAyBtn" style="display:none;">Bu Aya Dön</button>
+        </div>
+        <button class="takvim-arrow" id="soruSayaciAySonraki" type="button" aria-label="Sonraki ay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+      <div class="soru-sayaci-ay-toplam-kart" id="soruSayaciAyToplamKart">
+        <span class="soru-sayaci-ay-toplam-sayi" id="soruSayaciAyToplamSayi">0</span>
+        <span class="soru-sayaci-ay-toplam-etiket">bu ay toplam çözülen soru</span>
+      </div>
+      <div class="soru-sayaci-ay-hafta-liste" id="soruSayaciAyHaftaListe"></div>
+    </div>
+
+    <div class="soru-sayaci-card" id="soruSayaciCard">
+      <div class="soru-sayaci-card-baslik-satir">
+        <h3 class="soru-sayaci-card-baslik" id="soruSayaciCardBaslik">Derslere Göre</h3>
+        <button type="button" class="soru-sayaci-ders-duzenle-btn" id="soruSayaciDersDuzenleBtn">Dersleri Düzenle</button>
+      </div>
+      <div class="soru-sayac-liste" id="soruSayacListe"></div>
+      <button type="button" class="soru-sayaci-bugune-don-btn" id="soruSayaciBugunDonBtn" style="display:none;">Bugüne Dön</button>
+    </div>
+  </div>
+
+  <!-- Soru Sayacı: takip edilecek dersleri kendi branş listenden (TYT/AYT ayrımıyla) seç -->
+  <div class="modal-overlay" id="soruSayaciDersModalOverlay">
+    <div class="modal-box soru-sayaci-ders-modal-box" style="position:relative;">
+      <button class="modal-close" id="soruSayaciDersModalClose" type="button" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+      <span class="modal-eyebrow">Soru Sayacı</span>
+      <h3 class="modal-title">Takip Edilecek Dersler</h3>
+      <p class="modal-onay-metin" style="margin-bottom:0.9rem;">Branş listenden Soru Sayacı'nda görünecek dersleri seç. Yeni bir branş eklemek istersen Soru Havuzu &gt; Branşlar ekranını kullan.</p>
+      <div class="modal-field soru-sayaci-ders-modal-liste">
+        <h4 class="havuz-brans-duzenle-baslik">TYT</h4>
+        <div class="havuz-brans-duzenle-liste" id="soruSayaciDersSecimTYT"></div>
+        <h4 class="havuz-brans-duzenle-baslik" style="margin-top:0.9rem;">AYT</h4>
+        <div class="havuz-brans-duzenle-liste" id="soruSayaciDersSecimAYT"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn modal-btn-primary" id="soruSayaciDersModalTamam">Tamam</button>
+      </div>
+    </div>
+  </div>
+
   <div class="view-sayac" id="viewSayac">
     <div class="sayac-heading">
       <h2 class="sayac-title" id="sayacTitle">Geri Sayım</h2>
@@ -8318,6 +8910,10 @@
       <button type="button" class="gundelik-takvim-btn" id="gundelikTakvimBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="16" y1="2.5" x2="16" y2="6.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         <span>Takvim</span>
+      </button>
+      <button type="button" class="gundelik-takvim-btn" id="gundelikSoruSayaciBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7h6M9 11h6M9 15h3"></path><path d="M6 3.5h12a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H9l-4 2.5V4.5a1 1 0 0 1 1-1Z"></path></svg>
+        <span>Soru Sayacı</span>
       </button>
     </div>
 
@@ -9802,6 +10398,33 @@
     function kayitliAlan(){
       try{ return localStorage.getItem(ALAN_ANAHTARI) || 'sayisal'; }catch(e){ return 'sayisal'; }
     }
+    // ---- Bir AYT denemesinin Sayısal mı, Eşit Ağırlık mı olduğunu tespit
+    // eder. veri.cevaplar anahtarlarından türetilir (ekstra alan saklamaya
+    // gerek yok, zaten kayıtlı veriden okunuyor; bkz. denemeBransYapisi).
+    // Bu bilgi kartta görsel bir rozet olarak DEĞİL, aşağıdaki
+    // denemeGorunurMu() ile denemeleri süzmek için kullanılır: Ayarlar'daki
+    // "Alanın" Sayısal iken Eşit Ağırlık denemeleri (ve tersi) listede
+    // görünmez, analizlere de dahil edilmez.
+    function denemeAltAlanEtiketi(veri){
+      if(!veri || veri.alan !== 'AYT' || !veri.cevaplar) return null;
+      const anahtarlar = Object.keys(veri.cevaplar).slice().sort().join('|');
+      if(anahtarlar === ALAN_HAZIR_MUFREDAT.sayisal.slice().sort().join('|')) return 'Sayısal';
+      if(anahtarlar === ALAN_HAZIR_MUFREDAT['esit-agirlik'].slice().sort().join('|')) return 'Eşit Ağırlık';
+      return null;
+    }
+    // Ayarlar'daki güncel "Alanın" (Sayısal / Eşit Ağırlık / Henüz karar
+    // vermedim) seçimine göre bir denemenin gösterilip gösterilmeyeceğine
+    // karar verir. TYT denemeleri ve tespit edilemeyen (Özel/karma AYT)
+    // denemeler bu filtreden etkilenmez, her zaman görünür kalır.
+    function denemeGorunurMu(veri){
+      const guncelAlan = kayitliAlan();
+      const altAlan = denemeAltAlanEtiketi(veri);
+      if(guncelAlan === 'sayisal' && altAlan === 'Eşit Ağırlık') return false;
+      if(guncelAlan === 'esit-agirlik' && altAlan === 'Sayısal') return false;
+      return true;
+    }
+    window.denemeAltAlanEtiketi = denemeAltAlanEtiketi;
+    window.denemeGorunurMu = denemeGorunurMu;
     function kayitliOzelMufredat(){
       try{
         const ham = JSON.parse(localStorage.getItem(AYT_MUFREDAT_ANAHTARI) || '[]');
@@ -9826,6 +10449,13 @@
       // tanımlanmamış olabilir; sonraki her çağrıda (alan değiştirildiğinde) hazırdır.
       if(typeof window.havuzAytBranslariniYenidenKur === 'function'){
         window.havuzAytBranslariniYenidenKur();
+      }
+      // Alan (Sayısal/Eşit Ağırlık) değiştiğinde deneme listesini ve
+      // görünürlük filtresini de tazele. İlk sayfa yüklemesinde bu fonksiyon
+      // henüz tanımlanmamış olabilir (deneme modülü daha kurulmadı);
+      // sonraki her çağrıda (alan değiştirildiğinde) hazırdır.
+      if(typeof window.denemeleriDuzenle === 'function'){
+        window.denemeleriDuzenle();
       }
     }
     aytMufredatGuncelle();
@@ -10270,6 +10900,7 @@
     const viewDenemeler = document.getElementById('viewDenemeler');
     const viewDenemeDetay = document.getElementById('viewDenemeDetay');
     const viewTakvim = document.getElementById('viewTakvim');
+    const viewSoruSayaci = document.getElementById('viewSoruSayaci');
     const viewSayac = document.getElementById('viewSayac');
     const viewSayacListem = document.getElementById('viewSayacListem');
     const viewAnaliz = document.getElementById('viewAnaliz');
@@ -10301,13 +10932,14 @@
       viewDenemeler.classList.remove('active');
       viewDenemeDetay.classList.remove('active');
       viewTakvim.classList.remove('active');
+      if(viewSoruSayaci) viewSoruSayaci.classList.remove('active');
       viewSayac.classList.remove('active');
       viewSayacListem.classList.remove('active');
       viewAnaliz.classList.remove('active');
       if(typeof window.sayacListemDurdur === 'function'){ window.sayacListemDurdur(); }
       pageFooter.style.display = 'none';
       // Geçiş sınıfını temizle ki görünüm bir dahaki sefere normal şekilde belirsin.
-      [viewHome, viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
+      [viewHome, viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSoruSayaci, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
         if(v){ v.classList.remove('view-gecis-cikis'); }
       });
     }
@@ -10333,7 +10965,7 @@
     // kaldırıyor.
     let gecisBekleyenId = null;
     function gecisIleDegistir(icerikFn){
-      const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSayac, viewSayacListem, viewAnaliz];
+      const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSoruSayaci, viewSayac, viewSayacListem, viewAnaliz];
       const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
       const anaSayfaGorunur = viewHome && viewHome.style.display !== 'none';
       const cikanlar = canliListe.concat(anaSayfaGorunur ? [viewHome] : []);
@@ -10501,7 +11133,7 @@
     function analizDenemeListesi(alan){
       return Object.keys(denemeVerileri)
         .map(function(id){ return denemeVerileri[id]; })
-        .filter(function(v){ return v.alan === alan; })
+        .filter(function(v){ return v.alan === alan && denemeGorunurMu(v); })
         .sort(function(a, b){ return (a.tarih || '').localeCompare(b.tarih || ''); })
         .map(function(v){
           const toplam = denemeToplamHesapla(v);
@@ -10836,7 +11468,7 @@
       (BRANS_YAPISI[alan] || []).forEach(function(b){ bransHaritasi[b.ad] = []; });
       Object.keys(denemeVerileri).forEach(function(id){
         const v = denemeVerileri[id];
-        if(v.alan !== alan) return;
+        if(v.alan !== alan || !denemeGorunurMu(v)) return;
         const gorseller = v.soruGorselleri || {};
         Object.keys(gorseller).forEach(function(brans){
           if(!bransHaritasi[brans]) bransHaritasi[brans] = [];
@@ -12825,6 +13457,20 @@
       });
     }
 
+    // ---- Gündelik (günlük) ekranından Soru Sayacı'na geçiş ve geri dönüş ----
+    const gundelikSoruSayaciBtn = document.getElementById('gundelikSoruSayaciBtn');
+    const soruSayaciGeriBtn = document.getElementById('soruSayaciGeriBtn');
+    if(gundelikSoruSayaciBtn){
+      gundelikSoruSayaciBtn.addEventListener('click', function(){
+        if(typeof window.showSoruSayaciView === 'function'){ window.showSoruSayaciView(); }
+      });
+    }
+    if(soruSayaciGeriBtn){
+      soruSayaciGeriBtn.addEventListener('click', function(){
+        showGundelikView();
+      });
+    }
+
     // ---- Havuza soru ekleme: dosya seç -> alan/branş/cevap belirle -> kaydet ----
     const havuzGorselInput = document.getElementById('havuzGorselInput');
     const havuzEkleBtn = document.getElementById('havuzEkleBtn');
@@ -13945,6 +14591,27 @@
       return kart;
     }
 
+    // ---- Bir denemenin branş yapısını (ad + soru sayısı) belirler. ----
+    // ÖNEMLİ: BRANS_YAPISI.AYT global ve alan (Sayısal / Eşit Ağırlık)
+    // değiştikçe aytMufredatGuncelle() tarafından YERİNDE günceller. Bu yüzden
+    // bir deneme açılırken doğrudan BRANS_YAPISI[veri.alan] okunursa, deneme
+    // oluşturulduktan SONRA alan değiştirilmişse yanlış (o anki) branş listesi
+    // kullanılır ve veri.cevaplar'da olmayan branşlara erişilmeye çalışılıp
+    // hata verir; deneme hiç açılmaz. Çözüm: branş listesini, oluşturma
+    // anında zaten doğru şekilde kaydedilmiş olan veri.cevaplar anahtarlarından
+    // türetmek (eski/kayıtlı denemeler için de otomatik çalışır, migrasyon gerekmez).
+    function denemeBransYapisi(veri){
+      if(veri && veri.cevaplar){
+        const anahtarlar = Object.keys(veri.cevaplar);
+        if(anahtarlar.length){
+          return anahtarlar.map(function(ad){
+            return { ad: ad, soru: veri.cevaplar[ad].length };
+          });
+        }
+      }
+      return BRANS_YAPISI[veri && veri.alan] || BRANS_YAPISI.TYT;
+    }
+
     function renderDenemeDetay(id){
       const veri = denemeVerileri[id];
       if(!veri) return;
@@ -13958,7 +14625,7 @@
       denemeKaynaklariGuncelle(veri);
 
       denemeBranslarEl.innerHTML = '';
-      const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
+      const yapi = denemeBransYapisi(veri);
       yapi.forEach(function(b){
         denemeBranslarEl.appendChild(denemeBransKartOlustur(veri, b.ad, b.soru));
       });
@@ -13975,7 +14642,7 @@
 
     function denemeTumuDogruMu(veri){
       if(!veri) return false;
-      const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
+      const yapi = denemeBransYapisi(veri);
       return yapi.every(function(b){
         const arr = (veri.cevaplar && veri.cevaplar[b.ad]) || [];
         for(let i = 0; i < b.soru; i++){
@@ -14037,7 +14704,7 @@
         if(!hedefId) return;
         const veri = denemeVerileri[hedefId];
         if(veri){
-          const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
+          const yapi = denemeBransYapisi(veri);
           yapi.forEach(function(b){
             veri.cevaplar[b.ad] = veri.cevaplar[b.ad] || [];
             for(let i = 0; i < b.soru; i++){
@@ -14094,7 +14761,7 @@
         if(!hedefId) return;
         const veri = denemeVerileri[hedefId];
         if(veri){
-          const yapi = BRANS_YAPISI[veri.alan] || BRANS_YAPISI.TYT;
+          const yapi = denemeBransYapisi(veri);
           yapi.forEach(function(b){
             veri.cevaplar[b.ad] = veri.cevaplar[b.ad] || [];
             for(let i = 0; i < b.soru; i++){
@@ -14275,16 +14942,34 @@
         denemeGridEl.insertBefore(card, denemeNewBtnEl);
       });
 
-      // Kategoriye göre göster/gizle
+      // Kategoriye (TYT/AYT sekmesi) göre VE Ayarlar'daki Sayısal / Eşit
+      // Ağırlık seçimine göre göster/gizle. İkinci koşul sayesinde, örneğin
+      // Sayısal seçiliyken Eşit Ağırlık denemeleri listede görünmez ve
+      // (analizDenemeListesi / sifirHataHavuzu üzerinden) analizlere de
+      // dahil edilmez.
       let gorunenSayisi = 0;
       tumKartlar.forEach(function(card){
-        const uygun = denemeAktifFiltre === 'hepsi' || card.dataset.alan === denemeAktifFiltre;
+        const kategoriUygun = denemeAktifFiltre === 'hepsi' || card.dataset.alan === denemeAktifFiltre;
+        const veri = denemeVerileri[card.dataset.denemeId];
+        const alanUygun = veri ? denemeGorunurMu(veri) : true;
+        const uygun = kategoriUygun && alanUygun;
         card.style.display = uygun ? '' : 'none';
         if(uygun) gorunenSayisi++;
       });
 
       denemeEmptyMsg.classList.toggle('aktif', tumKartlar.length > 0 && gorunenSayisi === 0);
+
+      // Açık olan deneme detay ekranındaki deneme artık gizlendiyse
+      // (alan değişti ve bu deneme filtreye takıldıysa) listeye geri dön.
+      if(denemeAktifId){
+        const aktifVeri = denemeVerileri[denemeAktifId];
+        const detayView = document.getElementById('viewDenemeDetay');
+        if(aktifVeri && !denemeGorunurMu(aktifVeri) && detayView && detayView.classList.contains('active')){
+          showDenemelerView();
+        }
+      }
     }
+    window.denemeleriDuzenle = denemeleriDuzenle;
 
     denemeSortBtn.addEventListener('click', function(){
       denemeSiralamaYonu = denemeSiralamaYonu === 'desc' ? 'asc' : 'desc';
@@ -15045,6 +15730,764 @@
         if(viewTakvim.classList.contains('active')){
           ciz();
         }
+      };
+    })();
+
+    // ================= SORU SAYACI (bağımsız sayfa) =================
+    // Gündelik ekranındaki "Soru Sayacı" butonuyla açılan bağımsız sayfa:
+    // ders bazlı günlük soru sayısı girişi + günlük/haftalık toplam.
+    // Günlük veriler "GG.AA.YYYY" anahtarıyla localStorage'a kaydedilir:
+    // { "30.08.2026": { "Matematik": 12, "Fizik": 5, ... }, ... }.
+    //
+    // Takip edilen ders listesi artık kullanıcının Soru Havuzu > Branşlar
+    // ekranında oluşturduğu, TYT/AYT'ye göre ayrışmış kendi branş listesinden
+    // (bkz. HAVUZ_BRANS_ANAHTARI) seçilerek belirlenir; "Dersleri Düzenle"
+    // ile bu listeden bugünün tablosuna ders eklenip çıkarılabilir. Bu
+    // modülün dışındaki koda (JS değişkenlerine/fonksiyonlarına) bağımlı
+    // olmaması için branş listesi de kendi localStorage anahtarı üzerinden,
+    // bağımsız olarak okunur; Soru Havuzu içeride hangi ad altında
+    // saklanırsa saklansın, aynı anahtar burada da yeniden kullanılır.
+    //
+    // Haftanın önceki günlerine (bugüne kadar olan günlere) gidip o günde
+    // hangi derslerden kaç soru çözüldüğü salt okunur biçimde görüntülenebilir;
+    // geçmiş günlerin kayıtları buradan değiştirilemez, yalnızca izlenebilir.
+    // hideAllViews() ve gecisIleDegistir() dış kapsamdan (yukarıdaki view
+    // geçiş mekanizmasından) miras alınır.
+    (function(){
+      const SORU_SAYAC_ANAHTAR = 'sessizlik-soru-sayaci';
+      const HAVUZ_BRANS_ANAHTARI = 'sessizlik-soru-havuzu-branslar';
+      const SORU_SAYAC_SECIM_ANAHTARI = 'sessizlik-soru-sayaci-secim';
+
+      const TYT_DERSLER = ['Türkçe','Tarih','Coğrafya','Felsefe','Din Kültürü ve Ahlak Bilgisi','Matematik','Fizik','Kimya','Biyoloji'];
+      const AYT_HAZIR_MUFREDAT = {
+        'sayisal': ['Matematik','Fizik','Kimya','Biyoloji'],
+        'esit-agirlik': ['Matematik','Edebiyat','Tarih-1','Coğrafya-1']
+      };
+      const AYT_DERS_SIRASI_YEDEK = ['Matematik','Fizik','Kimya','Biyoloji','Edebiyat','Tarih-1','Coğrafya-1'];
+
+      // Kullanıcının seçtiği (Sayısal / Eşit Ağırlık / kendi seçtiği) AYT
+      // derslerini döndürür; window.AYT_DERS_SIRASI varsa onu, yoksa yedek
+      // sırayı kullanır. Yalnızca kullanıcının Soru Havuzu'nda henüz hiç
+      // branş oluşturmadığı ilk durumda varsayılan olarak kullanılır.
+      function seciliAytDersleri(){
+        try{
+          const alan = localStorage.getItem('sessizlik-alan') || 'sayisal';
+          const sira = (window.AYT_DERS_SIRASI && window.AYT_DERS_SIRASI.length) ? window.AYT_DERS_SIRASI : AYT_DERS_SIRASI_YEDEK;
+          if(AYT_HAZIR_MUFREDAT[alan]) return sira.filter(function(ad){ return AYT_HAZIR_MUFREDAT[alan].indexOf(ad) !== -1; });
+          const ham = JSON.parse(localStorage.getItem('sessizlik-ayt-mufredat') || '[]');
+          let secili = Array.isArray(ham) ? ham.filter(function(ad){ return sira.indexOf(ad) !== -1; }) : [];
+          if(!secili.length) secili = AYT_HAZIR_MUFREDAT.sayisal;
+          return sira.filter(function(ad){ return secili.indexOf(ad) !== -1; });
+        }catch(e){ return AYT_HAZIR_MUFREDAT.sayisal; }
+      }
+
+      // Kullanıcının Soru Havuzu > Branşlar ekranında ekleyip çıkardığı,
+      // TYT/AYT'ye göre ayrışmış branş listesini döndürür. Henüz o ekran
+      // hiç kullanılmadıysa (kayıt yoksa) TYT müfredatı + seçilen AYT
+      // müfredatı varsayılan olarak döner.
+      function kullaniciBransListesi(){
+        let ham = null;
+        try{ ham = JSON.parse(localStorage.getItem(HAVUZ_BRANS_ANAHTARI)); }catch(e){ ham = null; }
+        if(ham && (Array.isArray(ham.TYT) || Array.isArray(ham.AYT))){
+          return {
+            TYT: Array.isArray(ham.TYT) ? ham.TYT.slice() : [],
+            AYT: Array.isArray(ham.AYT) ? ham.AYT.slice() : []
+          };
+        }
+        return { TYT: TYT_DERSLER.slice(), AYT: seciliAytDersleri() };
+      }
+
+      // Soru Sayacı tablosunda hangi derslerin görüneceğine dair kullanıcı
+      // seçimini okur/kaydeder. null dönerse henüz seçim yapılmamış demektir;
+      // bu durumda branş listesindeki tüm dersler seçili kabul edilir.
+      function secimYukle(){
+        try{
+          const ham = JSON.parse(localStorage.getItem(SORU_SAYAC_SECIM_ANAHTARI));
+          if(ham && (Array.isArray(ham.TYT) || Array.isArray(ham.AYT))){
+            return { TYT: Array.isArray(ham.TYT) ? ham.TYT : [], AYT: Array.isArray(ham.AYT) ? ham.AYT : [] };
+          }
+        }catch(e){}
+        return null;
+      }
+      function secimKaydet(secim){
+        try{ localStorage.setItem(SORU_SAYAC_SECIM_ANAHTARI, JSON.stringify(secim)); }catch(e){}
+      }
+
+      // Kullanıcının branş listesini, seçim tercihine göre TYT/AYT ayrımıyla filtreler.
+      function aktifDersYapisi(){
+        const brans = kullaniciBransListesi();
+        const secim = secimYukle() || { TYT: brans.TYT.slice(), AYT: brans.AYT.slice() };
+        return {
+          TYT: brans.TYT.filter(function(ad){ return secim.TYT.indexOf(ad) !== -1; }),
+          AYT: brans.AYT.filter(function(ad){ return secim.AYT.indexOf(ad) !== -1; })
+        };
+      }
+
+      // Bugünün tablosunda gösterilecek ders listesi: TYT ve AYT ayrımı
+      // korunur, aynı isimli ders (ör. Matematik) her iki alanda da ayrı
+      // birer satır olarak listelenir. Her öğe {alan, ad} biçimindedir.
+      function dersYapisiListesi(){
+        const yapi = aktifDersYapisi();
+        const liste = [];
+        yapi.TYT.forEach(function(ad){ liste.push({ alan: 'TYT', ad: ad }); });
+        yapi.AYT.forEach(function(ad){ liste.push({ alan: 'AYT', ad: ad }); });
+        return liste;
+      }
+
+      // Bir ders satırının depolama anahtarı: alan bilgisini isimden ayırmak
+      // için "ALAN::Ders" biçiminde birleştirilir (ör. "AYT::Matematik").
+      function dersAnahtari(alan, ad){
+        return alan + '::' + ad;
+      }
+
+      // Bir depolama anahtarını {alan, ad} biçiminde çözer. Bu güncellemeden
+      // önce kaydedilmiş eski kayıtlar "ALAN::" öneki taşımaz; bu durumda
+      // alan bilgisi olmadan (null) döner ve isim olduğu gibi kullanılır.
+      function anahtarCoz(anahtar){
+        const ayrac = anahtar.indexOf('::');
+        if(ayrac === -1) return { alan: null, ad: anahtar };
+        return { alan: anahtar.slice(0, ayrac), ad: anahtar.slice(ayrac + 2) };
+      }
+
+      // Türk takvim sırasına göre "GG.AA.YYYY" anahtarı (kronometre modülüyle aynı biçim).
+      function gunAnahtari(tarih){
+        const y = tarih.getFullYear();
+        const m = String(tarih.getMonth() + 1).padStart(2, '0');
+        const d = String(tarih.getDate()).padStart(2, '0');
+        return d + '.' + m + '.' + y;
+      }
+
+      function verileriYukle(){
+        try{
+          const ham = localStorage.getItem(SORU_SAYAC_ANAHTAR);
+          return ham ? JSON.parse(ham) : {};
+        }catch(e){ return {}; }
+      }
+      function verileriKaydet(obj){
+        try{ localStorage.setItem(SORU_SAYAC_ANAHTAR, JSON.stringify(obj)); }catch(e){}
+      }
+      function gunToplami(gunVerisi){
+        if(!gunVerisi) return 0;
+        return Object.keys(gunVerisi).reduce(function(top, ad){ return top + (Number(gunVerisi[ad]) || 0); }, 0);
+      }
+
+      // Haftanın Pazartesi'sini başlangıç kabul ederek, verilen tarihin
+      // içinde bulunduğu haftanın 7 gününü (Pzt→Paz) döndürür.
+      function haftaninGunleri(tarih){
+        const gunler = [];
+        const haftaGunu = tarih.getDay(); // 0=Pazar
+        const pazartesineFark = (haftaGunu === 0) ? -6 : (1 - haftaGunu);
+        for(let i = 0; i < 7; i++){
+          const g = new Date(tarih.getFullYear(), tarih.getMonth(), tarih.getDate() + pazartesineFark + i);
+          gunler.push(g);
+        }
+        return gunler;
+      }
+
+      const GUN_KISA_AD = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+
+      const liste = document.getElementById('soruSayacListe');
+      const bugunToplamEl = document.getElementById('soruSayacBugunToplam');
+      const haftaToplamEl = document.getElementById('soruSayacHaftaToplam');
+      const haftaSayaciHaftaEtiketEl = document.getElementById('soruSayaciHaftaEtiket');
+      const haftaGunlerEl = document.getElementById('soruSayacHaftaGunler');
+      const haftaNavEl = document.getElementById('soruSayacHaftaNav');
+      const haftaOncekiBtn = document.getElementById('soruSayacHaftaOncekiBtn');
+      const haftaSonrakiBtn = document.getElementById('soruSayacHaftaSonrakiBtn');
+      const degistirBtn = document.getElementById('soruSayaciDegistirBtn');
+      const ayGovdeEl = document.getElementById('soruSayaciAyGovde');
+      const ayBaslikEl = document.getElementById('soruSayaciAyBaslik');
+      const ayOncekiBtn = document.getElementById('soruSayaciAyOnceki');
+      const aySonrakiBtn = document.getElementById('soruSayaciAySonraki');
+      const ayBuAyBtn = document.getElementById('soruSayaciAyBuAyBtn');
+      const ayToplamSayiEl = document.getElementById('soruSayaciAyToplamSayi');
+      const ayHaftaListeEl = document.getElementById('soruSayaciAyHaftaListe');
+      const soruSayaciTitleEl = document.getElementById('soruSayaciTitle');
+      const soruSayaciSubEl = document.getElementById('soruSayaciSub');
+      const soruSayaciOzetKartEl = document.getElementById('soruSayaciOzetKart');
+      const soruSayaciCardEl = document.getElementById('soruSayaciCard');
+      const soruSayaciCardBaslikEl = document.getElementById('soruSayaciCardBaslik');
+      const bugunDonBtn = document.getElementById('soruSayaciBugunDonBtn');
+      const dersDuzenleBtn = document.getElementById('soruSayaciDersDuzenleBtn');
+      const dersModalOverlay = document.getElementById('soruSayaciDersModalOverlay');
+      const dersModalClose = document.getElementById('soruSayaciDersModalClose');
+      const dersModalTamam = document.getElementById('soruSayaciDersModalTamam');
+      const dersSecimElTYT = document.getElementById('soruSayaciDersSecimTYT');
+      const dersSecimElAYT = document.getElementById('soruSayaciDersSecimAYT');
+      if(!viewSoruSayaci || !liste) return;
+
+      let bugunAnahtar = gunAnahtari(new Date());
+      // O anda tablo/liste alanında görüntülenen gün; varsayılan bugündür.
+      // bugunAnahtar'dan farklıysa arayüz salt-okunur (geçmiş gün) moduna geçer.
+      let seciliGun = bugunAnahtar;
+      let veriler = verileriYukle();
+      // Hafta şeridinde (soruSayacHaftaGunler) hangi haftanın gösterildiğini
+      // belirleyen referans tarih. Varsayılan olarak içinde bulunulan hafta;
+      // Aylık Görünüm'den bir hafta kartına dokunulduğunda o haftaya taşınır.
+      let haftaReferansTarihi = new Date();
+
+      // Ders satırlarını çizer. Bugün seçiliyse eskisi gibi -/+/giriş ile
+      // düzenlenebilir satırlar; geçmiş bir gün seçiliyse yalnızca o günde
+      // kayıtlı olan dersler + soru sayıları, salt okunur biçimde gösterilir.
+      function satirlariCiz(){
+        liste.innerHTML = '';
+        const gecmisGunMu = seciliGun !== bugunAnahtar;
+
+        if(gecmisGunMu){
+          const gunVerisi = veriler[seciliGun] || {};
+          const kayitlar = Object.keys(gunVerisi)
+            .filter(function(anahtar){ return Number(gunVerisi[anahtar]) > 0; })
+            .map(function(anahtar){
+              const cozum = anahtarCoz(anahtar);
+              return { anahtar: anahtar, alan: cozum.alan, ad: cozum.ad, sayi: Number(gunVerisi[anahtar]) || 0 };
+            })
+            .sort(function(a, b){ return a.ad.localeCompare(b.ad, 'tr'); });
+
+          if(kayitlar.length === 0){
+            const bos = document.createElement('p');
+            bos.className = 'analiz-bos soru-sayac-bos';
+            bos.textContent = 'Bu gün için kayıtlı soru bulunmuyor.';
+            liste.appendChild(bos);
+            return;
+          }
+
+          function satirCiz(kayit){
+            const satir = document.createElement('div');
+            satir.className = 'gundelik-madde soru-satir soru-satir-salokunur';
+            satir.dataset.ders = kayit.anahtar;
+
+            const ad = document.createElement('span');
+            ad.className = 'soru-satir-ad';
+            ad.textContent = kayit.ad;
+
+            const sayi = document.createElement('span');
+            sayi.className = 'soru-satir-salokunur-sayi';
+            sayi.textContent = String(kayit.sayi) + ' soru';
+
+            satir.appendChild(ad);
+            satir.appendChild(sayi);
+            liste.appendChild(satir);
+          }
+
+          let ilkBaslikMi = true;
+          ['TYT', 'AYT'].forEach(function(alan){
+            const grup = kayitlar.filter(function(k){ return k.alan === alan; });
+            if(!grup.length) return;
+            const baslik = document.createElement('h4');
+            baslik.className = 'havuz-brans-duzenle-baslik soru-sayac-grup-baslik';
+            if(!ilkBaslikMi) baslik.style.marginTop = '0.9rem';
+            ilkBaslikMi = false;
+            baslik.textContent = alan;
+            liste.appendChild(baslik);
+            grup.forEach(satirCiz);
+          });
+          // Bu güncellemeden önce (alan ayrımı olmadan) kaydedilmiş eski
+          // kayıtlar varsa, başlıksız olarak en altta gösterilir.
+          const eskiKayitlar = kayitlar.filter(function(k){ return !k.alan; });
+          eskiKayitlar.forEach(satirCiz);
+          return;
+        }
+
+        const gunVerisi = veriler[bugunAnahtar] || {};
+        const gununDersleri = dersYapisiListesi();
+
+        if(gununDersleri.length === 0){
+          const bos = document.createElement('p');
+          bos.className = 'analiz-bos soru-sayac-bos';
+          bos.textContent = '"Dersleri Düzenle" ile branş listenden takip etmek istediğin dersleri seç.';
+          liste.appendChild(bos);
+          return;
+        }
+
+        function satirEkle(alan, ad){
+          const anahtar = dersAnahtari(alan, ad);
+          const adSayisiAyni = gununDersleri.filter(function(o){ return o.ad === ad; }).length > 1;
+
+          // Bu ders bu güncellemeden önce (alan ayrımı olmadan) girilmiş
+          // eski bir kayıt taşıyorsa, tek seferlik olarak yeni anahtara taşı.
+          if(gunVerisi[anahtar] === undefined && gunVerisi[ad] !== undefined && !adSayisiAyni){
+            gunVerisi[anahtar] = gunVerisi[ad];
+            delete gunVerisi[ad];
+            veriler[bugunAnahtar] = gunVerisi;
+            verileriKaydet(veriler);
+          }
+
+          const satir = document.createElement('div');
+          satir.className = 'gundelik-madde soru-satir';
+          satir.dataset.ders = anahtar;
+
+          const ad_ = document.createElement('span');
+          ad_.className = 'soru-satir-ad';
+          ad_.textContent = ad;
+
+          const stepper = document.createElement('div');
+          stepper.className = 'soru-stepper';
+
+          const eksiBtn = document.createElement('button');
+          eksiBtn.type = 'button';
+          eksiBtn.className = 'soru-stepper-btn soru-eksi';
+          eksiBtn.setAttribute('aria-label', ad + ' (' + alan + ') soru sayısını azalt');
+          eksiBtn.textContent = '−';
+
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.inputMode = 'numeric';
+          input.min = '0';
+          input.className = 'soru-stepper-input';
+          input.value = String(Number(gunVerisi[anahtar]) || 0);
+          input.setAttribute('aria-label', ad + ' (' + alan + ') bugün çözülen soru sayısı');
+
+          const artiBtn = document.createElement('button');
+          artiBtn.type = 'button';
+          artiBtn.className = 'soru-stepper-btn soru-arti';
+          artiBtn.setAttribute('aria-label', ad + ' (' + alan + ') soru sayısını artır');
+          artiBtn.textContent = '+';
+
+          function degeriKaydet(yeniDeger){
+            const sayi = Math.max(0, Math.round(Number(yeniDeger)) || 0);
+            input.value = String(sayi);
+            if(!veriler[bugunAnahtar]) veriler[bugunAnahtar] = {};
+            if(sayi > 0){ veriler[bugunAnahtar][anahtar] = sayi; }
+            else{ delete veriler[bugunAnahtar][anahtar]; }
+            verileriKaydet(veriler);
+            ozetiGuncelle();
+          }
+
+          eksiBtn.addEventListener('click', function(){ degeriKaydet((Number(input.value) || 0) - 1); });
+          artiBtn.addEventListener('click', function(){ degeriKaydet((Number(input.value) || 0) + 1); });
+          input.addEventListener('change', function(){ degeriKaydet(input.value); });
+          input.addEventListener('blur', function(){ degeriKaydet(input.value); });
+
+          stepper.appendChild(eksiBtn);
+          stepper.appendChild(input);
+          stepper.appendChild(artiBtn);
+          satir.appendChild(ad_);
+          satir.appendChild(stepper);
+          liste.appendChild(satir);
+        }
+
+        let ilkGrupBasligi = true;
+        ['TYT', 'AYT'].forEach(function(alan){
+          const dersler = gununDersleri.filter(function(o){ return o.alan === alan; });
+          if(!dersler.length) return;
+          const baslik = document.createElement('h4');
+          baslik.className = 'havuz-brans-duzenle-baslik soru-sayac-grup-baslik';
+          if(!ilkGrupBasligi) baslik.style.marginTop = '0.9rem';
+          ilkGrupBasligi = false;
+          baslik.textContent = alan;
+          liste.appendChild(baslik);
+          dersler.forEach(function(o){ satirEkle(alan, o.ad); });
+        });
+      }
+
+      // Kart başlığını, salt-okunur uyarısını, "Bugüne Dön" butonunu ve
+      // "Dersleri Düzenle" butonunun etkin/pasif durumunu seçili güne göre tazeler.
+      function baslikDurumunuGuncelle(){
+        const gecmisGunMu = seciliGun !== bugunAnahtar;
+
+        if(soruSayaciCardBaslikEl){
+          soruSayaciCardBaslikEl.textContent = gecmisGunMu ? (seciliGun + ' tarihli kayıt') : 'Derslere Göre';
+        }
+        if(bugunDonBtn){ bugunDonBtn.style.display = gecmisGunMu ? '' : 'none'; }
+        if(dersDuzenleBtn){ dersDuzenleBtn.disabled = gecmisGunMu; }
+      }
+
+      // Belirli bir günü (haftanın kutucuğuna dokunularak) seçili günü değiştirir.
+      function gunSecil(anahtar){
+        if(anahtar === seciliGun) return;
+        seciliGun = anahtar;
+        satirlariCiz();
+        ozetiGuncelle();
+      }
+      function buguneDon(){
+        haftaReferansTarihi = new Date();
+        seciliGun = bugunAnahtar;
+        satirlariCiz();
+        ozetiGuncelle();
+      }
+      window.soruSayaciBugundeGoster = function(){ buguneDon(); };
+      if(bugunDonBtn){ bugunDonBtn.addEventListener('click', buguneDon); }
+
+      // Bugün toplamı, hafta toplamı ve hafta günleri şeridini tazeler.
+      // Hafta şeridindeki her kutucuk (bugüne kadar olan günler için)
+      // tıklanabilir olur ve o günün kaydını salt okunur biçimde açar.
+      function ozetiGuncelle(){
+        bugunAnahtar = gunAnahtari(new Date());
+        const bugunToplam = gunToplami(veriler[bugunAnahtar]);
+        bugunToplamEl.textContent = String(bugunToplam);
+
+        const bugun = new Date();
+        const bugunGeceYarisi = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate());
+        const haftaGunleri = haftaninGunleri(haftaReferansTarihi);
+        let haftaToplam = 0;
+        haftaGunlerEl.innerHTML = '';
+        haftaGunleri.forEach(function(g){
+          const anahtar = gunAnahtari(g);
+          const gToplam = gunToplami(veriler[anahtar]);
+          haftaToplam += gToplam;
+
+          const gGeceYarisi = new Date(g.getFullYear(), g.getMonth(), g.getDate());
+          const gecmisYaDaBugunMu = gGeceYarisi.getTime() <= bugunGeceYarisi.getTime();
+
+          let sinif = 'soru-sayac-hafta-gun';
+          if(anahtar === bugunAnahtar) sinif += ' bugun';
+          if(anahtar === seciliGun && anahtar !== bugunAnahtar) sinif += ' secili-gecmis';
+          if(!gecmisYaDaBugunMu) sinif += ' gelecek-gun';
+
+          const kutu = document.createElement('div');
+          kutu.className = sinif;
+
+          const adEl = document.createElement('span');
+          adEl.className = 'soru-sayac-hafta-gun-ad';
+          adEl.textContent = GUN_KISA_AD[g.getDay()];
+
+          const sayiEl = document.createElement('span');
+          sayiEl.className = 'soru-sayac-hafta-gun-sayi';
+          sayiEl.textContent = String(gToplam);
+
+          kutu.appendChild(adEl);
+          kutu.appendChild(sayiEl);
+
+          if(gecmisYaDaBugunMu){
+            kutu.setAttribute('role', 'button');
+            kutu.setAttribute('tabindex', '0');
+            kutu.setAttribute('aria-label', anahtar + ' tarihli soru kaydını görüntüle');
+            kutu.addEventListener('click', function(){ gunSecil(anahtar); });
+            kutu.addEventListener('keydown', function(e){
+              if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); gunSecil(anahtar); }
+            });
+          }
+
+          haftaGunlerEl.appendChild(kutu);
+        });
+        haftaToplamEl.textContent = String(haftaToplam);
+        const gosterilenGuncelHaftaMi = haftaGunleri.some(function(g){ return gunAnahtari(g) === bugunAnahtar; });
+        if(haftaSayaciHaftaEtiketEl){
+          haftaSayaciHaftaEtiketEl.textContent = gosterilenGuncelHaftaMi ? 'bu hafta toplam' : 'seçili hafta toplam';
+        }
+        // İçinde bulunulan haftadan daha ileriye (gelecek haftalara) gidilemez;
+        // "Sonraki hafta" oku yalnızca geçmiş bir hafta görüntülenirken etkindir.
+        if(haftaSonrakiBtn){ haftaSonrakiBtn.disabled = gosterilenGuncelHaftaMi; }
+
+        baslikDurumunuGuncelle();
+      }
+
+      satirlariCiz();
+      ozetiGuncelle();
+
+      // Gece yarısını geçip yeni güne girildiyse (uygulama açık kalmışsa)
+      // satırları günün yeni (boş) verisiyle yeniden çizer. Eğer o ana kadar
+      // "bugün" görüntüleniyorduysa, yeni günün "bugün"üne geçilir; kullanıcı
+      // bilerek geçmiş bir günü izliyorsa o seçim korunur.
+      function gunKontrolEt(){
+        const guncelGun = gunAnahtari(new Date());
+        if(guncelGun === bugunAnahtar){ return; }
+        if(seciliGun === bugunAnahtar){ seciliGun = guncelGun; }
+        bugunAnahtar = guncelGun;
+        satirlariCiz();
+        ozetiGuncelle();
+      }
+      document.addEventListener('visibilitychange', function(){
+        if(!document.hidden) gunKontrolEt();
+      });
+      window.addEventListener('focus', gunKontrolEt);
+      setInterval(gunKontrolEt, 30000);
+
+      // Alan (Sayısal/Eşit Ağırlık) Ayarlar'dan değiştirildiğinde ders
+      // listesinin de güncellenmesi için aytMufredatGuncelle'yi sarmalar.
+      if(typeof window.aytMufredatGuncelle === 'function'){
+        const orijinalGuncelle = window.aytMufredatGuncelle;
+        window.aytMufredatGuncelle = function(){
+          orijinalGuncelle();
+          satirlariCiz();
+        };
+      }
+
+      // ---- "Dersleri Düzenle": branş listesinden bugünün tablosuna ders ekle/çıkar ----
+      let dersModalTaslak = null;
+
+      function dersModalCiz(){
+        const brans = kullaniciBransListesi();
+        const mevcutSecim = secimYukle() || { TYT: brans.TYT.slice(), AYT: brans.AYT.slice() };
+        dersModalTaslak = { TYT: mevcutSecim.TYT.slice(), AYT: mevcutSecim.AYT.slice() };
+
+        [['TYT', dersSecimElTYT], ['AYT', dersSecimElAYT]].forEach(function(cift){
+          const alan = cift[0];
+          const el = cift[1];
+          if(!el) return;
+          el.innerHTML = '';
+          const dersler = brans[alan];
+
+          if(!dersler.length){
+            const bos = document.createElement('p');
+            bos.className = 'analiz-bos';
+            bos.style.margin = '0';
+            bos.textContent = 'Bu alanda henüz branş yok.';
+            el.appendChild(bos);
+            return;
+          }
+
+          dersler.forEach(function(ad){
+            const seciliMi = dersModalTaslak[alan].indexOf(ad) !== -1;
+            const satir = document.createElement('div');
+            satir.className = 'havuz-test-satir' + (seciliMi ? ' secili' : '');
+            satir.innerHTML =
+              '<span class="havuz-test-satir-ad"></span>' +
+              '<span class="havuz-test-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>';
+            satir.querySelector('.havuz-test-satir-ad').textContent = ad;
+            satir.addEventListener('click', function(){
+              const idx = dersModalTaslak[alan].indexOf(ad);
+              if(idx === -1){ dersModalTaslak[alan].push(ad); } else { dersModalTaslak[alan].splice(idx, 1); }
+              satir.classList.toggle('secili');
+            });
+            el.appendChild(satir);
+          });
+        });
+      }
+
+      if(dersDuzenleBtn){
+        dersDuzenleBtn.addEventListener('click', function(){
+          if(dersDuzenleBtn.disabled) return;
+          dersModalCiz();
+          if(dersModalOverlay) dersModalOverlay.classList.add('active');
+        });
+      }
+      if(dersModalClose){
+        dersModalClose.addEventListener('click', function(){
+          if(dersModalOverlay) dersModalOverlay.classList.remove('active');
+        });
+      }
+      if(dersModalOverlay){
+        dersModalOverlay.addEventListener('click', function(e){
+          if(e.target === dersModalOverlay) dersModalOverlay.classList.remove('active');
+        });
+      }
+      if(dersModalTamam){
+        dersModalTamam.addEventListener('click', function(){
+          if(dersModalTaslak) secimKaydet(dersModalTaslak);
+          if(dersModalOverlay) dersModalOverlay.classList.remove('active');
+          satirlariCiz();
+          ozetiGuncelle();
+        });
+      }
+
+      // ---- Aylık Görünüm: haftalık ve aylık toplamları salt okunur takvim
+      // kartlarında gösteren, "Soru Sayacım" özet kartındaki Değiştir
+      // butonuyla açılıp kapanan ikinci bir görünüm. Buradan soru
+      // eklenip çıkarılamaz; bir hafta kartına dokunmak kullanıcıyı o
+      // haftanın gün şeridine (normal ekle/çıkar arayüzüne) götürür. ----
+      const AY_ISIMLERI_SORU_SAYACI = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+      let ayGorunumuAcikMi = false;
+      // Aylık görünümde o an gezinilen ay (herhangi bir günü tutulur; yıl/ay bilgisi kullanılır).
+      let ayGosterilenTarih = new Date();
+
+      // Belirli bir haftanın (haftaninGunleri'nin döndürdüğü 7 günlük dizinin)
+      // Pazartesi'sine göre hafta şeridini o haftaya taşır; seçili gün olarak
+      // o haftanın bugüne kadar ulaşmış son gününü (tamamı gelecekteyse
+      // Pazartesi'sini) seçer.
+      function haftayaGit(referansTarih){
+        haftaReferansTarihi = new Date(referansTarih.getFullYear(), referansTarih.getMonth(), referansTarih.getDate());
+        const gunler = haftaninGunleri(haftaReferansTarihi);
+        const bugunGeceYarisi = new Date();
+        bugunGeceYarisi.setHours(0, 0, 0, 0);
+        let hedef = gunler[0];
+        for(let i = gunler.length - 1; i >= 0; i--){
+          const gg = new Date(gunler[i].getFullYear(), gunler[i].getMonth(), gunler[i].getDate());
+          if(gg.getTime() <= bugunGeceYarisi.getTime()){ hedef = gunler[i]; break; }
+        }
+        seciliGun = gunAnahtari(hedef);
+        satirlariCiz();
+        ozetiGuncelle();
+      }
+
+      // Hafta şeridinin solundaki/sağındaki oklar: önceki/sonraki haftaya geçer.
+      if(haftaOncekiBtn){
+        haftaOncekiBtn.addEventListener('click', function(){
+          haftayaGit(new Date(haftaReferansTarihi.getFullYear(), haftaReferansTarihi.getMonth(), haftaReferansTarihi.getDate() - 7));
+        });
+      }
+      if(haftaSonrakiBtn){
+        haftaSonrakiBtn.addEventListener('click', function(){
+          if(haftaSonrakiBtn.disabled) return;
+          haftayaGit(new Date(haftaReferansTarihi.getFullYear(), haftaReferansTarihi.getMonth(), haftaReferansTarihi.getDate() + 7));
+        });
+      }
+
+      function ayGorunumunuCiz(){
+        const ayIlkGun = new Date(ayGosterilenTarih.getFullYear(), ayGosterilenTarih.getMonth(), 1);
+        const aySonGun = new Date(ayGosterilenTarih.getFullYear(), ayGosterilenTarih.getMonth() + 1, 0);
+
+        if(ayBaslikEl){ ayBaslikEl.textContent = AY_ISIMLERI_SORU_SAYACI[ayIlkGun.getMonth()] + ' ' + ayIlkGun.getFullYear(); }
+
+        const simdi = new Date();
+        const guncelAyMi = (ayIlkGun.getFullYear() === simdi.getFullYear() && ayIlkGun.getMonth() === simdi.getMonth());
+        if(ayBuAyBtn){ ayBuAyBtn.style.display = guncelAyMi ? 'none' : ''; }
+        if(aySonrakiBtn){
+          const gelecekAyMi = (ayIlkGun.getFullYear() > simdi.getFullYear()) ||
+            (ayIlkGun.getFullYear() === simdi.getFullYear() && ayIlkGun.getMonth() >= simdi.getMonth());
+          aySonrakiBtn.disabled = gelecekAyMi;
+        }
+
+        // Ay toplamı: yalnızca seçili ayın takvim günlerini sayar (haftaların
+        // aya taşan komşu günleri buraya dahil edilmez).
+        let ayToplam = 0;
+        for(let g = 1; g <= aySonGun.getDate(); g++){
+          const tarih = new Date(ayIlkGun.getFullYear(), ayIlkGun.getMonth(), g);
+          ayToplam += gunToplami(veriler[gunAnahtari(tarih)]);
+        }
+        if(ayToplamSayiEl){ ayToplamSayiEl.textContent = String(ayToplam); }
+
+        // Bu ayı kapsayan haftaları (Pzt→Paz) sırayla üret; ay dışına taşan
+        // uçlardaki günler de o haftanın toplamına dahil edilir.
+        const haftalar = [];
+        let pazartesi = haftaninGunleri(ayIlkGun)[0];
+        while(pazartesi.getTime() <= aySonGun.getTime()){
+          haftalar.push(haftaninGunleri(pazartesi));
+          pazartesi = new Date(pazartesi.getFullYear(), pazartesi.getMonth(), pazartesi.getDate() + 7);
+        }
+
+        const bugunGeceYarisi = new Date();
+        bugunGeceYarisi.setHours(0, 0, 0, 0);
+        const bugunAnahtarYerel = gunAnahtari(simdi);
+
+        if(ayHaftaListeEl){
+          ayHaftaListeEl.innerHTML = '';
+
+          if(haftalar.length === 0){
+            const bos = document.createElement('p');
+            bos.className = 'analiz-bos soru-sayac-bos';
+            bos.textContent = 'Bu ay için kayıt bulunmuyor.';
+            ayHaftaListeEl.appendChild(bos);
+          }
+
+          haftalar.forEach(function(gunler){
+            let haftaToplam = 0;
+            gunler.forEach(function(g){ haftaToplam += gunToplami(veriler[gunAnahtari(g)]); });
+
+            const buHaftaMi = gunler.some(function(g){ return gunAnahtari(g) === bugunAnahtarYerel; });
+            const haftaBaslangicGeceYarisi = new Date(gunler[0].getFullYear(), gunler[0].getMonth(), gunler[0].getDate());
+            const tamamenGelecekMi = haftaBaslangicGeceYarisi.getTime() > bugunGeceYarisi.getTime();
+
+            const ilkG = gunler[0], sonG = gunler[6];
+            const tarihMetni = (ilkG.getMonth() === sonG.getMonth())
+              ? (ilkG.getDate() + ' - ' + sonG.getDate() + ' ' + AY_ISIMLERI_SORU_SAYACI[sonG.getMonth()])
+              : (ilkG.getDate() + ' ' + AY_ISIMLERI_SORU_SAYACI[ilkG.getMonth()] + ' - ' + sonG.getDate() + ' ' + AY_ISIMLERI_SORU_SAYACI[sonG.getMonth()]);
+
+            const kart = document.createElement('button');
+            kart.type = 'button';
+            kart.className = 'soru-sayaci-ay-hafta-kart' + (buHaftaMi ? ' bu-hafta' : '');
+            kart.disabled = tamamenGelecekMi;
+            kart.setAttribute('aria-label', tarihMetni + ' haftasının soru ekleme ekranını aç');
+
+            const tarihEl = document.createElement('span');
+            tarihEl.className = 'soru-sayaci-ay-hafta-tarih';
+            tarihEl.textContent = tarihMetni;
+
+            const sarmalayici = document.createElement('span');
+            sarmalayici.className = 'soru-sayaci-ay-hafta-sayi-sarmalayici';
+
+            const sayiEl = document.createElement('span');
+            sayiEl.className = 'soru-sayaci-ay-hafta-sayi';
+            sayiEl.textContent = String(haftaToplam);
+
+            const etiketEl = document.createElement('span');
+            etiketEl.className = 'soru-sayaci-ay-hafta-etiket';
+            etiketEl.textContent = 'soru';
+
+            sarmalayici.appendChild(sayiEl);
+            sarmalayici.appendChild(etiketEl);
+            kart.appendChild(tarihEl);
+            kart.appendChild(sarmalayici);
+
+            kart.addEventListener('click', function(){
+              haftayaGit(gunler[0]);
+              ayGorunumunuKapat();
+            });
+
+            ayHaftaListeEl.appendChild(kart);
+          });
+        }
+      }
+
+      function ayGorunumunuAc(){
+        ayGorunumuAcikMi = true;
+        ayGosterilenTarih = new Date(haftaReferansTarihi.getFullYear(), haftaReferansTarihi.getMonth(), 1);
+        if(haftaNavEl){ haftaNavEl.style.display = 'none'; }
+        if(soruSayaciCardEl){ soruSayaciCardEl.style.display = 'none'; }
+        if(ayGovdeEl){ ayGovdeEl.style.display = ''; }
+        if(degistirBtn){
+          degistirBtn.classList.add('aktif');
+          degistirBtn.setAttribute('aria-label', 'Haftalık görünüme dön');
+          degistirBtn.title = 'Haftalık görünüme dön';
+        }
+        ayGorunumunuCiz();
+      }
+
+      function ayGorunumunuKapat(){
+        ayGorunumuAcikMi = false;
+        if(haftaNavEl){ haftaNavEl.style.display = ''; }
+        if(soruSayaciCardEl){ soruSayaciCardEl.style.display = ''; }
+        if(ayGovdeEl){ ayGovdeEl.style.display = 'none'; }
+        if(degistirBtn){
+          degistirBtn.classList.remove('aktif');
+          degistirBtn.setAttribute('aria-label', 'Aylık görünüme geç');
+          degistirBtn.title = 'Aylık görünüme geç';
+        }
+      }
+
+      if(degistirBtn){
+        degistirBtn.addEventListener('click', function(){
+          if(ayGorunumuAcikMi){ ayGorunumunuKapat(); } else { ayGorunumunuAc(); }
+        });
+      }
+      if(ayOncekiBtn){
+        ayOncekiBtn.addEventListener('click', function(){
+          ayGosterilenTarih = new Date(ayGosterilenTarih.getFullYear(), ayGosterilenTarih.getMonth() - 1, 1);
+          ayGorunumunuCiz();
+        });
+      }
+      if(aySonrakiBtn){
+        aySonrakiBtn.addEventListener('click', function(){
+          if(aySonrakiBtn.disabled) return;
+          ayGosterilenTarih = new Date(ayGosterilenTarih.getFullYear(), ayGosterilenTarih.getMonth() + 1, 1);
+          ayGorunumunuCiz();
+        });
+      }
+      if(ayBuAyBtn){
+        ayBuAyBtn.addEventListener('click', function(){
+          ayGosterilenTarih = new Date();
+          ayGorunumunuCiz();
+        });
+      }
+
+      // ---- Gündelik ekranından "Soru Sayacı" butonuyla açılan bağımsız sayfa ----
+      window.showSoruSayaciView = function(){
+        gecisIleDegistir(function(){
+          hideAllViews();
+
+          // Sayfa her açıldığında bugüne dönülür, haftalık görünüme geçilir
+          // ve en güncel veriyi yansıtacak şekilde tazelenir.
+          gunKontrolEt();
+          haftaReferansTarihi = new Date();
+          seciliGun = bugunAnahtar;
+          ayGorunumunuKapat();
+          satirlariCiz();
+          ozetiGuncelle();
+
+          viewSoruSayaci.classList.add('active');
+          void viewSoruSayaci.offsetWidth;
+          viewSoruSayaci.style.animation = 'none';
+          void viewSoruSayaci.offsetWidth;
+          viewSoruSayaci.style.animation = '';
+
+          [soruSayaciTitleEl, soruSayaciSubEl, soruSayaciOzetKartEl, haftaGunlerEl, soruSayaciCardEl].forEach(function(el){
+            if(el) el.classList.remove('animate');
+          });
+          void viewSoruSayaci.offsetWidth;
+          [soruSayaciTitleEl, soruSayaciSubEl, soruSayaciOzetKartEl, haftaGunlerEl, soruSayaciCardEl].forEach(function(el){
+            if(el) el.classList.add('animate');
+          });
+        });
       };
     })();
 
