@@ -8443,6 +8443,15 @@
           <span class="theme-switch-knob"></span>
         </button>
       </div>
+      <div class="settings-row" id="tamEkranRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Tam Ekran</span>
+          <span class="settings-row-sub" id="tamEkranLabel">Tam ekran kapalı</span>
+        </div>
+        <button type="button" class="theme-switch" id="tamEkranSwitch" role="switch" aria-checked="false" aria-label="Tam ekran anahtarı">
+          <span class="theme-switch-knob"></span>
+        </button>
+      </div>
       <div class="settings-row" id="navbarPositionRow">
         <div class="settings-row-text">
           <span class="settings-row-title">Nav Bar Konumu</span>
@@ -17608,6 +17617,50 @@
         if(overlay.classList.contains('active')){ overlay.classList.remove('active'); }
       }
     });
+  })();
+
+  // ================= TAM EKRAN (FİLM İZLERKENKİ GİBİ, DURUM/SAAT ÇUBUĞU GİZLİ) =================
+  (function(){
+    const tamEkranSwitch = document.getElementById('tamEkranSwitch');
+    const tamEkranLabel = document.getElementById('tamEkranLabel');
+    const el = document.documentElement;
+
+    function tamEkranElemani(){
+      return document.fullscreenElement || document.webkitFullscreenElement ||
+             document.mozFullScreenElement || document.msFullscreenElement || null;
+    }
+    function girisYap(){
+      var istek = el.requestFullscreen || el.webkitRequestFullscreen ||
+                  el.mozRequestFullScreen || el.msRequestFullscreen;
+      if(istek) { try{ istek.call(el); }catch(e){} }
+    }
+    function cikisYap(){
+      var cikis = document.exitFullscreen || document.webkitExitFullscreen ||
+                  document.mozCancelFullScreen || document.msExitFullscreen;
+      if(cikis && tamEkranElemani()) { try{ cikis.call(document); }catch(e){} }
+    }
+
+    function etiketiGuncelle(aktif){
+      if(tamEkranSwitch){
+        tamEkranSwitch.classList.toggle('on', aktif);
+        tamEkranSwitch.setAttribute('aria-checked', aktif ? 'true' : 'false');
+      }
+      if(tamEkranLabel){ tamEkranLabel.textContent = aktif ? 'Tam ekran aktif' : 'Tam ekran kapalı'; }
+    }
+
+    // Gerçek durum kaynağı tarayıcının fullscreen durumudur; kullanıcı Esc'e
+    // basar ya da sistem hareketiyle çıkarsa anahtar da otomatik güncellenir.
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(function(olay){
+      document.addEventListener(olay, function(){ etiketiGuncelle(!!tamEkranElemani()); });
+    });
+
+    if(tamEkranSwitch){
+      tamEkranSwitch.addEventListener('click', function(){
+        if(tamEkranElemani()){ cikisYap(); } else { girisYap(); }
+      });
+    }
+
+    etiketiGuncelle(!!tamEkranElemani());
   })();
 
   // ================= NAV BAR KONUMU (ÜST / ALT) =================
