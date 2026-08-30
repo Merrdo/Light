@@ -3049,9 +3049,6 @@
     html[data-ozel-arkaplan="acik"] .ozel-arkaplan-katman{
       background-position:var(--ozel-arkaplan-yatay-konum, center);
     }
-    html[data-ozel-arkaplan="acik"] .profil-overlay::before{
-      background-position:var(--ozel-arkaplan-yatay-konum, center);
-    }
   }
   .ozel-arkaplan-katman::after{
     content:'';
@@ -3092,6 +3089,31 @@
     gap:0.8rem;
     padding:calc(1.1rem + env(safe-area-inset-top, 0px)) 1.2rem 1rem;
     border-bottom:1px solid var(--line);
+  }
+  /* Bu ikisi Fotoğrafı Ayarla penceresinin (foto-ayar-header) sol geri
+     butonu ve başlığı için kullanılır; Profilim artık kendi kart/modal
+     başlığını kullanmıyor (bkz. .view-profil). */
+  .profil-kapat-btn{
+    width:2.2rem;
+    height:2.2rem;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background 0.2s ease, border-color 0.2s ease;
+  }
+  .profil-kapat-btn:hover{ background:rgba(var(--ink-rgb),0.06); border-color:var(--ink-soft); }
+  .profil-kapat-btn:active{ transform:scale(0.94); }
+  .profil-kapat-btn svg{ width:1.15rem; height:1.15rem; }
+  .profil-header-baslik{
+    font-size:1.05rem;
+    font-weight:600;
+    color:var(--ink);
   }
   .foto-ayar-kaydet-btn{
     flex-shrink:0;
@@ -3167,97 +3189,44 @@
   }
 
   /* ================= PROFİL SAYFASI ================= */
-  .profil-overlay{
-    position:fixed;
-    inset:0;
-    z-index:98;
-    background:var(--bg);
-    display:flex;
+  /* Diğer sayfalar (Ayarlar, Denemelerim detayı vb.) gibi normal sayfa
+     akışına dahil, tam ekran bir görünüm: kart/modal görünümünden çıkar,
+     aynı gecisIleDegistir()/hideAllViews() geçiş sistemine katılır. Üstte
+     ayrı bir başlık çubuğu ya da onu alttan ayıran bir çizgi yok; geri
+     butonu (.deneme-detay-back ile aynı stil) doğrudan içeriğin üstünde,
+     sayfanın kendisiyle aynı akışta durur. */
+  .view-profil{
+    position:relative;
+    z-index:1;
+    display:none;
     flex-direction:column;
-    opacity:0;
-    transform:scale(0.97);
-    pointer-events:none;
-    visibility:hidden;
-    transition: opacity 0.16s ease, transform 0.16s cubic-bezier(.4,0,1,1), visibility 0s linear 0.16s;
-  }
-  /* Kullanıcının seçtiği özel arka plan görseli, ana sayfalardaki gibi
-     Profilim sayfasının da en arkasında görünsün (aynı okunabilirlik
-     örtüsüyle). Negatif z-index sayesinde solid arka plan renginin üstünde
-     ama profil içeriğinin (isim, satırlar vb.) altında kalır. */
-  .profil-overlay::before{
-    content:'';
-    position:absolute;
-    inset:0;
-    z-index:-1;
-    background-size:cover;
-    background-position:var(--ozel-arkaplan-dikey-konum, center);
-    background-repeat:no-repeat;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity 0.4s ease;
-  }
-  html[data-ozel-arkaplan="acik"] .profil-overlay::before{
-    opacity:1;
-    background-image:
-      linear-gradient(rgba(var(--bg-rgb), var(--ozel-arkaplan-ortu, 0.82)), rgba(var(--bg-rgb), var(--ozel-arkaplan-ortu, 0.82))),
-      var(--ozel-arkaplan-img, none);
-  }
-  .profil-overlay.active{
-    opacity:1;
-    transform:scale(1);
-    pointer-events:auto;
-    visibility:visible;
-    transition: opacity 0.24s ease, transform 0.24s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
-  }
-  @media (prefers-reduced-motion: reduce){
-    .profil-overlay{ transition:opacity 0.12s ease, visibility 0s linear 0.12s; transform:none; }
-    .profil-overlay.active{ transition:opacity 0.12s ease, visibility 0s linear 0s; transform:none; }
-  }
-  .profil-header{
-    flex-shrink:0;
-    display:flex;
     align-items:center;
-    gap:0.8rem;
-    padding:calc(1.1rem + env(safe-area-inset-top, 0px)) 1.2rem 1rem;
-    border-bottom:1px solid var(--line);
+    width:100%;
+    max-width:26rem;
   }
-  .profil-kapat-btn{
-    width:2.2rem;
-    height:2.2rem;
-    flex-shrink:0;
+  .view-profil.active{
     display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:50%;
-    border:1px solid var(--line);
-    background:transparent;
-    color:var(--ink);
-    cursor:pointer;
-    transition:background 0.2s ease, border-color 0.2s ease;
   }
-  .profil-kapat-btn:hover{ background:rgba(var(--ink-rgb),0.06); border-color:var(--ink-soft); }
-  .profil-kapat-btn:active{ transform:scale(0.94); }
-  .profil-kapat-btn svg{ width:1.15rem; height:1.15rem; }
-  .profil-header-baslik{
+  .profil-baslik{
+    display:block;
+    margin-top:3rem;
     font-size:1.05rem;
     font-weight:600;
     color:var(--ink);
   }
-  .profil-header-bosluk{ width:2.2rem; flex-shrink:0; }
   .profil-icerik{
-    flex:1;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    padding:2rem 1.4rem calc(2.4rem + env(safe-area-inset-bottom, 0px));
+    width:100%;
     display:flex;
     flex-direction:column;
     align-items:center;
+    padding-bottom:calc(2.4rem + env(safe-area-inset-bottom, 0px));
   }
   .profil-foto-wrap{
     position:relative;
     width:6.2rem;
     height:6.2rem;
     flex-shrink:0;
+    margin-top:1.4rem;
   }
   .profil-foto-cerceve{
     width:100%;
@@ -6951,7 +6920,7 @@
     .takvim-card{ padding:2.6rem 2.8rem; }
   }
 
-  .stage, .view-empty, .view-gundelik, .view-denemeler, .view-takvim, .view-deneme-detay, .view-sayac, .view-sayac-listem, .view-analiz{
+  .stage, .view-empty, .view-gundelik, .view-denemeler, .view-takvim, .view-deneme-detay, .view-sayac, .view-sayac-listem, .view-analiz, .view-profil{
     animation: viewFade 0.6s cubic-bezier(.22,1,.36,1) forwards;
   }
   @keyframes viewFade{
@@ -8333,6 +8302,7 @@
     .view-denemeler{ transition:none !important; transform:none !important; }
     .view-sayac, .sayac-eyebrow, .sayac-title, .sayac-kur-card, .sayac-card, .sayac-bitti-mesaji, .view-sayac-listem{ animation:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
     .view-analiz, .analiz-govde{ animation:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
+    .view-profil{ animation:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
     .sayac-birim.sayac-saniye .sayac-sayi.sayac-pulse{ animation:none !important; opacity:1 !important; }
     .dsayac-serit{ transition:none !important; }
     .view-gecis-cikis, .analiz-icerik-cikis{ transition:none !important; opacity:1 !important; transform:none !important; }
@@ -9986,16 +9956,17 @@
     </div>
   </div>
 
-  <!-- ================= PROFİL SAYFASI: fotoğraf, isim ve alan tek yerden ================= -->
-  <div class="profil-overlay" id="profilOverlay">
-    <div class="profil-header">
-      <button type="button" class="profil-kapat-btn" id="profilKapatBtn" aria-label="Profili kapat">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
-      </button>
-      <span class="profil-header-baslik">Profilim</span>
-      <span class="profil-header-bosluk"></span>
-    </div>
+  <!-- ================= PROFİL SAYFASI: fotoğraf, isim ve alan tek yerden =================
+       Diğer sayfalar (Ayarlar, Denemelerim detayı vb.) gibi tam ekran bir
+       "view": kart/modal görünümünden çıkıp aynı geçiş sistemine katılır
+       (bkz. showProfilView). Üstte ayrı bir başlık çubuğu/çizgi yok. -->
+  <div class="view-profil" id="viewProfil">
+    <button type="button" class="deneme-detay-back" id="profilGeriBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span>Ayarlarım</span>
+    </button>
     <div class="profil-icerik">
+      <span class="profil-baslik">Profilim</span>
       <div class="profil-foto-wrap">
         <div class="profil-foto-cerceve" id="profilFotoCerceve">
           <img src="" alt="Profil fotoğrafı" class="profil-foto-img" id="profilFotoImg" hidden>
@@ -11060,27 +11031,24 @@
     });
   })();
 
-  // ================= PROFİL SAYFASI: açma/kapama =================
+  // ================= PROFİL SAYFASI: açılışta verileri tazeleme =================
   // "Profilimi Özelleştir" butonuyla açılan, ismin/alanın ve profil
-  // fotoğrafının tek bir yerden yönetildiği tam ekran sayfa.
+  // fotoğrafının tek bir yerden yönetildiği tam ekran sayfa. Sayfa
+  // geçişinin kendisi (diğer sayfalar gibi) showProfilView() ile yapılır;
+  // bkz. Görünüm değiştirme bölümü.
   (function(){
-    const overlay = document.getElementById('profilOverlay');
     const acBtn = document.getElementById('profilAcBtn');
-    const kapatBtn = document.getElementById('profilKapatBtn');
-    if(!overlay || !acBtn) return;
+    if(!acBtn) return;
 
-    function ac(){
-      overlay.classList.add('active');
+    function yenile(){
       if(typeof window.sessizlikIsimEtiketiGuncelle === 'function'){ window.sessizlikIsimEtiketiGuncelle(); }
       if(typeof window.sessizlikAlanEtiketiGuncelle === 'function'){ window.sessizlikAlanEtiketiGuncelle(); }
       if(typeof window.sessizlikProfilFotoYenile === 'function'){ window.sessizlikProfilFotoYenile(); }
     }
-    function kapat(){ overlay.classList.remove('active'); }
+    window.sessizlikProfilYenile = yenile;
 
-    acBtn.addEventListener('click', ac);
-    if(kapatBtn){ kapatBtn.addEventListener('click', kapat); }
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' && overlay.classList.contains('active')){ kapat(); }
+    acBtn.addEventListener('click', function(){
+      if(typeof window.showProfilView === 'function'){ window.showProfilView(); }
     });
   })();
 
@@ -11341,7 +11309,8 @@
         aktifObjectUrl = URL.createObjectURL(blob);
         katman.style.backgroundImage = "url('" + aktifObjectUrl + "')";
         // Profilim sayfası da aynı görseli kendi arka planında gösterebilsin diye
-        // (bkz. .profil-overlay::before) paylaşılan bir CSS değişkenine de yazılır.
+        // (artık paylaşılan global .ozel-arkaplan-katman katmanı üzerinden,
+        // diğer sayfalarla aynı şekilde) paylaşılan bir CSS değişkenine de yazılır.
         root.style.setProperty('--ozel-arkaplan-img', "url('" + aktifObjectUrl + "')");
         root.setAttribute('data-ozel-arkaplan', 'acik');
         if(label){ label.textContent = 'Özel görsel aktif'; }
@@ -12362,6 +12331,7 @@
     const viewSayac = document.getElementById('viewSayac');
     const viewSayacListem = document.getElementById('viewSayacListem');
     const viewAnaliz = document.getElementById('viewAnaliz');
+    const viewProfil = document.getElementById('viewProfil');
     const pageFooter = document.getElementById('pageFooter');
     const emptyWord = document.getElementById('emptyWord');
     const emptyRule = document.getElementById('emptyRule');
@@ -12394,10 +12364,11 @@
       viewSayac.classList.remove('active');
       viewSayacListem.classList.remove('active');
       viewAnaliz.classList.remove('active');
+      if(viewProfil) viewProfil.classList.remove('active');
       if(typeof window.sayacListemDurdur === 'function'){ window.sayacListemDurdur(); }
       pageFooter.style.display = 'none';
       // Geçiş sınıfını temizle ki görünüm bir dahaki sefere normal şekilde belirsin.
-      [viewHome, viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSoruSayaci, viewSayac, viewSayacListem, viewAnaliz].forEach(function(v){
+      [viewHome, viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSoruSayaci, viewSayac, viewSayacListem, viewAnaliz, viewProfil].forEach(function(v){
         if(v){ v.classList.remove('view-gecis-cikis'); }
       });
     }
@@ -12423,7 +12394,7 @@
     // kaldırıyor.
     let gecisBekleyenId = null;
     function gecisIleDegistir(icerikFn){
-      const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSoruSayaci, viewSayac, viewSayacListem, viewAnaliz];
+      const izlenenler = [viewEmpty, viewGundelik, viewSoruHavuzu, viewDenemeler, viewDenemeDetay, viewTakvim, viewSoruSayaci, viewSayac, viewSayacListem, viewAnaliz, viewProfil];
       const canliListe = izlenenler.filter(function(v){ return v && v.classList.contains('active'); });
       const anaSayfaGorunur = viewHome && viewHome.style.display !== 'none';
       const cikanlar = canliListe.concat(anaSayfaGorunur ? [viewHome] : []);
@@ -12518,6 +12489,35 @@
       });
       });
     }
+
+    // ---- Profilim: Ayarlar'daki "Profilimi Özelleştir" ile açılan, diğer
+    // sayfalar gibi davranan tam ekran sayfa (bkz. showProfilView). Geri
+    // dönüş her zaman Ayarlar'a olur, çünkü buraya yalnızca oradan girilir. ----
+    function showProfilView(){
+      if(typeof window.sessizlikProfilYenile === 'function'){ window.sessizlikProfilYenile(); }
+      gecisIleDegistir(function(){
+      hideAllViews();
+
+      viewProfil.classList.add('active');
+      void viewProfil.offsetWidth;
+      viewProfil.style.animation = 'none';
+      void viewProfil.offsetWidth;
+      viewProfil.style.animation = '';
+      });
+    }
+    window.showProfilView = showProfilView;
+
+    const profilGeriBtn = document.getElementById('profilGeriBtn');
+    if(profilGeriBtn){
+      profilGeriBtn.addEventListener('click', function(){
+        showEmptyView();
+      });
+    }
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && viewProfil && viewProfil.classList.contains('active')){
+        showEmptyView();
+      }
+    });
 
     function showGundelikView(){
       gecisIleDegistir(function(){
@@ -22082,7 +22082,7 @@
 
   // ================= ARKA PLAN KİLİDİ: herhangi bir pop-up/kayar pencere açıkken arka plan kaydırılamasın =================
   (function(){
-    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-tam-ekran-overlay.active, .profil-overlay.active, .foto-ayar-overlay.active';
+    const KILIT_SECICI = '.modal-overlay.active, .duzenle-panel-overlay.active, .sifirhata-overlay.active, .dosya-goruntule-overlay.active, .spor-modu-overlay.active, .kronometre-tam-ekran-overlay.active, .foto-ayar-overlay.active';
     let kilitliKonum = 0;
     let kilitliMi = false;
 
@@ -22122,7 +22122,7 @@
       if(acikOverlayVarMi()){ govdeyiKilitle(); } else { govdeKilidiniAc(); }
     }
 
-    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-tam-ekran-overlay, .profil-overlay, .foto-ayar-overlay');
+    const izlenecekOverlayler = document.querySelectorAll('.modal-overlay, .duzenle-panel-overlay, .sifirhata-overlay, .dosya-goruntule-overlay, .spor-modu-overlay, .kronometre-tam-ekran-overlay, .foto-ayar-overlay');
     if(izlenecekOverlayler.length){
       const gozlemci = new MutationObserver(durumuKontrolEt);
       izlenecekOverlayler.forEach(function(el){
