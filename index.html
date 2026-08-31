@@ -201,6 +201,21 @@
     -webkit-tap-highlight-color:transparent;
   }
 
+  /* ---- <button> öğelerinin tarayıcı/OS varsayılan görünümünü sıfırla ----
+     Bu reset olmadan Safari/iOS, özellikle dokunulup odaklanmış (focus)
+     bir butonun etrafına kendi native çerçevesini/vurgusunu ekliyor; bu da
+     örn. "Arka Plan Animasyonu" seçenekleri gibi yan yana dizili pill
+     butonlarda seçili olanın diğerlerine göre büyük/eğri (yamuk) görünmesine
+     yol açıyordu. font ve rengi de miras almıyor, o yüzden burada da eşitliyoruz. */
+  button{
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  button:focus,
+  button:focus-visible{
+    outline:none;
+  }
+
   /* ---- Not: Rutinler ve Yapılacaklar bölümlerinde daha önce burada metni
      seçilebilir/kopyalanabilir yapan bir istisna vardı. Artık bu bölümlerdeki
      kartlarda basılı tutunca açılan özel "Kopyala" menüsü aynı işi gördüğü
