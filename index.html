@@ -112,6 +112,14 @@
   })();
 </script>
 
+<!-- ================= UYGULAMA TEMALARI (tam dönüşüm temaları: Retro, vb.) =================
+     Mevcut "Arka Plan Animasyonu" seçeneklerinden farklı olarak butonları,
+     fontu ve arka planı baştan sona değiştiren temalar burada yönetilir.
+     defer KULLANILMIYOR: tema erken uygulanıp aşağıdaki <style> boyanmadan
+     önce devreye girsin diye, tıpkı yukarıdaki erken-uygulama script'leri
+     gibi senkron çalışır. Tüm mantık temalar.js içindedir. -->
+<script src="temalar.js"></script>
+
 <style>
   :root{
     --bg:#FDFBF7;
