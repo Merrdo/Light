@@ -40,6 +40,8 @@
     retro: {
       isim: 'Retro',
       aciklama: 'Kırık beyaz kağıt, daktilo fontu, mürekkep damgası butonlar',
+      // Ayarlardaki seçim düğmesinde gösterilecek küçük renk anahtarı (önizleme)
+      onizleme: { bg: '#F1E7CE', ink: '#201D16' },
       css: ''
         /* ============ RETRO — renk paleti (açık taban) ============ */
         + 'html[data-app-tema="retro"]{'
@@ -314,20 +316,34 @@
     grup.setAttribute('role', 'group');
     grup.setAttribute('aria-label', 'Uygulama teması seçenekleri');
 
+    // Her seçim düğmesine, o temanın nasıl göründüğünü gösteren küçük bir
+    // renk anahtarı (iki tonlu daire) ekler; "Varsayılan" için şu an aktif
+    // olan gerçek renkleri (var(--bg)/var(--ink)) canlı olarak yansıtır.
+    function anahtarEkle(hedefBtn, bgRengi, inkRengi) {
+      var anahtar = document.createElement('span');
+      anahtar.className = 'apptema-anahtar';
+      anahtar.style.background =
+        'linear-gradient(135deg, ' + bgRengi + ' 50%, ' + inkRengi + ' 50%)';
+      hedefBtn.appendChild(anahtar);
+    }
+
     var varsayilanBtn = document.createElement('button');
     varsayilanBtn.type = 'button';
     varsayilanBtn.className = 'apptema-btn';
     varsayilanBtn.setAttribute('data-app-tema', 'varsayilan');
-    varsayilanBtn.textContent = 'Varsayılan';
+    anahtarEkle(varsayilanBtn, 'var(--bg)', 'var(--ink)');
+    varsayilanBtn.appendChild(document.createTextNode('Varsayılan'));
     grup.appendChild(varsayilanBtn);
 
-    for (var anahtar in TEMALAR) {
-      if (!TEMALAR.hasOwnProperty(anahtar)) continue;
+    for (var anahtarAdi in TEMALAR) {
+      if (!TEMALAR.hasOwnProperty(anahtarAdi)) continue;
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'apptema-btn';
-      btn.setAttribute('data-app-tema', anahtar);
-      btn.textContent = TEMALAR[anahtar].isim;
+      btn.setAttribute('data-app-tema', anahtarAdi);
+      var onz = TEMALAR[anahtarAdi].onizleme || { bg: 'var(--bg)', ink: 'var(--ink)' };
+      anahtarEkle(btn, onz.bg, onz.ink);
+      btn.appendChild(document.createTextNode(TEMALAR[anahtarAdi].isim));
       grup.appendChild(btn);
     }
 
@@ -351,11 +367,14 @@
     grupCss.id = 'app-tema-satir-stilleri';
     grupCss.textContent =
       '.apptema-group{display:flex;gap:0.5rem;flex-wrap:wrap;flex-shrink:0;}' +
-      '.apptema-btn{padding:0.45rem 0.95rem;border:1px solid var(--line);border-radius:100px;' +
+      '.apptema-btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.9rem 0.4rem 0.5rem;' +
+      'border:1px solid var(--line);border-radius:100px;' +
       'background:rgba(var(--bg-rgb),0.5);color:var(--ink-soft);font-size:0.72rem;' +
       'letter-spacing:0.04em;cursor:pointer;transition:border-color .2s ease,color .2s ease,background .2s ease;}' +
       '.apptema-btn:hover{border-color:var(--accent);color:var(--ink);}' +
-      '.apptema-btn.secili{border-color:var(--accent);background:rgba(var(--accent-rgb),0.16);color:var(--ink);}';
+      '.apptema-btn.secili{border-color:var(--accent);background:rgba(var(--accent-rgb),0.16);color:var(--ink);}' +
+      '.apptema-anahtar{width:14px;height:14px;flex-shrink:0;border-radius:50%;' +
+      'border:1px solid rgba(var(--ink-rgb),0.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15);}';
     document.head.appendChild(grupCss);
 
     guncelleUI();
