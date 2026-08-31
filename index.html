@@ -1420,15 +1420,69 @@
     #sporIstatistikBar5.spor-istatistik-oynat{ animation:none; }
   }
 
-  /* ---- Antrenman: kartlar (Kardiyo vb.) ve içindeki egzersizler ---- */
-  .spor-modu-view-antrenman{
-    justify-content:flex-start;
+  /* ---- Antrenman Sayfası: ana uygulamadan bağımsız tam ekran sayfa ----
+     Spor Modu'nun sarı temasından ayrı olarak ana uygulamanın kendi
+     stiliyle (bkz. .kronometre-tam-ekran-overlay ile aynı dil) açılır. */
+  html.antrenman-sayfa-acik .nav-wrap,
+  html.antrenman-sayfa-acik .bottom-nav-wrap{
+    animation:none !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+  }
+  .antrenman-sayfa-overlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
     align-items:stretch;
     text-align:left;
-    padding:calc(1.6rem + env(safe-area-inset-top, 0px)) 1.4rem 1.4rem;
+    opacity:0;
+    transform:scale(0.97);
+    pointer-events:none;
+    visibility:hidden;
+    padding:calc(3.4rem + env(safe-area-inset-top, 0px)) 1.4rem 1.4rem;
     gap:0;
     overflow:hidden;
+    transition: opacity 0.24s ease, transform 0.24s cubic-bezier(.22,1,.36,1), visibility 0s linear 0.24s;
+    will-change:opacity, transform;
   }
+  .antrenman-sayfa-overlay.active{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+    visibility:visible;
+    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .antrenman-sayfa-overlay{ transition:opacity 0.12s ease, visibility 0s linear 0.12s; transform:none; }
+    .antrenman-sayfa-overlay.active{ transition:opacity 0.12s ease, visibility 0s linear 0s; transform:none; }
+  }
+  .antrenman-sayfa-kapat-btn{
+    position:absolute;
+    top:calc(1.4rem + env(safe-area-inset-top, 0px));
+    right:1.4rem;
+    width:2.4rem;
+    height:2.4rem;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    z-index:2;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .antrenman-sayfa-kapat-btn svg{ width:1.1rem; height:1.1rem; }
+  .antrenman-sayfa-kapat-btn:active{ background:rgba(var(--ink-rgb),0.06); }
+  @media (hover:hover) and (pointer:fine){
+    .antrenman-sayfa-kapat-btn:hover{ background:rgba(var(--ink-rgb),0.06); color:var(--ink); }
+  }
+
   .antrenman-pane{
     display:none;
     flex-direction:column;
@@ -1472,7 +1526,7 @@
     transition: transform 0.18s cubic-bezier(.22,1,.36,1), border-color 0.2s ease, background 0.2s ease;
   }
   @media (hover:hover) and (pointer:fine){
-    .antrenman-kart:hover{ border-color:var(--sari); transform:translateY(-2px); }
+    .antrenman-kart:hover{ border-color:var(--accent); transform:translateY(-2px); }
   }
   .antrenman-kart:active{ transform:scale(0.96); }
   .antrenman-kart-ikon{
@@ -1482,8 +1536,8 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    background:rgba(var(--sari-rgb),0.14);
-    color:var(--sari);
+    background:rgba(var(--accent-rgb),0.14);
+    color:var(--accent);
     flex-shrink:0;
   }
   .antrenman-kart-ikon svg{ width:1.15rem; height:1.15rem; }
@@ -1535,8 +1589,8 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    background:rgba(var(--sari-rgb),0.14);
-    color:var(--sari);
+    background:rgba(var(--accent-rgb),0.14);
+    color:var(--accent);
   }
   .antrenman-egzersiz-satir-ikon svg{ width:1.05rem; height:1.05rem; }
   .antrenman-egzersiz-satir-metin{
@@ -1621,7 +1675,7 @@
     z-index:5;
     position:relative;
     box-shadow:0 12px 26px -8px rgba(var(--shadow-rgb),0.35);
-    border-color:var(--sari);
+    border-color:var(--accent);
     background:var(--bg);
     animation:none !important;
   }
@@ -1648,7 +1702,7 @@
   }
   .antrenman-egzersiz-ekle-satir svg{ width:1.05rem; height:1.05rem; flex-shrink:0; }
   @media (hover:hover) and (pointer:fine){
-    .antrenman-egzersiz-ekle-satir:hover{ color:var(--ink); border-color:var(--sari); background:rgba(var(--sari-rgb),0.09); }
+    .antrenman-egzersiz-ekle-satir:hover{ color:var(--ink); border-color:var(--accent); background:rgba(var(--accent-rgb),0.09); }
   }
 
   /* Egzersiz listesini düzenle (kalem/tamam) düğmesi */
@@ -1670,11 +1724,11 @@
   .antrenman-egzersiz-duzenle-btn svg{ width:1.05rem; height:1.05rem; }
   .antrenman-egzersiz-duzenle-btn .icon-tamam{ display:none; }
   @media (hover:hover) and (pointer:fine){
-    .antrenman-egzersiz-duzenle-btn:hover{ background:rgba(var(--sari-rgb),0.12); color:var(--sari); }
+    .antrenman-egzersiz-duzenle-btn:hover{ background:rgba(var(--accent-rgb),0.12); color:var(--accent); }
   }
   .antrenman-egzersiz-duzenle-btn.aktif{
-    color:var(--sari);
-    background:rgba(var(--sari-rgb),0.14);
+    color:var(--accent);
+    background:rgba(var(--accent-rgb),0.14);
   }
   .antrenman-egzersiz-duzenle-btn.aktif .icon-duzenle{ display:none; }
   .antrenman-egzersiz-duzenle-btn.aktif .icon-tamam{ display:block; }
@@ -1718,12 +1772,41 @@
     text-overflow:ellipsis;
   }
 
-  /* Antrenman modalları Spor Modu tam ekranının (z-index:9999) ÜSTÜNDE açılmalı,
-     ayrıca sitenin genel (mavi) vurgu rengi yerine Spor Modu'nun sarı temasını kullanmalı */
+  /* Antrenman modalları: artık Spor Modu'na değil, ana uygulamanın kendi
+     Antrenman Sayfası'na ait — sitenin genel (mavi) vurgu rengini kullanır. */
   #antrenmanKartModalOverlay,
   #antrenmanKartSilOnayOverlay,
   #antrenmanEgzersizModalOverlay,
-  #antrenmanEgzersizSilOnayOverlay,
+  #antrenmanEgzersizSilOnayOverlay{
+    z-index:10050;
+    background:
+      radial-gradient(circle at 50% 32%, rgba(var(--accent-rgb),0.14), transparent 55%),
+      rgba(0,0,0,0.8);
+  }
+  #antrenmanKartModalOverlay .modal-eyebrow,
+  #antrenmanKartSilOnayOverlay .modal-eyebrow,
+  #antrenmanEgzersizModalOverlay .modal-eyebrow,
+  #antrenmanEgzersizSilOnayOverlay .modal-eyebrow{
+    color:var(--accent);
+  }
+  #antrenmanKartModalOverlay .modal-field input:focus,
+  #antrenmanEgzersizModalOverlay .modal-field input:focus{
+    border-color:var(--accent);
+  }
+  #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary,
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary{
+    border:1px solid rgba(var(--accent-rgb),0.5);
+    background:linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb),0.78));
+    box-shadow:0 10px 24px -6px rgba(var(--accent-rgb),0.55);
+  }
+  #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary:hover,
+  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary:hover{
+    background:linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb),0.78));
+    box-shadow:0 14px 30px -6px rgba(var(--accent-rgb),0.62);
+  }
+
+  /* Mola Süreleri / Antrenman Başlangıcı süre seçici modalları: Spor Modu'nun
+     sarı temasında kalır (bunlar hâlâ Spor Modu'na ait). */
   #sporSureSecici,
   #molaAyarlarModalOverlay,
   #molaSureSecici{
@@ -1732,26 +1815,14 @@
       radial-gradient(circle at 50% 32%, rgba(var(--sari-rgb),0.14), transparent 55%),
       rgba(0,0,0,0.8);
   }
-  #antrenmanKartModalOverlay .modal-eyebrow,
-  #antrenmanKartSilOnayOverlay .modal-eyebrow,
-  #antrenmanEgzersizModalOverlay .modal-eyebrow,
-  #antrenmanEgzersizSilOnayOverlay .modal-eyebrow,
   #molaAyarlarModalOverlay .modal-eyebrow{
     color:var(--sari);
   }
-  #antrenmanKartModalOverlay .modal-field input:focus,
-  #antrenmanEgzersizModalOverlay .modal-field input:focus{
-    border-color:var(--sari);
-  }
-  #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary,
-  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary,
   #molaAyarlarModalOverlay .modal-btn-primary{
     border:1px solid rgba(var(--sari-rgb),0.5);
     background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
     box-shadow:0 10px 24px -6px rgba(var(--sari-rgb),0.55);
   }
-  #antrenmanKartModalOverlay .modal-actions-pill .modal-btn-primary:hover,
-  #antrenmanEgzersizModalOverlay .modal-actions-pill .modal-btn-primary:hover,
   #molaAyarlarModalOverlay .modal-btn-primary:hover{
     background:linear-gradient(135deg, var(--sari), rgba(var(--sari-rgb),0.78));
     box-shadow:0 14px 30px -6px rgba(var(--sari-rgb),0.62);
@@ -9201,6 +9272,15 @@
           <span>Spor Moduna Geç</span>
         </button>
       </div>
+      <div class="settings-row" id="antrenmanSayfaRow">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Antrenman Sayfası</span>
+        </div>
+        <button type="button" class="spor-modu-btn" id="antrenmanSayfaAcBtn" aria-label="Antrenman Sayfasını Aç">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>
+          <span>Antrenman Sayfasını Aç</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -10396,46 +10476,6 @@
     </div>
 
     <!-- Antrenman: kartlar (Kardiyo vb.) ve içindeki egzersizler -->
-    <div class="spor-modu-view spor-modu-view-antrenman" id="sporModuViewAntrenman">
-      <!-- Alt görünüm 1: kart ızgarası -->
-      <div class="antrenman-pane antrenman-pane-liste active" id="antrenmanPaneListe">
-        <div>
-          <h2 class="spor-modu-baslik antrenman-baslik-sola">Antrenman</h2>
-          <p class="spor-modu-aciklama antrenman-aciklama-sola">Egzersizlerini kartlar halinde grupla, örn. Kardiyo.</p>
-        </div>
-        <div class="antrenman-kart-izgara" id="antrenmanKartIzgara">
-          <button type="button" class="antrenman-kart antrenman-kart-ekle" id="antrenmanKartEkleBtn">
-            <span class="antrenman-kart-ikon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
-            </span>
-            <span class="antrenman-kart-isim">Yeni Kart</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Alt görünüm 2: bir karta tıklanınca açılan egzersiz ızgarası -->
-      <div class="antrenman-pane antrenman-pane-detay" id="antrenmanPaneDetay">
-        <div class="antrenman-detay-ust">
-          <button type="button" class="antrenman-geri-btn" id="antrenmanGeriBtn" aria-label="Kart listesine dön">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
-          </button>
-          <h2 class="antrenman-detay-baslik" id="antrenmanDetayBaslik">Kart</h2>
-          <button type="button" class="antrenman-egzersiz-duzenle-btn" id="antrenmanEgzersizDuzenleBtn" aria-label="Egzersizleri düzenle" aria-pressed="false">
-            <svg class="icon-duzenle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-            <svg class="icon-tamam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          </button>
-          <button type="button" class="antrenman-kart-sil-btn" id="antrenmanKartSilBtn" aria-label="Kartı sil">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
-          </button>
-        </div>
-        <div class="antrenman-egzersiz-liste" id="antrenmanEgzersizListe"></div>
-        <button type="button" class="antrenman-egzersiz-ekle-satir" id="antrenmanEgzersizEkleBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
-          <span>Yeni Egzersiz</span>
-        </button>
-      </div>
-    </div>
-
     <!-- Kalori: antrenman grubu seçip zamanlayıcılı sirküt çalıştırma -->
     <div class="spor-modu-view spor-modu-view-kalori" id="sporModuViewKalori">
       <!-- Alt görünüm 1: hangi grup(lar) çalıştırılacak -->
@@ -10589,10 +10629,6 @@
           </svg>
           <span class="dock-tip">Nabız</span>
         </button>
-        <button class="dock-btn" type="button" id="sporModuAntrenmanBtn" aria-label="Antrenman">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"></path><path d="M15 14a5 5 0 0 0-7.584 2"></path><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"></path></svg>
-          <span class="dock-tip">Antrenman</span>
-        </button>
         <button class="dock-btn" type="button" id="sporModuKaloriBtn" aria-label="Seans">
           <svg viewBox="0 0 256 256" fill="none"><path fill="currentColor" d="M183.89 153.34a57.6 57.6 0 0 1-46.56 46.55a9 9 0 0 1-1.33.11a8 8 0 0 1-1.32-15.89c16.57-2.79 30.63-16.85 33.44-33.45a8 8 0 0 1 15.78 2.68ZM216 144a88 88 0 0 1-176 0c0-27.92 11-56.47 32.66-84.85a8 8 0 0 1 11.93-.89l24.12 23.41l22-60.41a8 8 0 0 1 12.63-3.41C165.21 36 216 84.55 216 144m-16 0c0-46.09-35.79-85.92-58.21-106.33l-22.27 61.07a8 8 0 0 1-13.09 3L80.06 76.16C64.09 99.21 56 122 56 144a72 72 0 0 0 144 0"/></svg>
           <span class="dock-tip">Seans</span>
@@ -10722,6 +10758,55 @@
         <button type="button" class="modal-btn" id="antrenmanEgzersizSilVazgec">Vazgeç</button>
         <button type="button" class="modal-btn modal-btn-danger" id="antrenmanEgzersizSilOnayla">Evet, Sil</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= ANTRENMAN SAYFASI =================
+       Spor Modu'ndan bağımsız, ana uygulamanın kendi temasıyla (mavi vurgu
+       rengi) açılan tam ekran sayfa. Ayarlar'daki "Antrenman Sayfasını Aç"
+       düğmesiyle açılır. İçindeki kart/egzersiz mantığı aşağıdaki
+       "ANTRENMAN: kartlar" script bloğuyla birebir aynıdır (id'ler değişmedi). -->
+  <div class="antrenman-sayfa-overlay" id="antrenmanSayfaOverlay">
+    <button type="button" class="antrenman-sayfa-kapat-btn" id="antrenmanSayfaKapatBtn" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+    </button>
+
+    <!-- Alt görünüm 1: kart ızgarası -->
+    <div class="antrenman-pane antrenman-pane-liste active" id="antrenmanPaneListe">
+      <div>
+        <h2 class="spor-modu-baslik antrenman-baslik-sola">Antrenman</h2>
+        <p class="spor-modu-aciklama antrenman-aciklama-sola">Egzersizlerini kartlar halinde grupla, örn. Kardiyo.</p>
+      </div>
+      <div class="antrenman-kart-izgara" id="antrenmanKartIzgara">
+        <button type="button" class="antrenman-kart antrenman-kart-ekle" id="antrenmanKartEkleBtn">
+          <span class="antrenman-kart-ikon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+          </span>
+          <span class="antrenman-kart-isim">Yeni Kart</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alt görünüm 2: bir karta tıklanınca açılan egzersiz ızgarası -->
+    <div class="antrenman-pane antrenman-pane-detay" id="antrenmanPaneDetay">
+      <div class="antrenman-detay-ust">
+        <button type="button" class="antrenman-geri-btn" id="antrenmanGeriBtn" aria-label="Kart listesine dön">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+        </button>
+        <h2 class="antrenman-detay-baslik" id="antrenmanDetayBaslik">Kart</h2>
+        <button type="button" class="antrenman-egzersiz-duzenle-btn" id="antrenmanEgzersizDuzenleBtn" aria-label="Egzersizleri düzenle" aria-pressed="false">
+          <svg class="icon-duzenle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+          <svg class="icon-tamam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
+        <button type="button" class="antrenman-kart-sil-btn" id="antrenmanKartSilBtn" aria-label="Kartı sil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+        </button>
+      </div>
+      <div class="antrenman-egzersiz-liste" id="antrenmanEgzersizListe"></div>
+      <button type="button" class="antrenman-egzersiz-ekle-satir" id="antrenmanEgzersizEkleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+        <span>Yeni Egzersiz</span>
+      </button>
     </div>
   </div>
 
@@ -12346,6 +12431,7 @@
     const yedekRow = document.getElementById('yedekRow');
     const bulutYedekRow = document.getElementById('bulutYedekRow');
     const sporModuRow = document.getElementById('sporModuRow');
+    const antrenmanSayfaRow = document.getElementById('antrenmanSayfaRow');
     const gundelikTitle = document.getElementById('gundelikTitle');
     const gundelikSub = document.getElementById('gundelikSub');
     const denemelerEyebrow = document.getElementById('denemelerEyebrow');
@@ -12437,6 +12523,7 @@
       yedekRow.classList.remove('animate');
       bulutYedekRow.classList.remove('animate');
       sporModuRow.classList.remove('animate');
+      antrenmanSayfaRow.classList.remove('animate');
       gundelikTitle.classList.remove('animate');
       gundelikSub.classList.remove('animate');
 
@@ -12479,7 +12566,7 @@
 
       // Ana sayfa gibi: giriş animasyonu oynatılmadan, ekrandaki tüm öğeler
       // doğrudan son (görünür) haline getirilir; ayarlar her zaman anında açılır.
-      const ayarOgeleri = [emptyWord, emptyRule, emptySub, profilRow, settingsRow, navbarPositionRow, tamEkranRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow];
+      const ayarOgeleri = [emptyWord, emptyRule, emptySub, profilRow, settingsRow, navbarPositionRow, tamEkranRow, renkRow, isikEfektiRow, bganimRow, yedekRow, bulutYedekRow, sporModuRow, antrenmanSayfaRow];
       ayarOgeleri.forEach(function(el){
         el.classList.remove('animate');
         el.style.animation = 'none';
@@ -20120,7 +20207,6 @@
     const acBtn = document.getElementById('sporModuBtn');
     const overlay = document.getElementById('sporModuOverlay');
     const ayarlarBtn = document.getElementById('sporModuAyarlarBtn');
-    const antrenmanBtn = document.getElementById('sporModuAntrenmanBtn');
     const nabizBtn = document.getElementById('sporModuNabizBtn');
     const kaloriBtn = document.getElementById('sporModuKaloriBtn');
     const programBtn = document.getElementById('sporModuProgramBtn');
@@ -20128,7 +20214,6 @@
     const cikisLinkBtn = document.getElementById('sporModuCikisBtn');
     const viewAna = document.getElementById('sporModuViewAna');
     const viewAyarlar = document.getElementById('sporModuViewAyarlar');
-    const viewAntrenman = document.getElementById('sporModuViewAntrenman');
     const viewKalori = document.getElementById('sporModuViewKalori');
     const viewProgram = document.getElementById('sporModuViewProgram');
     const dockHighlight = document.getElementById('sporModuDockHighlight');
@@ -20139,11 +20224,11 @@
 
     if(!acBtn || !overlay) return;
 
-    const tumDockBtnlar = [antrenmanBtn, nabizBtn, kaloriBtn, programBtn, istatistikBtn, ayarlarBtn].filter(Boolean);
+    const tumDockBtnlar = [nabizBtn, kaloriBtn, programBtn, istatistikBtn, ayarlarBtn].filter(Boolean);
 
     function sporModuIcGoster(hedefView){
       if(hedefView !== viewKalori && window.kaloriDurdur){ window.kaloriDurdur(); }
-      [viewAna, viewAyarlar, viewAntrenman, viewKalori, viewProgram].forEach(function(v){
+      [viewAna, viewAyarlar, viewKalori, viewProgram].forEach(function(v){
         if(v){ v.classList.toggle('active', v === hedefView); }
       });
     }
@@ -20206,13 +20291,6 @@
       ayarlarBtn.addEventListener('click', function(){
         sporModuIcGoster(viewAyarlar);
         sporDockAktifYap(ayarlarBtn);
-      });
-    }
-    if(antrenmanBtn){
-      antrenmanBtn.addEventListener('click', function(){
-        sporModuIcGoster(viewAntrenman);
-        sporDockAktifYap(antrenmanBtn);
-        if(window.antrenmanListePaneGoster){ window.antrenmanListePaneGoster(); }
       });
     }
     if(nabizBtn){
@@ -21049,6 +21127,31 @@
 
     yukle();
     kartlariRenderEt();
+  })();
+
+  // ================= ANTRENMAN SAYFASI: bağımsız tam ekran açma/kapama =================
+  // Spor Modu'ndan tamamen ayrı: Ayarlar'daki "Antrenman Sayfasını Aç"
+  // düğmesiyle açılır, ana uygulamanın nav çubuklarını (kronometre tam
+  // ekranındaki gibi) geçici olarak gizler. Kart/egzersiz mantığı yukarıdaki
+  // "ANTRENMAN: kartlar" bloğunda; burada sadece sayfanın açılıp kapanması var.
+  (function(){
+    const acBtn = document.getElementById('antrenmanSayfaAcBtn');
+    const overlay = document.getElementById('antrenmanSayfaOverlay');
+    const kapatBtn = document.getElementById('antrenmanSayfaKapatBtn');
+    if(!acBtn || !overlay) return;
+
+    function ac(){
+      overlay.classList.add('active');
+      document.documentElement.classList.add('antrenman-sayfa-acik');
+      if(window.antrenmanListePaneGoster){ window.antrenmanListePaneGoster(); }
+    }
+    function kapat(){
+      overlay.classList.remove('active');
+      document.documentElement.classList.remove('antrenman-sayfa-acik');
+    }
+
+    acBtn.addEventListener('click', ac);
+    if(kapatBtn){ kapatBtn.addEventListener('click', kapat); }
   })();
 
   // ================= KALORI: seçili antrenman gruplarını süreli sirküt olarak çalıştırma =================
