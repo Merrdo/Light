@@ -297,6 +297,23 @@
     return istemci.from(TABLO).select('veri,guncellenme_zamani').eq('user_id', oturum.user.id).maybeSingle();
   }
 
+  // "Tüm Verilerimi Sil" (index.html, profil sayfası) tetiklendiğinde bu cihazdaki
+  // localStorage/IndexedDB verilerinin yanı sıra buluttaki kaydın da (görseller
+  // dahil, çünkü "dosyalar" alanı base64 görselleri de içeriyor) silinmesi için
+  // index.html'e açılan köprü. Giriş yapılmamışsa silinecek bulut kaydı yoktur,
+  // doğrudan başarılı sayılır.
+  function buluttakiTumVeriyiSil() {
+    if (!girisliMi()) return Promise.resolve(true);
+    return istemci.from(TABLO).delete().eq('user_id', oturum.user.id).then(function (r) {
+      if (r.error) throw r.error;
+      return true;
+    }).catch(function (e) {
+      console.error('Buluttaki hesap verileri silinemedi:', e);
+      return false;
+    });
+  }
+  window.__bulutHesapVerileriniSil = buluttakiTumVeriyiSil;
+
   function simdiYedekle() {
     if (!girisliMi() || !navigator.onLine) return Promise.resolve(false);
     senkronDurum = 'bekliyor';
