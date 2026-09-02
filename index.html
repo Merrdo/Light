@@ -201,21 +201,6 @@
     -webkit-tap-highlight-color:transparent;
   }
 
-  /* ---- <button> öğelerinin tarayıcı/OS varsayılan görünümünü sıfırla ----
-     Bu reset olmadan Safari/iOS, özellikle dokunulup odaklanmış (focus)
-     bir butonun etrafına kendi native çerçevesini/vurgusunu ekliyor; bu da
-     örn. "Arka Plan Animasyonu" seçenekleri gibi yan yana dizili pill
-     butonlarda seçili olanın diğerlerine göre büyük/eğri (yamuk) görünmesine
-     yol açıyordu. font ve rengi de miras almıyor, o yüzden burada da eşitliyoruz. */
-  button{
-    -webkit-appearance:none;
-    appearance:none;
-  }
-  button:focus,
-  button:focus-visible{
-    outline:none;
-  }
-
   /* ---- Not: Rutinler ve Yapılacaklar bölümlerinde daha önce burada metni
      seçilebilir/kopyalanabilir yapan bir istisna vardı. Artık bu bölümlerdeki
      kartlarda basılı tutunca açılan özel "Kopyala" menüsü aynı işi gördüğü
@@ -8498,6 +8483,16 @@
         <div class="modal-alan-secim modal-alan-secim-wrap" id="havuzCevapSecim" role="radiogroup" aria-labelledby="havuzCevapLabel"></div>
       </div>
 
+      <div class="modal-field">
+        <label for="havuzKitapInput">Kitap (isteğe bağlı)</label>
+        <input type="text" id="havuzKitapInput" name="havuzKitapInput" placeholder="Örn. 3D Yayınları TYT Matematik">
+      </div>
+
+      <div class="modal-field">
+        <label for="havuzSayfaInput">Sayfa (isteğe bağlı)</label>
+        <input type="text" id="havuzSayfaInput" name="havuzSayfaInput" inputmode="numeric" placeholder="Örn. 42">
+      </div>
+
       <div class="modal-actions modal-actions-pill">
         <button type="button" class="modal-btn" id="havuzEkleModalCancel">Vazgeç</button>
         <button type="button" class="modal-btn modal-btn-primary" id="havuzEkleModalSave" disabled>Havuza Ekle</button>
@@ -12781,6 +12776,8 @@
     const havuzAlanSecim = document.getElementById('havuzAlanSecim');
     const havuzBransSecim = document.getElementById('havuzBransSecim');
     const havuzCevapSecim = document.getElementById('havuzCevapSecim');
+    const havuzKitapInput = document.getElementById('havuzKitapInput');
+    const havuzSayfaInput = document.getElementById('havuzSayfaInput');
 
     let havuzSeciliDosya = null;
     let havuzSeciliAlanEkle = 'TYT';
@@ -12801,6 +12798,8 @@
         havuzSeciliAlanEkle = 'TYT';
         havuzSeciliBransEkle = null;
         havuzSeciliCevapEkle = null;
+        if(havuzKitapInput) havuzKitapInput.value = '';
+        if(havuzSayfaInput) havuzSayfaInput.value = '';
         havuzEkleModalAc();
       });
     }
@@ -12923,6 +12922,8 @@
         if(!havuzSeciliDosya || !havuzSeciliBransEkle) return;
         havuzEkleModalSave.disabled = true;
         const id = havuzSoruIdUret();
+        const kitapDeger = havuzKitapInput ? havuzKitapInput.value.trim() : '';
+        const sayfaDeger = havuzSayfaInput ? havuzSayfaInput.value.trim() : '';
         dosyaKaydetOptimize(id, havuzSeciliDosya).then(function(){
           havuzVerileri.push({
             id: id,
@@ -12930,6 +12931,8 @@
             brans: havuzSeciliBransEkle,
             dosyaId: id,
             dogruCevap: havuzSeciliCevapEkle || null,
+            kitap: kitapDeger || null,
+            sayfa: sayfaDeger || null,
             eklendi: new Date().toISOString()
           });
           havuzKaydet();
@@ -13142,7 +13145,10 @@
             }
           };
         }
-        dosyaGoster(blob, soru.alan + ' · ' + soru.brans, function(){
+        let havuzBaslik = soru.alan + ' · ' + soru.brans;
+        if(soru.kitap){ havuzBaslik += ' · ' + soru.kitap; }
+        if(soru.sayfa){ havuzBaslik += ' (s.' + soru.sayfa + ')'; }
+        dosyaGoster(blob, havuzBaslik, function(){
           havuzSoruSilOnayAc(soru);
         }, cevapSecici, kaydirma, cozulduSecici);
       }).catch(function(err){ console.log('Görsel açılamadı:', err); });
