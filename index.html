@@ -1089,11 +1089,6 @@
   }
   .yedek-ac-btn:active{ transform:scale(0.96); }
   .yedek-ac-btn svg{ width:0.95rem; height:0.95rem; flex-shrink:0; }
-  .yedek-ac-btn.tehlike{
-    border:1px solid rgba(var(--yanlis-rgb),0.5);
-    background:linear-gradient(135deg, var(--yanlis), rgba(var(--yanlis-rgb),0.78));
-    box-shadow:0 10px 24px -6px rgba(var(--yanlis-rgb),0.5);
-  }
   .bulut-icon-grup{
     display:flex;
     align-items:center;
@@ -8326,29 +8321,6 @@
             <span class="theme-switch-knob"></span>
           </button>
         </div>
-        <div class="settings-row" id="hesapSilRow">
-          <div class="settings-row-text">
-            <span class="settings-row-title">Tehlikeli Bölge</span>
-            <span class="settings-row-sub">Tüm verilerini kalıcı olarak sil</span>
-          </div>
-          <button type="button" class="yedek-ac-btn tehlike" id="hesapSilBtn" aria-label="Tüm hesap verilerini sil">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            <span>Tüm Verilerimi Sil</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Profil: tüm hesap verilerini silme (ilk kuruluma sıfırlama) onay penceresi -->
-  <div class="modal-overlay" id="hesapSilOnayOverlay">
-    <div class="modal-box" style="position:relative;">
-      <span class="modal-eyebrow">Silme Onayı</span>
-      <h3 class="modal-title">Tüm verilerini sil</h3>
-      <p class="modal-onay-metin">İsmin, fotoğrafın, alanın, denemelerin, rutinlerin ve tüm diğer verilerin bu cihazdan kalıcı olarak silinecek; uygulama sanki ilk defa açılmış gibi sıfırlanacak. Bu işlem geri alınamaz.</p>
-      <div class="modal-actions">
-        <button type="button" class="modal-btn" id="hesapSilVazgec">Vazgeç</button>
-        <button type="button" class="modal-btn modal-btn-danger" id="hesapSilOnayla">Evet, Hepsini Sil</button>
       </div>
     </div>
   </div>
@@ -8915,57 +8887,6 @@
 
     acBtn.addEventListener('click', function(){
       if(typeof window.showProfilView === 'function'){ window.showProfilView(); }
-    });
-  })();
-
-  // ================= PROFİL SAYFASI: tüm hesap verilerini sil (ilk kuruluma sıfırla) =================
-  // "Tüm Verilerimi Sil" butonu; onay penceresinden sonra bu cihazdaki tüm
-  // localStorage anahtarlarını ve IndexedDB'de saklanan (profil/arka plan
-  // görselleri, cevap anahtarı dosyaları gibi) verileri temizleyip sayfayı
-  // yeniden yükler. Sonuç: uygulama sanki ilk defa açılmış gibi başlar.
-  (function(){
-    const silBtn = document.getElementById('hesapSilBtn');
-    const overlay = document.getElementById('hesapSilOnayOverlay');
-    const vazgecBtn = document.getElementById('hesapSilVazgec');
-    const onaylaBtn = document.getElementById('hesapSilOnayla');
-    if(!silBtn || !overlay || !vazgecBtn || !onaylaBtn) return;
-
-    function acPopup(){ overlay.classList.add('active'); }
-    function kapatPopup(){ overlay.classList.remove('active'); }
-
-    silBtn.addEventListener('click', acPopup);
-    vazgecBtn.addEventListener('click', kapatPopup);
-    overlay.addEventListener('click', function(e){
-      if(e.target === overlay){ kapatPopup(); }
-    });
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' && overlay.classList.contains('active')){ kapatPopup(); }
-    });
-
-    function indexedDbSil(adi){
-      return new Promise(function(resolve){
-        try{
-          if(!window.indexedDB || !indexedDB.deleteDatabase){ resolve(); return; }
-          const istek = indexedDB.deleteDatabase(adi);
-          istek.onsuccess = function(){ resolve(); };
-          istek.onerror = function(){ resolve(); };
-          istek.onblocked = function(){ resolve(); };
-        }catch(e){ resolve(); }
-      });
-    }
-
-    onaylaBtn.addEventListener('click', function(){
-      onaylaBtn.disabled = true;
-      vazgecBtn.disabled = true;
-      try{ localStorage.clear(); }catch(e){}
-      Promise.all([
-        indexedDbSil('sessizlik-arkaplan-db'),
-        indexedDbSil('sessizlik-dosyalar')
-      ]).then(function(){
-        window.location.reload();
-      }).catch(function(){
-        window.location.reload();
-      });
     });
   })();
 
